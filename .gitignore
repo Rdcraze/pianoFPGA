@@ -1,0 +1,39 @@
+# Local Codex/session files
+.codex
+.cnxerr
+transcript
+vish_stacktrace.vstf
+qmegawiz_errors_log.txt
+
+# Large local reference bundles
+Manuals_Examples/
+
+# Generated firmware/build products
+fw/phase0/build/
+phase0_fw.hex
+phase0_fw.mem
+phase0_fw.mif
+phase0_fw.ver
+
+# Quartus generated databases and outputs
+quartus/phase0/db/
+quartus/phase0/incremental_db/
+quartus/phase0/output_files/
+quartus/phase0/simulation/modelsim/
+
+# ModelSim/generated simulation libraries
+work/
+tmp/
+*_work/@_opt*/
+*_work/_*
+*_work/*.qdb
+*_work/*.qpg
+*_work/*.qtl
+
+# Python cache files
+__pycache__/
+*.pyc
+
+# Captured/generated media
+*.wav
+*.pkf

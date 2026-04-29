@@ -1,0 +1,15 @@
+# Phase 1C Firmware Round-Robin Verifier Audio Analysis
+
+| Capture | Duration s | Channels | Onset s | RMS | Peak | dB vs accepted 3-voice RMS | F0 Hz | Crest | Clips |
+| --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: |
+| Accepted three-voice verifier capture | 11.985 | 2 | 3.837 | 0.02897325 | 0.14695740 | +0.00 | 436.385 | 5.072 | 0 |
+| Round-robin implementer capture | 5.987 | 1 | 2.501 | 0.01307489 | 0.04953003 | -6.91 | 437.622 | 3.788 | 0 |
+| Round-robin verifier capture | 11.987 | 2 | 3.673 | 0.02868047 | 0.14904785 | -0.09 | 435.812 | 5.197 | 0 |
+
+Round-robin verifier spectral peaks, dB relative to strongest listed peak:
+- 408.2 Hz (-29.0 dB)
+- 435.9 Hz (+0.0 dB)
+- 612.3 Hz (-31.1 dB)
+- 871.9 Hz (-6.6 dB)
+- 1224.6 Hz (-31.8 dB)
+- 1308.0 Hz (-19.8 dB)

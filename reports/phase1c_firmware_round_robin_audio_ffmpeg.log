@@ -1,0 +1,26 @@
+[aist#0:0/pcm_s16le @ 000001a5b0691cc0] Guessed Channel Layout: stereo
+Input #0, dshow, from 'audio=外部麦克�?(Realtek(R) Audio)':
+  Duration: N/A, start: 844471.046000, bitrate: 1411 kb/s
+  Stream #0:0: Audio: pcm_s16le, 44100 Hz, stereo, s16, 1411 kb/s
+Stream mapping:
+  Stream #0:0 -> #0:0 (pcm_s16le (native) -> pcm_s16le (native))
+Press [q] to stop, [?] for help
+Output #0, wav, to 'E:\projects\piano-agents\reports\phase1c_firmware_round_robin_audio_capture.wav':
+  Metadata:
+    ISFT            : Lavf61.7.100
+  Stream #0:0: Audio: pcm_s16le ([1][0][0][0] / 0x0001), 48000 Hz, mono, s16, 768 kb/s
+      Metadata:
+        encoder         : Lavc61.19.100 pcm_s16le
+size=      47KiB time=00:00:01.01 bitrate= 379.6kbits/s speed=1.98x    
+size=      94KiB time=00:00:01.51 bitrate= 508.3kbits/s speed=1.47x    
+size=     141KiB time=00:00:02.01 bitrate= 572.6kbits/s speed=1.31x    
+size=     188KiB time=00:00:02.51 bitrate= 611.4kbits/s speed=1.22x    
+size=     234KiB time=00:00:03.01 bitrate= 637.4kbits/s speed=1.17x    
+size=     256KiB time=00:00:03.51 bitrate= 597.2kbits/s speed=1.14x    
+size=     256KiB time=00:00:04.01 bitrate= 522.8kbits/s speed=1.11x    
+size=     256KiB time=00:00:04.51 bitrate= 464.7kbits/s speed= 1.1x    
+size=     256KiB time=00:00:05.01 bitrate= 418.4kbits/s speed=1.08x    
+size=     256KiB time=00:00:05.51 bitrate= 380.4kbits/s speed=1.07x    
+size=     512KiB time=00:00:06.00 bitrate= 699.1kbits/s speed=1.06x    
+[out#0/wav @ 000001a5b06929c0] video:0KiB audio:561KiB subtitle:0KiB other streams:0KiB global headers:0KiB muxing overhead: 0.013571%
+size=     561KiB time=00:00:06.00 bitrate= 766.4kbits/s speed=0.923x    

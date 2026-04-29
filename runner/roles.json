@@ -1,0 +1,75 @@
+{
+  "server_url": "http://127.0.0.1:8000/mcp",
+  "state_dir": "${REPO_ROOT}/tmp/runner-state",
+  "heartbeat_interval_seconds": 45,
+  "wait_timeout_seconds": 300,
+  "stale_after_seconds": 180,
+  "tool_retry_attempts": 4,
+  "tool_retry_initial_delay_seconds": 1.0,
+  "tool_retry_max_delay_seconds": 8.0,
+  "failure_backoff_seconds": 10,
+  "replace_existing": true,
+  "codex": {
+    "bin": "codex",
+    "cd": "${REPO_ROOT}",
+    "sandbox": "workspace-write",
+    "approval": "never",
+    "add_dirs": [],
+    "config_overrides": [
+      "mcp_servers.teambus.tools.acknowledge_message.approval_mode=\"approve\"",
+      "mcp_servers.teambus.tools.claim_next_task.approval_mode=\"approve\"",
+      "mcp_servers.teambus.tools.claim_task.approval_mode=\"approve\"",
+      "mcp_servers.teambus.tools.create_task.approval_mode=\"approve\"",
+      "mcp_servers.teambus.tools.dashboard.approval_mode=\"approve\"",
+      "mcp_servers.teambus.tools.get_inbox.approval_mode=\"approve\"",
+      "mcp_servers.teambus.tools.get_path_lock.approval_mode=\"approve\"",
+      "mcp_servers.teambus.tools.heartbeat.approval_mode=\"approve\"",
+      "mcp_servers.teambus.tools.init_project.approval_mode=\"approve\"",
+      "mcp_servers.teambus.tools.list_agents.approval_mode=\"approve\"",
+      "mcp_servers.teambus.tools.list_artifacts.approval_mode=\"approve\"",
+      "mcp_servers.teambus.tools.list_path_locks.approval_mode=\"approve\"",
+      "mcp_servers.teambus.tools.list_tasks.approval_mode=\"approve\"",
+      "mcp_servers.teambus.tools.ping.approval_mode=\"approve\"",
+      "mcp_servers.teambus.tools.post_message.approval_mode=\"approve\"",
+      "mcp_servers.teambus.tools.reassign_task.approval_mode=\"approve\"",
+      "mcp_servers.teambus.tools.register_agent.approval_mode=\"approve\"",
+      "mcp_servers.teambus.tools.release_path_lock.approval_mode=\"approve\"",
+      "mcp_servers.teambus.tools.release_task_locks.approval_mode=\"approve\"",
+      "mcp_servers.teambus.tools.renew_path_lock.approval_mode=\"approve\"",
+      "mcp_servers.teambus.tools.reserve_path.approval_mode=\"approve\"",
+      "mcp_servers.teambus.tools.reserve_paths.approval_mode=\"approve\"",
+      "mcp_servers.teambus.tools.start_task.approval_mode=\"approve\"",
+      "mcp_servers.teambus.tools.submit_artifact.approval_mode=\"approve\"",
+      "mcp_servers.teambus.tools.update_task_status.approval_mode=\"approve\"",
+      "mcp_servers.teambus.tools.wait_for_work.approval_mode=\"approve\""
+    ],
+    "extra_args": []
+  },
+  "roles": {
+    "implementer": {
+      "name": "codex-implementer",
+      "worktree": "${WINDOWS_REPO_ROOT}",
+      "codex": {
+        "cd": "${WINDOWS_REPO_ROOT}"
+      }
+    },
+    "manual-reader": {
+      "name": "codex-manual-reader",
+      "worktree": "${REPO_ROOT}",
+      "resume_prompt": "Read the current wake from {wake_path} and proceed with the current manual-reader task. Start with the wake reasons: {wake_reasons}.",
+      "exec_resume_session_id": "019dad78-7c8c-7300-a722-5fbcb7a6577f"
+    },
+    "orchestrator": {
+      "name": "codex-orchestrator",
+      "worktree": "${REPO_ROOT}",
+      "wait_mode": "edge_only"
+    },
+    "verifier": {
+      "name": "codex-verifier",
+      "worktree": "${WINDOWS_REPO_ROOT}",
+      "codex": {
+        "cd": "${WINDOWS_REPO_ROOT}"
+      }
+    }
+  }
+}

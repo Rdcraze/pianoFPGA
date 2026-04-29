@@ -1,0 +1,5 @@
+PLL_Name	wm8978_codec_stub:wm8978_codec_stub_inst|phase0_audio_mclk_pll:phase0_audio_mclk_pll_inst|altpll:altpll_component|altpll_qf31:auto_generated|pll1
+PLLJITTER	30
+PLLSPEmax	84
+PLLSPEmin	-53
+

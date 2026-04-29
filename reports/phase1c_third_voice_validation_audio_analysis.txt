@@ -1,0 +1,23 @@
+# Phase 1C Third-Voice Verifier Audio Analysis
+
+| Capture | Duration s | Onset s | RMS | Peak | dB vs Phase1C-B RMS | F0 Hz | F0 delta vs Phase1C-B | Crest | Clips |
+| --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: |
+| Phase1 timing-margin validation | 14.987 | 2.624 | 0.00858600 | 0.02713013 | -7.19 | 436.032 | -1.752 | 3.160 | 0 |
+| Phase1 two-voice HW smoke | 14.985 | 3.678 | 0.01902093 | 0.09361267 | -0.29 | 437.405 | -0.379 | 4.922 | 0 |
+| Phase1C-A ROM/RAM validation | 11.986 | 3.525 | 0.01970467 | 0.09313965 | +0.02 | 438.022 | +0.238 | 4.727 | 0 |
+| Phase1C-B body-pipe validation | 11.987 | 3.742 | 0.01965688 | 0.09133911 | +0.00 | 437.784 | +0.000 | 4.647 | 0 |
+| Third-voice verifier capture | 11.985 | 3.837 | 0.02897325 | 0.14695740 | +3.37 | 436.385 | -1.399 | 5.072 | 0 |
+
+Current verifier capture spectral peaks, dB relative to the strongest listed peak:
+- 408.1 Hz (-29.2 dB)
+- 435.9 Hz (+0.0 dB)
+- 871.9 Hz (-6.6 dB)
+- 1308.1 Hz (-19.6 dB)
+- 2197.6 Hz (-21.8 dB)
+- 4395.2 Hz (-30.7 dB)
+
+Current verifier capture 100 ms RMS decay, dB relative to first 100 ms after onset:
+- +0.25 s: -10.73 dB
+- +0.50 s: -19.74 dB
+- +1.00 s: -22.30 dB
+- +2.00 s: -21.93 dB

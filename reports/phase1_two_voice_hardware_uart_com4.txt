@@ -1,0 +1,5 @@
+Port: COM4
+Baud: 115200 8N1
+Started: 2026-04-28T16:19:25.3538185+08:00
+ERROR: System.Management.Automation.MethodInvocationException: Exception calling "Open" with "0" argument(s): "The port 'COM4' does not exist."
+Finished: 2026-04-28T16:19:25.4492240+08:00

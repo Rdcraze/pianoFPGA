@@ -1,0 +1,45 @@
+file=reports\phase1c_body_pipe_optimization_validation_audio_capture.wav
+capture_device=external_mic_jack_path_Realtek_Audio_ascii_dshow_id
+sample_rate_hz=48000
+channels=2
+sample_width_bytes=2
+duration_s=11.987000
+event_search_start_s=2.500000
+event_onset_s=3.740000
+noise_floor_10ms_mono_rms=0.00365688
+peak_10ms_mono_rms_after_search_start=0.04292086
+
+L_clip_samples=0
+L_early_segment_s=3.780000..3.900000
+L_f0_hz=435.514123
+L_early_rms=0.02329226
+L_early_peak_abs=0.08215332
+L_early_crest_factor=3.527065
+
+R_clip_samples=0
+R_early_segment_s=3.780000..3.900000
+R_f0_hz=435.509146
+R_early_rms=0.02340214
+R_early_peak_abs=0.08331299
+R_early_crest_factor=3.560059
+
+mono_f0_hz=435.512092
+mono_early_rms=0.02331229
+mono_early_peak_abs=0.08110046
+mono_early_crest_factor=3.478872
+
+decay_reference_window_s=3.760000..3.880000
+decay_reference_mono_rms=0.02704368
+mono_rms_0.02s_after_event=0.02704368 (0.00 dB ref)
+mono_rms_0.10s_after_event=0.01706162 (-4.00 dB ref)
+mono_rms_0.25s_after_event=0.00939047 (-9.19 dB ref)
+mono_rms_0.50s_after_event=0.00404760 (-16.50 dB ref)
+mono_rms_1.00s_after_event=0.00354325 (-17.65 dB ref)
+mono_rms_2.00s_after_event=0.00345463 (-17.87 dB ref)
+mono_rms_3.00s_after_event=0.00380055 (-17.04 dB ref)
+mono_rms_5.00s_after_event=0.00440639 (-15.76 dB ref)
+mono_rms_8.00s_after_event=0.00409446 (-16.40 dB ref)
+
+total_clip_samples=0
+non_square_regression_note=crest factor is above square-wave-like behavior and no clipped samples were found.
+analysis_note=independent verifier capture; onset search starts after 2.5s to avoid JTAG/programming noise; DirectShow alternative device ID used to avoid locale encoding issues.

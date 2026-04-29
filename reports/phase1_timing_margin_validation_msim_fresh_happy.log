@@ -1,0 +1,30 @@
+# vsim -c phase1_margin_val_work.piano_phase0_top_tb -l E:\projects\piano-agents\reports\phase1_timing_margin_validation_msim_fresh_happy.log -do "run -all; quit -f" 
+# Start time: 14:34:15 on Apr 24,2026
+# ** Note: (vsim-3812) Design is being optimized...
+# //  ModelSim SE-64 10.5 Feb 13 2016 
+# //
+# //  Copyright 1991-2016 Mentor Graphics Corporation
+# //  All Rights Reserved.
+# //
+# //  ModelSim SE-64 and its associated documentation contain trade
+# //  secrets and commercial or financial information that are the property of
+# //  Mentor Graphics Corporation and are privileged, confidential,
+# //  and exempt from disclosure under the Freedom of Information Act,
+# //  5 U.S.C. Section 552. Furthermore, this information
+# //  is prohibited from disclosure under the Trade Secrets Act,
+# //  18 U.S.C. Section 1905.
+# //
+# Loading work.piano_phase0_top_tb(fast)
+# Loading work.altsyncram(fast)
+# Loading work.ALTERA_DEVICE_FAMILIES(fast)
+# Loading work.altsyncram(fast__1)
+# run -all
+#  Note : Cyclone IV E PLL was reset
+# Time: 0  Instance: piano_phase0_top_tb.env.dut.wm8978_codec_stub_inst.phase0_audio_mclk_pll_inst.altpll_component.cycloneiii_pll.pll3
+#  Note : Cyclone IV E PLL locked to incoming clock
+# Time: 310000  Instance: piano_phase0_top_tb.env.dut.wm8978_codec_stub_inst.phase0_audio_mclk_pll_inst.altpll_component.cycloneiii_pll.pll3
+# TB_PASS fabric_status=8019077f soc_status=037f write_count=18 dac_toggle_count=1236 voice_peak_level=2082 voice_sample_count=517 voice_trigger_count=1 voice_active_count=358 voice_valid_count=516 uart_capture_count=96
+# ** Note: $finish    : rtl/top/piano_phase0_top_tb.v(303)
+#    Time: 12 ms  Iteration: 0  Instance: /piano_phase0_top_tb/env
+# End time: 14:35:08 on Apr 24,2026, Elapsed time: 0:00:53
+# Errors: 0, Warnings: 0

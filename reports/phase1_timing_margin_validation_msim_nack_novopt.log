@@ -1,0 +1,82 @@
+# vsim -novopt -c work.piano_phase0_top_nack_tb -l E:\projects\piano-agents\reports\phase1_timing_margin_validation_msim_nack_novopt.log -do "run -all; quit -f" 
+# Start time: 14:31:07 on Apr 24,2026
+# ** Warning: (vsim-8891) All optimizations are turned off because the -novopt switch is in effect. This will cause your simulation to run very slowly. If you are using this switch to preserve visibility for Debug or PLI features please see the User's Manual section on Preserving Object Visibility with vopt.
+# //  ModelSim SE-64 10.5 Feb 13 2016 
+# //
+# //  Copyright 1991-2016 Mentor Graphics Corporation
+# //  All Rights Reserved.
+# //
+# //  ModelSim SE-64 and its associated documentation contain trade
+# //  secrets and commercial or financial information that are the property of
+# //  Mentor Graphics Corporation and are privileged, confidential,
+# //  and exempt from disclosure under the Freedom of Information Act,
+# //  5 U.S.C. Section 552. Furthermore, this information
+# //  is prohibited from disclosure under the Trade Secrets Act,
+# //  18 U.S.C. Section 1905.
+# //
+# Refreshing E:/projects/piano-agents/work.piano_phase0_top_nack_tb
+# Loading work.piano_phase0_top_nack_tb
+# Refreshing E:/projects/piano-agents/work.piano_phase0_tb_env
+# Loading work.piano_phase0_tb_env
+# Refreshing E:/projects/piano-agents/work.piano_phase0_top
+# Loading work.piano_phase0_top
+# Refreshing E:/projects/piano-agents/work.phase0_reset_sync
+# Loading work.phase0_reset_sync
+# Refreshing E:/projects/piano-agents/work.phase0_rv32i_soc
+# Loading work.phase0_rv32i_soc
+# Refreshing E:/projects/piano-agents/work.phase0_rv32i_core
+# Loading work.phase0_rv32i_core
+# Refreshing E:/projects/piano-agents/work.phase0_boot_rom
+# Loading work.phase0_boot_rom
+# Refreshing E:/projects/piano-agents/work.altsyncram
+# Loading work.altsyncram
+# Refreshing E:/projects/piano-agents/work.ALTERA_DEVICE_FAMILIES
+# Loading work.ALTERA_DEVICE_FAMILIES
+# Refreshing E:/projects/piano-agents/work.ALTERA_MF_MEMORY_INITIALIZATION
+# Loading work.ALTERA_MF_MEMORY_INITIALIZATION
+# Refreshing E:/projects/piano-agents/work.phase0_data_ram
+# Loading work.phase0_data_ram
+# Refreshing E:/projects/piano-agents/work.phase0_uart_mmio
+# Loading work.phase0_uart_mmio
+# Refreshing E:/projects/piano-agents/work.uart_tx
+# Loading work.uart_tx
+# Refreshing E:/projects/piano-agents/work.phase0_control_regs
+# Loading work.phase0_control_regs
+# Refreshing E:/projects/piano-agents/work.phase0_audio_path
+# Loading work.phase0_audio_path
+# Refreshing E:/projects/piano-agents/work.phase1_reduced_voice
+# Loading work.phase1_reduced_voice
+# Refreshing E:/projects/piano-agents/work.wm8978_codec_stub
+# Loading work.wm8978_codec_stub
+# Refreshing E:/projects/piano-agents/work.phase0_audio_mclk_pll
+# Loading work.phase0_audio_mclk_pll
+# Refreshing E:/projects/piano-agents/work.altpll
+# Loading work.altpll
+# Refreshing E:/projects/piano-agents/work.pll_iobuf
+# Loading work.pll_iobuf
+# Refreshing E:/projects/piano-agents/work.wm8978_boot_seq
+# Loading work.wm8978_boot_seq
+# Refreshing E:/projects/piano-agents/work.wm8978_i2c_ctrl
+# Loading work.wm8978_i2c_ctrl
+# Refreshing E:/projects/piano-agents/work.wm8978_dac_tx
+# Loading work.wm8978_dac_tx
+# Refreshing E:/projects/piano-agents/work.wm8978_i2c_model
+# Loading work.wm8978_i2c_model
+# Refreshing E:/projects/piano-agents/work.MF_cycloneiii_pll
+# Loading work.MF_cycloneiii_pll
+# Refreshing E:/projects/piano-agents/work.cda_m_cntr
+# Loading work.cda_m_cntr
+# Refreshing E:/projects/piano-agents/work.cda_n_cntr
+# Loading work.cda_n_cntr
+# Refreshing E:/projects/piano-agents/work.cda_scale_cntr
+# Loading work.cda_scale_cntr
+# run -all
+#  Note : Cyclone IV E PLL was reset
+# Time: 0  Instance: piano_phase0_top_nack_tb.env.dut.wm8978_codec_stub_inst.phase0_audio_mclk_pll_inst.altpll_component.cycloneiii_pll.pll3
+#  Note : Cyclone IV E PLL locked to incoming clock
+# Time: 310000  Instance: piano_phase0_top_nack_tb.env.dut.wm8978_codec_stub_inst.phase0_audio_mclk_pll_inst.altpll_component.cycloneiii_pll.pll3
+# TB_NACK_PASS fabric_status=6018073f soc_status=033f nack_count=1 stop_count=1
+# ** Note: $finish    : rtl/top/piano_phase0_top_tb.v(303)
+#    Time: 12 ms  Iteration: 0  Instance: /piano_phase0_top_nack_tb/env
+# End time: 14:33:28 on Apr 24,2026, Elapsed time: 0:02:21
+# Errors: 0, Warnings: 1

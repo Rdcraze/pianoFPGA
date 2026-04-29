@@ -1,0 +1,7 @@
+
+Status Class FriendlyName            InstanceId                         
+------ ----- ------------            ----------                         
+OK     Ports USB-SERIAL CH340 (COM5) USB\VID_1A86&PID_7523\7&809D607&0&2
+
+
+

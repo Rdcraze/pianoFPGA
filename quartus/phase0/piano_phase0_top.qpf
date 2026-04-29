@@ -1,0 +1,4 @@
+QUARTUS_VERSION = "13.0"
+DATE = "11:15:00  April 21, 2026"
+
+PROJECT_REVISION = "piano_phase0_top"

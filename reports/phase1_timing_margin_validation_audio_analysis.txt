@@ -1,0 +1,49 @@
+file=E:\projects\piano-agents\reports\phase1_timing_margin_validation_audio_capture.wav
+capture_device=external_mic_jack_path_Realtek_Audio
+sample_rate_hz=48000
+channels=2
+sample_width_bytes=2
+duration_s=14.987000
+event_onset_s=2.620000
+noise_floor_10ms_mono_rms=0.00154512
+peak_10ms_mono_rms=0.04302189
+
+L_clip_samples=0
+L_early_segment_s=2.660000..2.780000
+L_f0_hz=436.100656
+L_early_rms=0.01252450
+L_early_peak_abs=0.03573608
+L_early_crest_factor=2.853295
+L_harmonics=H1@433.3Hz=0.0dBc, H2@875.0Hz=-3.6dBc, H3@1308.3Hz=-9.6dBc, H4@1741.7Hz=-18.4dBc, H5@2183.3Hz=-29.3dBc, H6@2616.7Hz=-41.9dBc, H7@3050.0Hz=-40.3dBc, H8@3491.7Hz=-40.6dBc, H9@3925.0Hz=-46.8dBc, H10@4358.3Hz=-48.2dBc
+
+R_clip_samples=0
+R_early_segment_s=2.660000..2.780000
+R_f0_hz=436.138325
+R_early_rms=0.00795182
+R_early_peak_abs=0.02139282
+R_early_crest_factor=2.690305
+R_harmonics=H1@433.3Hz=0.0dBc, H2@875.0Hz=-1.4dBc, H3@1308.3Hz=-6.5dBc, H4@1741.7Hz=-15.5dBc, H5@2183.3Hz=-27.9dBc, H6@2616.7Hz=-32.5dBc, H7@3050.0Hz=-33.6dBc, H8@3491.7Hz=-31.1dBc, H9@3925.0Hz=-35.7dBc, H10@4358.3Hz=-35.7dBc
+
+L_minus_R_early_rms_db=3.946
+L_R_f0_delta_hz=-0.037668
+
+mono_f0_hz=436.113209
+mono_early_rms=0.00954880
+mono_early_peak_abs=0.02713013
+mono_early_crest_factor=2.841207
+mono_harmonics=H1@433.3Hz=0.0dBc, H2@875.0Hz=-2.7dBc, H3@1308.3Hz=-8.4dBc, H4@1741.7Hz=-17.3dBc, H5@2183.3Hz=-28.8dBc, H6@2616.7Hz=-38.8dBc, H7@3050.0Hz=-37.8dBc, H8@3491.7Hz=-37.4dBc, H9@3925.0Hz=-43.3dBc, H10@4358.3Hz=-46.2dBc
+
+decay_reference_window_s=2.640000..2.760000
+decay_reference_mono_rms=0.01228396
+mono_rms_0.02s_after_event=0.01228396 (0.00 dB ref)
+mono_rms_0.10s_after_event=0.00826584 (-3.44 dB ref)
+mono_rms_0.25s_after_event=0.00477483 (-8.21 dB ref)
+mono_rms_0.50s_after_event=0.00184752 (-16.45 dB ref)
+mono_rms_1.00s_after_event=0.00293935 (-12.42 dB ref)
+mono_rms_2.00s_after_event=0.00259901 (-13.49 dB ref)
+mono_rms_3.00s_after_event=0.00198753 (-15.82 dB ref)
+mono_rms_5.00s_after_event=0.00283001 (-12.75 dB ref)
+mono_rms_8.00s_after_event=0.00243428 (-14.06 dB ref)
+mono_rms_10.00s_after_event=0.00276532 (-12.95 dB ref)
+
+non_square_regression_note=crest factor is far above a clipped square wave (~1.0), with zero clipped samples and rolling higher harmonics.

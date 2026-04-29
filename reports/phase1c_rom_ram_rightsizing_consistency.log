@@ -1,0 +1,56 @@
+CONSISTENCY_PASS depth=1024 text=0x37c bin_bytes=892
+
+Linker memory:
+ROM (rx)  : ORIGIN = 0x00000000, LENGTH = 4K
+RAM (rwx) : ORIGIN = 0x00010000, LENGTH = 4K
+
+Firmware map excerpts:
+.text          0x00000000        0x0 build/start.o
+.text          0x00000000        0x0 build/phase0_main.o
+ROM              0x00000000         0x00001000         xr
+RAM              0x00010000         0x00001000         xrw
+.text           0x00000000      0x37c
+0x00011000                        _stack_top = (ORIGIN (RAM) + LENGTH (RAM))
+
+phase0.bin bytes=892
+
+Root MIF header/tail:
+DEPTH = 1024;
+WIDTH = 32;
+ADDRESS_RADIX = HEX;
+DATA_RADIX = HEX;
+CONTENT BEGIN
+000 : 00011117;
+0DD : 00f12623;
+0DE : fc9ff06f;
+[0DF..3FF] : 00000000;
+END;
+
+Quartus MIF header/tail:
+DEPTH = 1024;
+WIDTH = 32;
+ADDRESS_RADIX = HEX;
+DATA_RADIX = HEX;
+CONTENT BEGIN
+000 : 00011117;
+0DD : 00f12623;
+0DE : fc9ff06f;
+[0DF..3FF] : 00000000;
+END;
+
+RTL depth parameters:
+E:\projects\piano-agents\rtl\control\phase0_boot_rom.v:5:parameter ADDR_WIDTH = 10,
+E:\projects\piano-agents\rtl\control\phase0_boot_rom.v:6:parameter MEM_WORDS = 1024
+E:\projects\piano-agents\rtl\control\phase0_boot_rom.v:49:altsyncram_component.numwords_a = MEM_WORDS,
+E:\projects\piano-agents\rtl\control\phase0_boot_rom.v:54:altsyncram_component.widthad_a = ADDR_WIDTH,
+E:\projects\piano-agents\rtl\control\phase0_data_ram.v:4:parameter ADDR_WIDTH = 10,
+E:\projects\piano-agents\rtl\control\phase0_data_ram.v:5:parameter MEM_WORDS = 1024
+E:\projects\piano-agents\rtl\control\phase0_data_ram.v:51:altsyncram_component.numwords_a = MEM_WORDS,
+E:\projects\piano-agents\rtl\control\phase0_data_ram.v:57:altsyncram_component.widthad_a = ADDR_WIDTH,
+
+SoC RAM decode:
+18:localparam [19:0] RAM_BASE_PAGE = 20'h00010;
+42:wire is_ram_addr  = (data_addr[31:12] == RAM_BASE_PAGE);
+46:wire [3:0] ram_wstrb = (data_req && data_we && is_ram_addr) ? data_wstrb : 4'b0000;
+55:assign data_rdata = is_ram_addr ? ram_rdata :
+137:if (data_req && is_ram_addr) begin

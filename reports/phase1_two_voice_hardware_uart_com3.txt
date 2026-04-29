@@ -1,0 +1,5 @@
+Port: COM3
+Baud: 115200 8N1
+Started: 2026-04-28T16:19:25.4634804+08:00
+ERROR: System.Management.Automation.MethodInvocationException: Exception calling "Open" with "0" argument(s): "The port 'COM3' does not exist."
+Finished: 2026-04-28T16:19:25.4689236+08:00

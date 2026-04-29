@@ -1,0 +1,44 @@
+file=E:\projects\piano-agents\reports\phase1_observability_validation_capture_external.wav
+capture_device=external_mic_jack_path_Realtek_Audio
+sample_rate_hz=48000
+channels=2
+sample_width_bytes=2
+duration_s=13.988000
+event_onset_s=2.580000
+noise_floor_10ms_mono_rms=0.00148764
+peak_10ms_mono_rms=0.03458775
+
+L_clip_samples=0
+L_early_segment_s=2.620000..2.740000
+L_f0_hz=436.110315
+L_early_rms=0.01236717
+L_early_peak_abs=0.03890991
+L_early_crest_factor=3.146225
+L_harmonics=H1@433.3Hz=0.0dBc, H2@875.0Hz=-3.4dBc, H3@1308.3Hz=-9.2dBc, H4@1741.7Hz=-17.7dBc, H5@2183.3Hz=-27.8dBc, H6@2616.7Hz=-36.7dBc, H7@3050.0Hz=-37.4dBc, H8@3491.7Hz=-43.8dBc, H9@3925.0Hz=-46.4dBc, H10@4358.3Hz=-51.0dBc
+
+R_clip_samples=0
+R_early_segment_s=2.620000..2.740000
+R_f0_hz=436.044104
+R_early_rms=0.00739824
+R_early_peak_abs=0.02172852
+R_early_crest_factor=2.936983
+R_harmonics=H1@433.3Hz=0.0dBc, H2@875.0Hz=-1.1dBc, H3@1308.3Hz=-6.1dBc, H4@1741.7Hz=-13.9dBc, H5@2183.3Hz=-23.0dBc, H6@2616.7Hz=-28.4dBc, H7@3050.0Hz=-26.4dBc, H8@3491.7Hz=-34.9dBc, H9@3925.0Hz=-37.1dBc, H10@4358.3Hz=-31.7dBc
+
+L_minus_R_early_rms_db=4.463
+L_R_f0_delta_hz=0.066211
+
+decay_reference_window_s=2.600000..2.720000
+decay_reference_mono_rms=0.01189943
+mono_rms_0.02s_after_event=0.01189943 (0.00 dB ref)
+mono_rms_0.10s_after_event=0.00850956 (-2.91 dB ref)
+mono_rms_0.25s_after_event=0.00397064 (-9.53 dB ref)
+mono_rms_0.50s_after_event=0.00268417 (-12.93 dB ref)
+mono_rms_1.00s_after_event=0.00254889 (-13.38 dB ref)
+mono_rms_2.00s_after_event=0.00214198 (-14.89 dB ref)
+mono_rms_3.00s_after_event=0.00195568 (-15.68 dB ref)
+mono_rms_5.00s_after_event=0.00207022 (-15.19 dB ref)
+mono_rms_8.00s_after_event=0.00243424 (-13.78 dB ref)
+mono_rms_10.00s_after_event=0.00173503 (-16.72 dB ref)
+
+mono_early_crest_factor=2.869560
+non_square_regression_note=crest factor is far above a clipped square wave (~1.0), and higher odd harmonics roll off instead of staying flat.

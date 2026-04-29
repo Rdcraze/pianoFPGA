@@ -1,0 +1,30 @@
+# vsim -lib phase1c_roundrobin_work -c phase1c_round_robin_top_tb -l reports\phase1c_firmware_round_robin_msim_happy.log -do "run -all; quit -f" 
+# Start time: 20:02:42 on Apr 28,2026
+# ** Note: (vsim-3812) Design is being optimized...
+# //  ModelSim SE-64 10.5 Feb 13 2016 
+# //
+# //  Copyright 1991-2016 Mentor Graphics Corporation
+# //  All Rights Reserved.
+# //
+# //  ModelSim SE-64 and its associated documentation contain trade
+# //  secrets and commercial or financial information that are the property of
+# //  Mentor Graphics Corporation and are privileged, confidential,
+# //  and exempt from disclosure under the Freedom of Information Act,
+# //  5 U.S.C. Section 552. Furthermore, this information
+# //  is prohibited from disclosure under the Trade Secrets Act,
+# //  18 U.S.C. Section 1905.
+# //
+# Loading work.phase1c_round_robin_top_tb(fast)
+# Loading work.altsyncram(fast)
+# Loading work.ALTERA_DEVICE_FAMILIES(fast)
+# Loading work.altsyncram(fast__1)
+# run -all
+#  Note : Cyclone IV E PLL was reset
+# Time: 0  Instance: phase1c_round_robin_top_tb.dut.wm8978_codec_stub_inst.phase0_audio_mclk_pll_inst.altpll_component.cycloneiii_pll.pll3
+#  Note : Cyclone IV E PLL locked to incoming clock
+# Time: 310000  Instance: phase1c_round_robin_top_tb.dut.wm8978_codec_stub_inst.phase0_audio_mclk_pll_inst.altpll_component.cycloneiii_pll.pll3
+# TB_RR_PASS sequence=0,1,2,0,1,2 assignments=2,2,2 rr_events=6 voice_trigger_count=2 voice1_trigger_count=2 voice2_trigger_count=2 voice_active_count=1671 voice1_active_count=1671 voice2_active_count=1671 voice_valid_count=1828 voice1_valid_count=1829 voice2_valid_count=1829 mix_peak_level=6246 mix_clip_count=0 uart_capture_count=288 scheduler_diag=G6,H2,J2,L2,N2,P0
+# ** Note: $finish    : phase1c_roundrobin_work/phase1c_round_robin_top_tb.v(403)
+#    Time: 40 ms  Iteration: 0  Instance: /phase1c_round_robin_top_tb
+# End time: 20:06:28 on Apr 28,2026, Elapsed time: 0:03:46
+# Errors: 0, Warnings: 0

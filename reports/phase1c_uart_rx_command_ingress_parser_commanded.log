@@ -1,0 +1,14 @@
+COMMAND_UART_CHECK_PASS
+T expected=00000004 actual=00000004 PASS
+U expected=00000004 actual=00000004 PASS
+O expected=00000004 actual=00000004 PASS
+G expected=0000000C actual=0000000C PASS
+H expected=00000002 actual=00000002 PASS
+J expected=00000004 actual=00000004 PASS
+L expected=00000004 actual=00000004 PASS
+N expected=00000004 actual=00000004 PASS
+P expected=00000000 actual=00000000 PASS
+Q expected=00000006 actual=00000006 PASS
+X expected=00000000 actual=00000000 PASS
+K expected=00000000 actual=00000000 PASS
+echo_check expected_absent=!N actual_present=False PASS

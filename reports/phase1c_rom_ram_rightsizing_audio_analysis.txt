@@ -1,0 +1,46 @@
+file=reports\phase1c_rom_ram_rightsizing_audio_capture.wav
+capture_device=external_mic_jack_path_Realtek_Audio
+sample_rate_hz=48000
+channels=2
+sample_width_bytes=2
+duration_s=14.987000
+event_search_start_s=2.500000
+event_onset_s=3.100000
+noise_floor_10ms_mono_rms=0.00405362
+peak_10ms_mono_rms_after_search_start=0.04196249
+
+L_clip_samples=0
+L_early_segment_s=3.140000..3.260000
+L_f0_hz=436.363636
+L_early_rms=0.02408228
+L_early_peak_abs=0.09741211
+L_early_crest_factor=4.044971
+
+R_clip_samples=0
+R_early_segment_s=3.140000..3.260000
+R_f0_hz=436.363636
+R_early_rms=0.02414134
+R_early_peak_abs=0.09567261
+R_early_crest_factor=3.963019
+
+mono_f0_hz=436.363636
+mono_early_rms=0.02406987
+mono_early_peak_abs=0.09654236
+mono_early_crest_factor=4.010922
+
+decay_reference_window_s=3.120000..3.240000
+decay_reference_mono_rms=0.02798478
+mono_rms_0.02s_after_event=0.02798478 (0.00 dB ref)
+mono_rms_0.10s_after_event=0.01805597 (-3.81 dB ref)
+mono_rms_0.25s_after_event=0.00974997 (-9.16 dB ref)
+mono_rms_0.50s_after_event=0.00382978 (-17.27 dB ref)
+mono_rms_1.00s_after_event=0.00354330 (-17.95 dB ref)
+mono_rms_2.00s_after_event=0.00246191 (-21.11 dB ref)
+mono_rms_3.00s_after_event=0.00216081 (-22.25 dB ref)
+mono_rms_5.00s_after_event=0.00316344 (-18.94 dB ref)
+mono_rms_8.00s_after_event=0.00263193 (-20.53 dB ref)
+mono_rms_10.00s_after_event=0.00577121 (-13.71 dB ref)
+
+total_clip_samples=0
+non_square_regression_note=crest factor is above square-wave-like behavior and no clipped samples were found.
+analysis_note=onset search starts after 2.5s to avoid initial capture noise; capture includes reprogramming during the recording.

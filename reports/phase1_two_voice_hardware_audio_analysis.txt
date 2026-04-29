@@ -1,0 +1,46 @@
+file=reports\phase1_two_voice_hardware_audio_capture.wav
+capture_device=external_mic_jack_path_Realtek_Audio
+sample_rate_hz=48000
+channels=2
+sample_width_bytes=2
+duration_s=14.984979
+event_search_start_s=3.000000
+event_onset_s=3.670000
+noise_floor_10ms_mono_rms=0.00248747
+peak_10ms_mono_rms_after_search_start=0.04157794
+
+L_clip_samples=0
+L_early_segment_s=3.710000..3.830000
+L_f0_hz=435.465510
+L_early_rms=0.02369580
+L_early_peak_abs=0.09417725
+L_early_crest_factor=3.974427
+
+R_clip_samples=0
+R_early_segment_s=3.710000..3.830000
+R_f0_hz=435.503438
+R_early_rms=0.02378031
+R_early_peak_abs=0.09463501
+R_early_crest_factor=3.979553
+
+mono_f0_hz=435.484576
+mono_early_rms=0.02369706
+mono_early_peak_abs=0.09361267
+mono_early_crest_factor=3.950392
+
+decay_reference_window_s=3.690000..3.810000
+decay_reference_mono_rms=0.02764643
+mono_rms_0.02s_after_event=0.02764643 (0.00 dB ref)
+mono_rms_0.10s_after_event=0.01689125 (-4.28 dB ref)
+mono_rms_0.25s_after_event=0.00927872 (-9.48 dB ref)
+mono_rms_0.50s_after_event=0.00365036 (-17.59 dB ref)
+mono_rms_1.00s_after_event=0.00372519 (-17.41 dB ref)
+mono_rms_2.00s_after_event=0.00519934 (-14.51 dB ref)
+mono_rms_3.00s_after_event=0.00627790 (-12.88 dB ref)
+mono_rms_5.00s_after_event=0.00432496 (-16.11 dB ref)
+mono_rms_8.00s_after_event=0.00473224 (-15.33 dB ref)
+mono_rms_10.00s_after_event=0.00483003 (-15.15 dB ref)
+
+total_clip_samples=0
+non_square_regression_note=crest factor is above square-wave-like behavior and no clipped samples were found.
+analysis_note=onset search starts after 3.0s to avoid reprogramming transient; the selected early segment aligns with the dominant decaying tone near the prior hardware baseline.

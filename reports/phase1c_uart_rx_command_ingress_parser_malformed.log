@@ -1,0 +1,14 @@
+MALFORMED_UART_CHECK_PASS
+T expected=00000002 actual=00000002 PASS
+U expected=00000002 actual=00000002 PASS
+O expected=00000002 actual=00000002 PASS
+G expected=00000006 actual=00000006 PASS
+H expected=00000002 actual=00000002 PASS
+J expected=00000002 actual=00000002 PASS
+L expected=00000002 actual=00000002 PASS
+N expected=00000002 actual=00000002 PASS
+P expected=00000000 actual=00000000 PASS
+Q expected=00000000 actual=00000000 PASS
+X expected=00030003 actual=00030003 PASS
+K expected=00000000 actual=00000000 PASS
+echo_check expected_absent=malformed_input actual_present=False PASS
