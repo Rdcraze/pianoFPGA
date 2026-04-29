@@ -1,0 +1,4 @@
+name,duration_s,peak_db,rms_db,dominant_hz,min,max,dc_mean,asym_pct,clipped,dropout_20ms,env_corr_vs_accepted
+accepted_round_robin,11.987,-13.124,-44.054,435.94,-7232,2271,0.030,68.598,0,0,1.000
+prior_uart_rx,11.986,-13.143,-42.554,434.88,-7218,2427,-1.553,66.376,0,0,0.166
+boundary_original,11.988,-31.822,-39.188,250.08,-838,840,-0.162,0.238,0,0,0.136

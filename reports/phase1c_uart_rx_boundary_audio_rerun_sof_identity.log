@@ -1,0 +1,17 @@
+
+
+Algorithm : SHA256
+Hash      : CAB259BC697ABB5F76AD48120AE4CD65AB1FD4311FC9AEA59F620868E3F3D7F5
+Path      : E:\projects\piano-agents\quartus\phase0\output_files\piano_phase0_top.sof
+
+
+
+
+reports\phase1c_uart_rx_boundary_audio_rerun_quartus_pgm.log:20:Info (213011): Using programming file 
+E:/projects/piano-agents/quartus/phase0/output_files/piano_phase0_top.sof with checksum 0x005F102E for device 
+EP4CE10F17@1
+reports\phase1c_uart_rx_boundary_audio_rerun_quartus_pgm.log:25:Info (209011): Successfully performed operation(s)
+reports\phase1c_uart_rx_boundary_audio_rerun_quartus_pgm.log:27:Info: Quartus II 64-Bit Programmer was successful. 0 
+errors, 0 warnings
+
+
