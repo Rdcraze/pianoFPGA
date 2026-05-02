@@ -319,6 +319,13 @@ static void phase0_round_robin_note_event(void)
     }
 }
 
+static void phase0_trigger_all_voices(void)
+{
+    phase0_trigger_note();
+    phase0_trigger_voice1_note();
+    phase0_trigger_voice2_note();
+}
+
 static void phase0_run_round_robin_smoke(void)
 {
     uint32_t event_index;
@@ -447,7 +454,7 @@ void phase0_main(void)
         phase0_codec_write(PHASE0_WM8978_WORD(53u, 0x0194u));
         phase0_codec_write(PHASE0_WM8978_WORD(54u, 0x0180u));
         phase0_codec_write(PHASE0_WM8978_WORD(55u, 0x0180u));
-        phase0_run_round_robin_smoke();
+        phase0_trigger_all_voices();
     }
 
     phase0_service_uart_rx();
@@ -461,5 +468,6 @@ void phase0_main(void)
         status = phase0_status();
         phase0_uart_put_frame('R', status);
         phase0_report_voice_debug();
+        phase0_trigger_all_voices();
     }
 }
