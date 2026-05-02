@@ -198,6 +198,10 @@ assign mix_clip_clear_any = voice_clip_clear_strobe || voice1_clip_clear_strobe 
                             voice2_clip_clear_strobe;
 
 wire signed [15:0] body_filter_out;
+wire signed [15:0] sample_gen_data;
+wire               sample_gen_valid;
+wire               sample_gen_active;
+wire               use_sample_gen;
 
 phase0_body_filter phase0_body_filter_inst (
     .sys_clk    (sys_clk),
@@ -207,8 +211,27 @@ phase0_body_filter phase0_body_filter_inst (
     .sample_out (body_filter_out)
 );
 
-assign tx_valid    = sample_valid_any;
-assign tx_sample   = body_filter_out;
+phase0_sample_gen phase0_sample_gen_inst (
+    .sys_clk        (sys_clk),
+    .sys_rst_n      (sys_rst_n),
+    .sample_tick    (sample_tick),
+    .enable         (audio_enable),
+    .tone_enable    (tone_enable),
+    .trigger_strobe (trigger_strobe),
+    .wave_sel       (wave_sel),
+    .phase_step     (phase_step),
+    .gain           (gain),
+    .decay_step     (decay_step),
+    .sample_data    (sample_gen_data),
+    .sample_valid   (sample_gen_valid),
+    .active         (sample_gen_active)
+);
+
+assign use_sample_gen = audio_enable && tone_enable &&
+                        !voice_enable && !voice1_enable && !voice2_enable;
+
+assign tx_valid  = use_sample_gen ? sample_gen_valid : sample_valid_any;
+assign tx_sample = use_sample_gen ? sample_gen_data  : body_filter_out;
 assign status_word = {
     3'd0,
     voice_enable,
