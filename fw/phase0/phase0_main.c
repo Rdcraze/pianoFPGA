@@ -27,6 +27,7 @@
 #define PHASE0_RX_ERROR_HARDWARE 6u
 #define PHASE0_RX_ERROR_UNSUPPORTED_ARG 7u
 
+static uint32_t phase0_cc_counter;
 static uint32_t phase0_rr_next_voice;
 static uint32_t phase0_rr_event_count;
 static uint32_t phase0_rr_assign_count[3];
@@ -44,6 +45,7 @@ static void phase0_service_uart_rx(void);
 
 static void phase0_delay(uint32_t cycles)
 {
+    phase0_cc_counter += cycles;
     while (cycles != 0u) {
         uint32_t chunk = (cycles > PHASE0_RX_DELAY_SERVICE_CHUNK) ?
                          PHASE0_RX_DELAY_SERVICE_CHUNK :
@@ -169,6 +171,13 @@ static void phase0_report_voice_debug(void)
     phase0_uart_put_frame('Q', phase0_rx_command_count);
     phase0_uart_put_frame('X', ((phase0_rx_last_error & 0xFFFFu) << 16) |
                                 (phase0_rx_error_count & 0xFFFFu));
+    phase0_uart_putc('C');
+    phase0_uart_putc('C');
+    phase0_uart_putc('=');
+    phase0_uart_put_hex32(phase0_cc_counter);
+    phase0_uart_putc('\r');
+    phase0_uart_putc('\n');
+    phase0_cc_counter = 0u;
 }
 
 static uint32_t phase0_wait_for_mask(uint32_t mask, uint32_t expected)
@@ -221,6 +230,7 @@ static void phase0_program_defaults(void)
     phase0_write_voice1_control(PHASE0_VOICE1_CONTROL_CLIP_CLEAR_M);
     phase0_write_voice2_control(PHASE0_VOICE2_CONTROL_CLIP_CLEAR_M);
     phase0_voice_clear_counters();
+    phase0_cc_counter = 0u;
     phase0_rr_next_voice = 0u;
     phase0_rr_event_count = 0u;
     phase0_rr_assign_count[0] = 0u;

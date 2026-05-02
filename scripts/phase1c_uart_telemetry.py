@@ -12,12 +12,13 @@ from pathlib import Path
 from typing import Iterable
 
 
-FRAME_RE = re.compile(rb"([A-Z])=([0-9A-F]{8})\r\n")
+FRAME_RE = re.compile(rb"([A-Z]+)=([0-9A-F]{8})\r\n")
 
 VOICE_DIAG_TAGS = ("V", "F", "T", "A", "W", "Y", "U", "B", "C", "M", "K", "Z", "O", "D", "E")
 SCHEDULER_TAGS = ("G", "H", "J", "L", "N", "P")
 STARTUP_TAGS = ("I", "S", "R")
-KNOWN_TAGS = set(STARTUP_TAGS + VOICE_DIAG_TAGS + SCHEDULER_TAGS)
+MEASUREMENT_TAGS = ("CC",)
+KNOWN_TAGS = set(STARTUP_TAGS + VOICE_DIAG_TAGS + SCHEDULER_TAGS + MEASUREMENT_TAGS)
 
 ROUND_ROBIN_EXPECTED_VALUES = {
     "T": 0x00000002,
