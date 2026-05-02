@@ -211,7 +211,7 @@ static uint32_t phase0_wait_for_any(uint32_t mask)
 static void phase0_program_defaults(void)
 {
     phase0_mmio_write32(PHASE0_CTRL_ADDR(PHASE0_REG_PHASE_STEP), 157482u);
-    phase0_mmio_write32(PHASE0_CTRL_ADDR(PHASE0_REG_GAIN), 4096u);
+    phase0_mmio_write32(PHASE0_CTRL_ADDR(PHASE0_REG_GAIN), 16384u);
     phase0_mmio_write32(PHASE0_CTRL_ADDR(PHASE0_REG_DECAY_STEP), 0u);
     phase0_mmio_write32(PHASE0_CTRL_ADDR(PHASE0_REG_VOICE_VELOCITY),
                         PHASE0_VOICE_DEFAULT_VELOCITY);
@@ -442,8 +442,8 @@ void phase0_main(void)
 
     if ((ident == PHASE0_IDENT_VALUE) &&
         ((status & PHASE0_STATUS_CODEC_INIT_DONE_M) != 0u)) {
-        phase0_codec_write(PHASE0_WM8978_WORD(52u, 0x019Eu));
-        phase0_codec_write(PHASE0_WM8978_WORD(53u, 0x019Eu));
+        phase0_codec_write(PHASE0_WM8978_WORD(52u, 0x0194u));
+        phase0_codec_write(PHASE0_WM8978_WORD(53u, 0x0194u));
         phase0_run_round_robin_smoke();
     }
 
