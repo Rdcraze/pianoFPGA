@@ -442,6 +442,7 @@ void phase0_main(void)
 
     if ((ident == PHASE0_IDENT_VALUE) &&
         ((status & PHASE0_STATUS_CODEC_INIT_DONE_M) != 0u)) {
+        phase0_codec_write(PHASE0_WM8978_WORD(49u, 0x0106u));
         phase0_codec_write(PHASE0_WM8978_WORD(52u, 0x0194u));
         phase0_codec_write(PHASE0_WM8978_WORD(53u, 0x0194u));
         phase0_codec_write(PHASE0_WM8978_WORD(54u, 0x0194u));

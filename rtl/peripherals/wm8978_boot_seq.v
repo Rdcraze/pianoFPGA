@@ -37,7 +37,7 @@ function [15:0] init_word;
             5'd5:  init_word = {7'd7 , 9'd0           };
             5'd6:  init_word = {7'd10, 9'b0_0000_1000 };
             5'd7:  init_word = {7'd43, 9'b0_0001_0000 };
-            5'd8:  init_word = {7'd49, 9'b0_0000_0110 };
+            5'd8:  init_word = {7'd49, 9'b1_0000_0110 };
             5'd9:  init_word = {7'd50, 9'b0_0000_0001 };
             5'd10: init_word = {7'd51, 9'b0_0000_0001 };
             5'd11: init_word = {7'd52, 9'b110_010100 };
