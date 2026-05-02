@@ -197,8 +197,18 @@ assign mix_peak_now     = (mix_sample_sat == 16'sh8000) ? 16'h8000 :
 assign mix_clip_clear_any = voice_clip_clear_strobe || voice1_clip_clear_strobe ||
                             voice2_clip_clear_strobe;
 
+wire signed [15:0] body_filter_out;
+
+phase0_body_filter phase0_body_filter_inst (
+    .sys_clk    (sys_clk),
+    .sys_rst_n  (sys_rst_n),
+    .sample_tick(sample_tick),
+    .sample_in  (mix_sample_sat),
+    .sample_out (body_filter_out)
+);
+
 assign tx_valid    = sample_valid_any;
-assign tx_sample   = mix_sample_sat[15:0];
+assign tx_sample   = body_filter_out;
 assign status_word = {
     3'd0,
     voice_enable,
