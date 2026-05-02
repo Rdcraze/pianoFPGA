@@ -445,8 +445,8 @@ void phase0_main(void)
         phase0_codec_write(PHASE0_WM8978_WORD(49u, 0x0106u));
         phase0_codec_write(PHASE0_WM8978_WORD(52u, 0x0194u));
         phase0_codec_write(PHASE0_WM8978_WORD(53u, 0x0194u));
-        phase0_codec_write(PHASE0_WM8978_WORD(54u, 0x0194u));
-        phase0_codec_write(PHASE0_WM8978_WORD(55u, 0x0194u));
+        phase0_codec_write(PHASE0_WM8978_WORD(54u, 0x0180u));
+        phase0_codec_write(PHASE0_WM8978_WORD(55u, 0x0180u));
         phase0_run_round_robin_smoke();
     }
 

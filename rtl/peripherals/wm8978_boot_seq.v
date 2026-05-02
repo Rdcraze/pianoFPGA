@@ -42,8 +42,8 @@ function [15:0] init_word;
             5'd10: init_word = {7'd51, 9'b0_0000_0001 };
             5'd11: init_word = {7'd52, 9'b110_010100 };
             5'd12: init_word = {7'd53, 9'b110_010100 };
-            5'd13: init_word = {7'd54, 9'b110_010100 };
-            5'd14: init_word = {7'd55, 9'b110_010100 };
+            5'd13: init_word = {7'd54, 9'b110_000000 };
+            5'd14: init_word = {7'd55, 9'b110_000000 };
             5'd15: init_word = {7'd3 , 9'b0_0110_1111 };
             default: init_word = 16'd0;
         endcase
