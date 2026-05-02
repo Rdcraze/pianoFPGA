@@ -319,7 +319,7 @@ always @(posedge sys_clk or negedge sys_rst_n) begin
                     end
                 end
                 STATE_EXCITE_FINISH: begin
-                    excite_sample <= product_to_q18(mult_product) >>> 2;
+                    excite_sample <= product_to_q18(mult_product);
                     if (excite_index == 4'd15) begin
                         excite_busy  <= 1'b0;
                         excite_index <= 4'd15;

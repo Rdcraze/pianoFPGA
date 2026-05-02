@@ -211,7 +211,7 @@ static uint32_t phase0_wait_for_any(uint32_t mask)
 static void phase0_program_defaults(void)
 {
     phase0_mmio_write32(PHASE0_CTRL_ADDR(PHASE0_REG_PHASE_STEP), 157482u);
-    phase0_mmio_write32(PHASE0_CTRL_ADDR(PHASE0_REG_GAIN), 32767u);
+    phase0_mmio_write32(PHASE0_CTRL_ADDR(PHASE0_REG_GAIN), 16384u);
     phase0_mmio_write32(PHASE0_CTRL_ADDR(PHASE0_REG_DECAY_STEP), 0u);
     phase0_mmio_write32(PHASE0_CTRL_ADDR(PHASE0_REG_VOICE_VELOCITY),
                         PHASE0_VOICE_DEFAULT_VELOCITY);
@@ -226,12 +226,9 @@ static void phase0_program_defaults(void)
     phase0_mmio_write32(PHASE0_CTRL_ADDR(PHASE0_REG_VOICE_BODY_MIX),
                         PHASE0_VOICE_DEFAULT_BODY_MIX);
     phase0_write_control(0u);
-    phase0_mmio_write32(PHASE0_CTRL_ADDR(PHASE0_REG_VOICE_CONTROL),
-                        PHASE0_VOICE_CONTROL_CLIP_CLEAR_M);
-    phase0_mmio_write32(PHASE0_CTRL_ADDR(PHASE0_REG_VOICE1_CONTROL),
-                        PHASE0_VOICE1_CONTROL_CLIP_CLEAR_M);
-    phase0_mmio_write32(PHASE0_CTRL_ADDR(PHASE0_REG_VOICE2_CONTROL),
-                        PHASE0_VOICE2_CONTROL_CLIP_CLEAR_M);
+    phase0_write_voice_control(PHASE0_VOICE_CONTROL_CLIP_CLEAR_M);
+    phase0_write_voice1_control(PHASE0_VOICE1_CONTROL_CLIP_CLEAR_M);
+    phase0_write_voice2_control(PHASE0_VOICE2_CONTROL_CLIP_CLEAR_M);
     phase0_voice_clear_counters();
     phase0_cc_counter = 0u;
     phase0_rr_next_voice = 0u;
@@ -450,7 +447,7 @@ void phase0_main(void)
         phase0_codec_write(PHASE0_WM8978_WORD(53u, 0x0194u));
         phase0_codec_write(PHASE0_WM8978_WORD(54u, 0x0180u));
         phase0_codec_write(PHASE0_WM8978_WORD(55u, 0x0180u));
-        phase0_write_control(PHASE0_CONTROL_TRIGGER_STROBE_M);
+        phase0_run_round_robin_smoke();
     }
 
     phase0_service_uart_rx();
