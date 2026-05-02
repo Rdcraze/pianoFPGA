@@ -50,15 +50,35 @@ All 26 single-letter uppercase tags are already assigned in the frozen order (`I
 
 ### Prefix Compatibility
 
-- `CC` is distinguishable from all existing single-letter tags because the parser already expects `=` as the delimiter after a tag identifier. A two-character tag `CC=NNNN` does not collide with any single-character tag.
-- The tag is appended after `X` in the frozen order. The new extended order becomes: `I/S/R/V/F/T/A/W/Y/U/B/C/M/K/Z/O/D/E/G/H/J/L/N/P/Q/X/CC`
-- Existing parsers that stop at the last known tag (`X`) will ignore `CC` without error if they use permissive trailing-content handling. Parsers updated to the new contract will extract `CC`.
-- Under no-command smoke the expected profile is `G=6 Q=0 X=0 K=0 CC=<nonzero constant>`.
-- Under six-command smoke the expected profile is `G=12 Q=6 X=0 K=0 CC=<nonzero constant>`.
+The tag is appended after `X` in the frozen order. The new extended order becomes: `I/S/R/V/F/T/A/W/Y/U/B/C/M/K/Z/O/D/E/G/H/J/L/N/P/Q/X/CC`
 
-### Non-Prefix Constraint
+Under no-command smoke the expected profile is `G=6 Q=0 X=0 K=0 CC=<nonzero constant>`. Under six-command smoke the expected profile is `G=12 Q=6 X=0 K=0 CC=<nonzero constant>`.
 
-This contract does **not** add non-prefix UART behavior. The frozen tag order prefix (`I` through `X`) remains unchanged. `CC` is a suffix extension, not a prefix insertion or reordering. No existing tag semantics are altered.
+### Parser Collision And Required Mitigation
+
+The `CC` tag introduces a two-character tag into a format that has historically used only single-character uppercase tags. The existing parser regex `([A-Z])=` matches exactly one uppercase letter. When presented with `CC=00000064`, the regex matches the second `C` character as tag `C`, producing a spurious value that overwrites the real voice diagnostic tag `C` in any `latest_values()` lookup:
+
+```
+Input:  I=50303031\r\nC=00000001\r\nCC=00000064\r\nX=00000000\r\n
+Regex: ([A-Z])=([0-9A-F]{8})
+Matches: ('I','50303031'), ('C','00000001'), ('C','00000064'), ('X','00000000')
+                                        ^^^ spurious: CC parsed as C, overwrites real C=0x00000001
+```
+
+This is a blocking collision. The contract's earlier claim that `CC` "does not collide with any single-character tag" was incorrect.
+
+**Required mitigation (hard prerequisite):** Before or simultaneously with firmware emission of `CC`, the parser regex must be updated from `([A-Z])=` to `([A-Z]+)=` (greedy multi-character match). This causes `CC=NNNNNNNN` to be correctly matched as tag `CC` instead of a spurious tag `C`. The parser update must include regression tests on all accepted baseline captures to ensure no existing single-character tag parsing is regressed.
+
+A parser updated to `([A-Z]+)=` will extract `CC` correctly. Parsers using the unmodified `([A-Z])=` regex will silently corrupt the `C` voice diagnostic tag — this is not acceptable backward compatibility. The parser update is therefore a hard prerequisite for any firmware that emits `CC`.
+
+### Non-Prefix Constraint Clarification
+
+The `CC` tag changes the single-character tag convention (all 26 existing tags are single uppercase letters) by introducing a two-character tag. This is a UART format change, but it is not a "non-prefix UART change" under the blocked-feature definitions for two reasons:
+
+1. **Tag ordering is preserved**: `CC` is appended after `X` in the frozen order. No existing tag is reordered, removed, or modified. The prefix `I` through `X` remains unchanged.
+2. **"Non-prefix" refers to tag insertion/reordering, not character-width convention**: The blocked "non-prefix UART changes" guardrail exists to prevent insertion of new tags before or between existing tags, which would shift byte offsets and break hard-coded parser expectations. Appending a new tag after the existing prefix is a suffix extension, which preserves all existing byte-offset expectations for the prefix tags.
+
+The `CC` tag therefore complies with the prefix constraint: it is a suffix extension appended after the frozen tag order, with no reordering or modification of existing tags. The character-width convention change (single → two-character) requires the parser regex update documented above but does not constitute a prefix violation.
 
 ## MMIO Impact
 
@@ -84,7 +104,7 @@ No explicit diagnostic clear command is required — the counter resets every re
 | DSP | Zero | No DSP use. |
 | ROM / firmware code size | Low (< 128 bytes) | One 32-bit counter variable (4 bytes data), increment logic (~20 instructions), snapshot+format logic (~40 instructions), UART formatting (~30 instructions). Approximate ceiling: 128 bytes of additional firmware code. |
 | CPU cycle overhead | Low | Increment per service loop iteration (~2-3 instructions). Snapshot and format once per report (~20 instructions). Negligible relative to existing report service cost. |
-| UART bandwidth | Low | `CC=NNNNNNNNNN` is at most 15 characters (tag + '=' + up to 10 decimal digits), emitted once per report. At current report cadence this is < 1% of UART bandwidth. |
+| UART bandwidth | Low | `CC=NNNNNNNN` is 12 characters (tag + '=' + 8 hex digits), emitted once per report. At current report cadence this is < 1% of UART bandwidth. |
 | Timing slack | Zero impact | No RTL path changes. Firmware-only addition. |
 | Report cadence perturbation | Low | The format-and-emit cost is bounded and constant. If the counter itself measurably changes report cadence, that is self-diagnosing (the counter will report the perturbation). |
 
@@ -127,7 +147,7 @@ The hook is rejected (or must be reworked) if any of:
 ### No-go gates (any one blocks implementation)
 
 1. The orchestrator does not accept this contract.
-2. Implementation would require any RTL change, MMIO register change, or non-prefix UART change.
+2. Implementation would require any RTL change, MMIO register change, or non-prefix UART change (per the clarification above: CC is a suffix extension, not a non-prefix change; tag reordering or insertion between existing tags would be non-prefix).
 3. Any blocked feature (SDRAM, fourth voice, richer physics, exact-48k PLL, larger CPU/ISA, hardware dispatcher, voice stealing, per-note state, per-voice parameter banks, host-selected parameters, codec config RX, diagnostic clear RX, sample playback, UI/TFT/touch, CPU audio-loop expansion, non-prefix UART changes, register-map changes outside accepted ranges) would be touched.
 4. Firmware ROM headroom is insufficient for a 128-256 byte addition.
 5. The `CC` tag cannot be made prefix-compatible with the existing parser (parser update would break existing tag extraction).
