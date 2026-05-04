@@ -271,19 +271,22 @@ static void phase0_codec_write(uint16_t codec_word)
 static void phase0_trigger_note(void)
 {
     phase0_write_voice_control(0u);
-    phase0_write_voice_control(PHASE0_VOICE_CONTROL_TRIGGER_M);
+    phase0_write_voice_control(PHASE0_VOICE_CONTROL_ENABLE_M |
+                               PHASE0_VOICE_CONTROL_TRIGGER_M);
 }
 
 static void phase0_trigger_voice1_note(void)
 {
     phase0_write_voice1_control(0u);
-    phase0_write_voice1_control(PHASE0_VOICE1_CONTROL_TRIGGER_M);
+    phase0_write_voice1_control(PHASE0_VOICE1_CONTROL_ENABLE_M |
+                                PHASE0_VOICE1_CONTROL_TRIGGER_M);
 }
 
 static void phase0_trigger_voice2_note(void)
 {
     phase0_write_voice2_control(0u);
-    phase0_write_voice2_control(PHASE0_VOICE2_CONTROL_TRIGGER_M);
+    phase0_write_voice2_control(PHASE0_VOICE2_CONTROL_ENABLE_M |
+                                PHASE0_VOICE2_CONTROL_TRIGGER_M);
 }
 
 static uint32_t phase0_trigger_voice_index(uint32_t voice_index)
