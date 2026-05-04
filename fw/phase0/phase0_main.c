@@ -270,23 +270,17 @@ static void phase0_codec_write(uint16_t codec_word)
 
 static void phase0_trigger_note(void)
 {
-    phase0_write_voice_control(0u);
-    phase0_write_voice_control(PHASE0_VOICE_CONTROL_ENABLE_M |
-                               PHASE0_VOICE_CONTROL_TRIGGER_M);
+    phase0_write_voice_control(PHASE0_VOICE_CONTROL_TRIGGER_M);
 }
 
 static void phase0_trigger_voice1_note(void)
 {
-    phase0_write_voice1_control(0u);
-    phase0_write_voice1_control(PHASE0_VOICE1_CONTROL_ENABLE_M |
-                                PHASE0_VOICE1_CONTROL_TRIGGER_M);
+    phase0_write_voice1_control(PHASE0_VOICE1_CONTROL_TRIGGER_M);
 }
 
 static void phase0_trigger_voice2_note(void)
 {
-    phase0_write_voice2_control(0u);
-    phase0_write_voice2_control(PHASE0_VOICE2_CONTROL_ENABLE_M |
-                                PHASE0_VOICE2_CONTROL_TRIGGER_M);
+    phase0_write_voice2_control(PHASE0_VOICE2_CONTROL_TRIGGER_M);
 }
 
 static uint32_t phase0_trigger_voice_index(uint32_t voice_index)
@@ -323,13 +317,6 @@ static void phase0_round_robin_note_event(void)
         phase0_rr_drop_steal_count++;
         phase0_rr_next_voice = 0u;
     }
-}
-
-static void phase0_trigger_all_voices(void)
-{
-    phase0_trigger_note();
-    phase0_trigger_voice1_note();
-    phase0_trigger_voice2_note();
 }
 
 static void phase0_run_round_robin_smoke(void)
@@ -460,7 +447,7 @@ void phase0_main(void)
         phase0_codec_write(PHASE0_WM8978_WORD(53u, 0x0194u));
         phase0_codec_write(PHASE0_WM8978_WORD(54u, 0x0180u));
         phase0_codec_write(PHASE0_WM8978_WORD(55u, 0x0180u));
-        phase0_trigger_all_voices();
+        phase0_run_round_robin_smoke();
     }
 
     phase0_service_uart_rx();
@@ -474,6 +461,5 @@ void phase0_main(void)
         status = phase0_status();
         phase0_uart_put_frame('R', status);
         phase0_report_voice_debug();
-        phase0_trigger_all_voices();
     }
 }
