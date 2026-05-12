@@ -145,22 +145,22 @@ function [15:0] excitation_rom;
     input [3:0] index;
     begin
         case (index)
-            4'd0:  excitation_rom = 16'd6021;
-            4'd1:  excitation_rom = 16'd11837;
-            4'd2:  excitation_rom = 16'd17250;
-            4'd3:  excitation_rom = 16'd22075;
-            4'd4:  excitation_rom = 16'd26149;
-            4'd5:  excitation_rom = 16'd29332;
-            4'd6:  excitation_rom = 16'd31516;
-            4'd7:  excitation_rom = 16'd32627;
-            4'd8:  excitation_rom = 16'd32627;
-            4'd9:  excitation_rom = 16'd31516;
-            4'd10: excitation_rom = 16'd29332;
-            4'd11: excitation_rom = 16'd26149;
-            4'd12: excitation_rom = 16'd22075;
-            4'd13: excitation_rom = 16'd17250;
-            4'd14: excitation_rom = 16'd11837;
-            default: excitation_rom = 16'd6021;
+            4'd0:  excitation_rom = 16'd1200;
+            4'd1:  excitation_rom = 16'd9000;
+            4'd2:  excitation_rom = 16'd24000;
+            4'd3:  excitation_rom = 16'd32627;
+            4'd4:  excitation_rom = 16'd26000;
+            4'd5:  excitation_rom = 16'd19500;
+            4'd6:  excitation_rom = 16'd14300;
+            4'd7:  excitation_rom = 16'd10400;
+            4'd8:  excitation_rom = 16'd7500;
+            4'd9:  excitation_rom = 16'd5300;
+            4'd10: excitation_rom = 16'd3700;
+            4'd11: excitation_rom = 16'd2500;
+            4'd12: excitation_rom = 16'd1600;
+            4'd13: excitation_rom = 16'd1000;
+            4'd14: excitation_rom = 16'd500;
+            default: excitation_rom = 16'd200;
         endcase
     end
 endfunction
