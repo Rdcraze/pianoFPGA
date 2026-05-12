@@ -70,10 +70,11 @@ set_false_path -to [get_ports {i2c_scl i2c_sda}]
 # 85C, exceeding the 20 ns sys_clk_50m period by ~2.2x. The data only changes
 # on sample_tick edges (period ~1066 sys_clk cycles), so a multicycle of 3
 # (60 ns) covers the path with comfortable margin.
-set_multicycle_path -setup -end -from [get_registers {*phase1_reduced_voice*|sample_data[*]}] \
-    -to [get_registers {*phase0_body_filter_inst|*}] 4
-set_multicycle_path -hold  -end -from [get_registers {*phase1_reduced_voice*|sample_data[*]}] \
-    -to [get_registers {*phase0_body_filter_inst|*}] 3
+# The body filter is purely combinational between register stages and
+# only updates on audio sample_tick (~1066 sys_clk cycles). All paths
+# ending at body filter registers can tolerate multiple sys_clk cycles.
+set_multicycle_path -setup -to [get_registers {*phase0_body_filter_inst|*}] 4
+set_multicycle_path -hold  -to [get_registers {*phase0_body_filter_inst|*}] 3
 
 # Remove the default "no uncertainty assignment" warning for the clocks we do
 # model in Phase 0.
