@@ -63,6 +63,18 @@ set_false_path -to [get_ports {uart1_tx}]
 set_false_path -from [get_ports {i2c_sda}]
 set_false_path -to [get_ports {i2c_scl i2c_sda}]
 
+# The body filter is a purely combinational chain (10 multipliers + 10 adds
+# across two cascaded biquads) between register stages that only update on
+# audio sample_tick. The data path from voice sample_data registers through
+# the mix adder and body filter to body filter z-registers is ~44 ns at slow-
+# 85C, exceeding the 20 ns sys_clk_50m period by ~2.2x. The data only changes
+# on sample_tick edges (period ~1066 sys_clk cycles), so a multicycle of 3
+# (60 ns) covers the path with comfortable margin.
+set_multicycle_path -setup -end -from [get_registers {*phase1_reduced_voice*|sample_data[*]}] \
+    -to [get_registers {*phase0_body_filter_inst|*}] 3
+set_multicycle_path -hold  -end -from [get_registers {*phase1_reduced_voice*|sample_data[*]}] \
+    -to [get_registers {*phase0_body_filter_inst|*}] 2
+
 # Remove the default "no uncertainty assignment" warning for the clocks we do
 # model in Phase 0.
 derive_clock_uncertainty
