@@ -3,7 +3,7 @@
 Date: 2026-05-12
 Agent: claude-implementer `5ed7d08b-d179-4fdc-ada6-5e1f57099943`
 Task: `task-f69f6aad`
-Commit: `a138e5b` (multicycle=3→4), `0cf5b64` (widened constraint)
+Commit: `a138e5b` (multicycle=3), `8bae93f` (bumped to 4), `d0aef18` (widened constraint)
 
 ## Problem
 
@@ -56,9 +56,9 @@ Initially tried a narrow constraint targeting only voice→body paths (setup=3 t
 | M9Ks | 14 | 14 |
 | DSP 9-bit elements | 26 | 26 |
 | PLLs | 1 | 1 |
-| Warnings | 16 | 14 |
+| Warnings | 14 | 14 |
 
-LE count remains elevated vs the 7,963 baseline — this is from the body filter DSP inference, not from the multicycle constraint or the ROM change. The body filter's 10 biquad multipliers plus voice/sample_gen DSPs account for ~26 DSP elements, which Quartus maps to LE/DSP hybrid resources.
+LE count remains elevated vs the 7,963 baseline — this is from the body filter and hammer excitation combined. Hardware validation is deferred pending hardware availability.
 
 ### Files Changed
 
@@ -69,8 +69,9 @@ LE count remains elevated vs the 7,963 baseline — this is from the body filter
 
 | Commit | Description |
 | --- | --- |
-| `a138e5b` | Initial multicycle (voice→body, setup=4, hold=3) — partial improvement |
-| `0cf5b64` | Widened to all body filter register endpoints — full closure |
+| `a138e5b` | Initial multicycle (voice→body, setup=3) — partial improvement |
+| `8bae93f` | Bumped to setup=4, hold=3 — partial improvement |
+| `d0aef18` | Widened to all body filter register endpoints — full closure |
 | `0ca2ec2` | Hammer excitation ROM (unchanged, root cause was pre-existing) |
 
 ## Go/No-Go

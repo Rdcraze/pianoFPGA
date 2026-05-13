@@ -67,12 +67,11 @@ set_false_path -to [get_ports {i2c_scl i2c_sda}]
 # across two cascaded biquads) between register stages that only update on
 # audio sample_tick. The data path from voice sample_data registers through
 # the mix adder and body filter to body filter z-registers is ~44 ns at slow-
-# 85C, exceeding the 20 ns sys_clk_50m period by ~2.2x. The data only changes
-# on sample_tick edges (period ~1066 sys_clk cycles), so a multicycle of 3
-# (60 ns) covers the path with comfortable margin.
-# The body filter is purely combinational between register stages and
-# only updates on audio sample_tick (~1066 sys_clk cycles). All paths
-# ending at body filter registers can tolerate multiple sys_clk cycles.
+# 85C, exceeding the 20 ns sys_clk_50m period by ~2.2x. The body filter is
+# purely combinational between register stages and only updates on audio
+# sample_tick (~1066 sys_clk cycles). All paths ending at body filter
+# registers are multicycle: setup=4 (80 ns window) covers the path with
+# comfortable margin, hold=3 per standard multicycle hold practice.
 set_multicycle_path -setup -to [get_registers {*phase0_body_filter_inst|*}] 4
 set_multicycle_path -hold  -to [get_registers {*phase0_body_filter_inst|*}] 3
 
