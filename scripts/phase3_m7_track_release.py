@@ -9,15 +9,27 @@ Zero firmware/RTL changes.
 
 import sys
 import time
-from typing import List, Optional, Set
+from typing import List, Optional, Set, Tuple
 
-from phase3_m5_keyboard import (midi_to_command, cmd_release, cmd_bare,
+from phase3_m5_keyboard import (midi_to_command, cmd_release,
                                 NOTE_MIN, NOTE_MAX, VELOCITY_MAX, note_name)
 
 RELEASE_ALIASES = {"off", "release", "panic", "!f", "all-off"}
+DOWN_ALIASES = {"down", "d"}
+UP_ALIASES = {"up", "u"}
 
 
-def _parse_note_event(tok: str) -> Optional[tuple]:
+class Action:
+    """A structured UART command with metadata."""
+    def __init__(self, cmd: str, reason: str):
+        self.cmd = cmd          # raw UART bytes (includes \r\n)
+        self.reason = reason    # human-readable description
+
+    def __repr__(self):
+        return f"Action({self.cmd!r}, reason={self.reason!r})"
+
+
+def _parse_note_event(tok: str) -> Optional[Tuple[bool, int, Optional[int]]]:
     """Parse 'down:A4', 'up:69', 'down:A4:4000' etc.
 
     Returns (is_down, note_midi, velocity_or_None) or None on failure.
@@ -25,13 +37,12 @@ def _parse_note_event(tok: str) -> Optional[tuple]:
     if ":" not in tok:
         return None
     parts = tok.split(":")
-    if parts[0].lower() not in ("down", "up"):
+    if parts[0].lower() not in (DOWN_ALIASES | UP_ALIASES):
         return None
-    is_down = parts[0].lower() == "down"
+    is_down = parts[0].lower() in DOWN_ALIASES
     vel = None
 
     if len(parts) >= 3 and is_down:
-        # down:A4:4000 or down:69:0x0FA0
         note_str = parts[1]
         try:
             if parts[2].lower().startswith("0x"):
@@ -42,7 +53,6 @@ def _parse_note_event(tok: str) -> Optional[tuple]:
         except ValueError:
             return None
     else:
-        # down:A4 or up:A4
         note_str = parts[1]
 
     if note_str.isdigit():
@@ -68,10 +78,12 @@ def _name_to_midi(name: str) -> Optional[int]:
     return None
 
 
-def process_events(events: List[str], quiet: bool = False) -> int:
-    """Process event list. Returns number of UART commands sent."""
+def process_events(events: List[str]) -> Tuple[List[Action], List[str]]:
+    """Process event list. Returns (actions, log_lines)."""
     active: Set[int] = set()
-    sent = 0
+    actions: List[Action] = []
+    log: List[str] = []
+    error = False
 
     for evt in events:
         evt = evt.strip()
@@ -81,20 +93,18 @@ def process_events(events: List[str], quiet: bool = False) -> int:
         if tl in RELEASE_ALIASES:
             if active:
                 active.clear()
-                if not quiet:
-                    print(f"  [{evt}] active cleared, sending !F")
-                print(cmd_release(), end="")
-                sent += 1
+                actions.append(Action(cmd_release(), f"{evt}: active cleared"))
+                log.append(f"  [{evt}] cleared, !F sent")
             else:
-                if not quiet:
-                    print(f"  [{evt}] no active notes, !F suppressed")
+                log.append(f"  [{evt}] no active notes, !F suppressed")
             continue
 
         # Note event
         parsed = _parse_note_event(evt)
         if parsed is None:
             print(f"ERROR: invalid event '{evt}'", file=sys.stderr)
-            sys.exit(1)
+            error = True
+            continue
 
         is_down, note, vel = parsed
         nname = note_name(note)
@@ -102,138 +112,143 @@ def process_events(events: List[str], quiet: bool = False) -> int:
         if is_down:
             active.add(note)
             cmd = midi_to_command(note, vel) if vel else midi_to_command(note)
-            if not quiet:
-                print(f"  [{evt}] note {nname}({note}) down -> active={sorted(active)} -> {cmd!r}")
-            print(cmd, end="")
-            sent += 1
+            actions.append(Action(cmd, f"down:{nname}({note})"))
+            log.append(f"  [{evt}] {nname}({note}) down -> active={sorted(active)} -> {cmd!r}")
         else:
             if note in active:
                 active.discard(note)
                 if active:
-                    if not quiet:
-                        print(f"  [{evt}] note {nname}({note}) up -> active={sorted(active)} -> suppressed")
+                    log.append(f"  [{evt}] {nname}({note}) up -> active={sorted(active)} -> suppressed")
                 else:
-                    if not quiet:
-                        print(f"  [{evt}] note {nname}({note}) up -> active empty, sending !F")
-                    print(cmd_release(), end="")
-                    sent += 1
+                    actions.append(Action(cmd_release(), f"up:{nname}({note}): active empty"))
+                    log.append(f"  [{evt}] {nname}({note}) up -> active empty -> !F sent")
             else:
-                if not quiet:
-                    print(f"  [{evt}] note {nname}({note}) up -> already up, suppressed")
+                log.append(f"  [{evt}] {nname}({note}) up -> already up, suppressed")
 
-    return sent
+    if error:
+        sys.exit(1)
+    return actions, log
 
 
 def dry_run(events: List[str]):
-    """Print events and commands with active-set tracking."""
+    """Print events with active-set tracking and repr() command framing."""
     print(f"Events: {events}")
     print()
-    process_events(events, quiet=False)
+    actions, log = process_events(events)
+    for line in log:
+        print(line)
+    print(f"\nCommands sent: {len(actions)}")
+    for i, a in enumerate(actions):
+        print(f"  [{i}] {a.cmd!r} ({a.reason})")
 
 
 def serial_send(events: List[str], port: str, baud: int = 115200, delay_ms: int = 80):
-    """Process events and send commands via serial port."""
+    """Process events and send structured commands via serial port."""
     try:
         import serial
     except ImportError:
         print("ERROR: pyserial not installed.", file=sys.stderr)
         sys.exit(1)
 
+    actions, _ = process_events(events)
+
     ser = serial.Serial(port, baud, timeout=1)
     print(f"Connected to {port} at {baud} baud")
-
-    # Capture commands by overriding stdout temporarily
-    import io
-    buf = io.StringIO()
-    old_stdout = sys.stdout
-    sys.stdout = buf
-    process_events(events, quiet=True)
-    sys.stdout = old_stdout
-    cmds = buf.getvalue()
-
-    for cmd in cmds.split("!N")[1:] if "!N" in cmds else []:
-        full = "!N" + cmd
-        ser.write(full.encode("ascii"))
+    for i, a in enumerate(actions):
+        ser.write(a.cmd.encode("ascii"))
+        print(f"  [{i}] SENT: {a.cmd!r} ({a.reason})")
         time.sleep(delay_ms / 1000.0)
+    ser.close()
+    print(f"Sent {len(actions)} commands")
 
 
 def self_check() -> bool:
-    """Self-check: two-note overlap, partial release, final release, panic."""
+    """Extended self-check."""
     import io
 
+    def _get_cmds(events):
+        actions, _ = process_events(events)
+        return actions
+
+    errors = 0
+
+    # Two-note overlap: 3 commands (down:A4, down:C5, up:C4->!F)
     print("=== Two-note overlap ===")
-    events = ["down:A4", "down:C5", "up:A4", "up:C5"]
-    buf = io.StringIO()
-    old = sys.stdout
-    sys.stdout = buf
-    n = process_events(events, quiet=True)
-    sys.stdout = old
-    cmds = buf.getvalue()
-    lines = [l for l in cmds.splitlines() if l and l.startswith("!")]
-    # down:A4 -> !N, down:C5 -> !N, up:A4 -> suppressed, up:C5 -> !F = 3 total
-    assert len(lines) == 3, f"Expected 3 commands, got {len(lines)}: {lines}"
-    assert "006A" in lines[0], f"A4 missing: {lines[0]}"  # A4
-    assert "!F" in lines[-1], f"Final !F missing: {lines[-1]}"
-    print(f"  commands: {lines}")
-    print("  two-note overlap: PASS")
+    actions = _get_cmds(["down:A4", "down:C5", "up:A4", "up:C5"])
+    assert len(actions) == 3, f"Expected 3, got {len(actions)}"
+    assert "006A" in actions[0].cmd, f"A4 missing: {actions[0].cmd}"
+    assert actions[-1].cmd.strip() == "!F", f"Final !F missing: {actions[-1].cmd}"
+    cmds_repr = [a.cmd for a in actions]
+    print(f"  commands={len(actions)}: {cmds_repr}")
+    print("  PASS")
 
+    # Command count: 5 for down:A4,down:C5,up:A4,up:C5,down:C4,panic
+    print("=== Command count ===")
+    actions = _get_cmds(["down:A4", "down:C5", "up:A4", "up:C5", "down:C4", "panic"])
+    assert len(actions) == 5, f"Expected 5 commands, got {len(actions)}"
+    cmds_repr = [a.cmd for a in actions]
+    print(f"  count={len(actions)}: {cmds_repr}")
+    print("  PASS")
+
+    # Panic
     print("=== Panic/all-off ===")
-    events = ["down:A4", "panic"]
-    buf = io.StringIO()
-    sys.stdout = buf
-    process_events(events, quiet=True)
-    sys.stdout = old
-    cmds = buf.getvalue()
-    lines = [l for l in cmds.splitlines() if l and l.startswith("!")]
-    assert len(lines) == 2, f"Expected 2: {lines}"
-    assert "!F" in lines[-1], f"panic !F missing: {lines[-1]}"
-    print(f"  commands: {lines}")
-    print("  panic: PASS")
+    actions = _get_cmds(["down:A4", "panic"])
+    assert len(actions) == 2
+    assert actions[-1].cmd.strip() == "!F"
+    print("  PASS")
 
+    # Repeated up (stale)
     print("=== Repeated up ===")
-    events = ["down:A4", "up:A4", "up:A4"]
-    buf = io.StringIO()
-    sys.stdout = buf
-    process_events(events, quiet=True)
-    sys.stdout = old
-    cmds = buf.getvalue()
-    lines = [l for l in cmds.splitlines() if l and l.startswith("!")]
-    assert len(lines) == 2, f"Repeated up: expected 2, got {len(lines)}"
-    print(f"  commands: {lines}")
-    print("  repeated up: PASS")
+    actions = _get_cmds(["down:A4", "up:A4", "up:A4"])
+    assert len(actions) == 2
+    print("  PASS")
 
+    # Velocity override
     print("=== Velocity override ===")
-    events = ["down:A4:4000", "up:A4"]
-    buf = io.StringIO()
-    sys.stdout = buf
-    process_events(events, quiet=True)
-    sys.stdout = old
-    cmds = buf.getvalue()
-    lines = [l for l in cmds.splitlines() if l and l.startswith("!")]
-    assert "0FA0" in lines[0], f"vel 4000=0x0FA0 not in: {lines[0]}"
-    print(f"  commands: {lines}")
-    print("  velocity: PASS")
+    actions = _get_cmds(["down:A4:4000", "up:A4"])
+    assert "0FA0" in actions[0].cmd
+    print(f"  {actions[0].cmd!r}")
+    print("  PASS")
 
+    # CRLF framing
     print("=== CRLF framing ===")
-    events = ["down:A4"]
-    buf = io.StringIO()
-    sys.stdout = buf
-    process_events(events, quiet=True)
-    sys.stdout = old
-    cmds = buf.getvalue()
-    assert "\r\n" in cmds, f"No CRLF in: {cmds!r}"
-    print(f"  {cmds!r}")
-    print("  CRLF: PASS")
+    actions = _get_cmds(["down:A4"])
+    assert actions[0].cmd.endswith("\r\n")
+    print(f"  {actions[0].cmd!r}")
+    print("  PASS")
 
-    print("\nPASS: all M7a self-checks")
+    # Note number input
+    print("=== Note number ===")
+    actions = _get_cmds(["down:69", "up:69"])
+    assert "006A" in actions[0].cmd
+    assert actions[-1].cmd.strip() == "!F"
+    print("  PASS")
+
+    # Invalid event rejection
+    print("=== Invalid event ===")
+    try:
+        process_events(["invalid"])
+        print("  FAIL: no error")
+        errors += 1
+    except SystemExit:
+        print("  correctly rejected")
+        print("  PASS")
+
+    if errors:
+        print(f"\n{errors} error(s)")
+        return False
+    print("\nPASS: all M7a extended self-checks")
     return True
 
 
 def main():
     import argparse
     p = argparse.ArgumentParser(description="Phase 3 M7a track-and-release wrapper")
-    p.add_argument("--events", "-e", default="down:A4,down:C5,up:A4,up:C5,down:C4,panic",
+    g = p.add_mutually_exclusive_group()
+    g.add_argument("--events", "-e", default=None,
                    help="Comma-separated events: down:X, up:X, panic, all-off")
+    g.add_argument("--sequence", "-s", default=None,
+                   help="Alias for --events")
     p.add_argument("--port", "-p", default=None, help="COM port for serial send")
     p.add_argument("--baud", "-b", type=int, default=115200)
     p.add_argument("--delay-ms", "-d", type=int, default=80)
@@ -245,7 +260,8 @@ def main():
         ok = self_check()
         sys.exit(0 if ok else 1)
 
-    events = [e.strip() for e in args.events.split(",") if e.strip()]
+    seq = args.events or args.sequence or "down:A4,down:C5,up:A4,up:C5,down:C4,panic"
+    events = [e.strip() for e in seq.split(",") if e.strip()]
 
     if args.port:
         serial_send(events, args.port, args.baud, args.delay_ms)
