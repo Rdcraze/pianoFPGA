@@ -45,10 +45,6 @@ wire        voice2_trigger_strobe;
 wire        voice2_reset_strobe;
 wire        voice2_clip_clear_strobe;
 wire        voice3_enable;
-assign voice3_enable = 1'b0;
-assign voice3_trigger_strobe = 1'b0;
-assign voice3_reset_strobe = 1'b0;
-assign voice3_clip_clear_strobe = 1'b0;
 wire        voice3_trigger_strobe;
 wire        voice3_reset_strobe;
 wire        voice3_clip_clear_strobe;
@@ -166,6 +162,10 @@ phase0_control_regs phase0_control_regs_inst (
     .voice2_trigger_strobe(voice2_trigger_strobe),
     .voice2_reset_strobe(voice2_reset_strobe),
     .voice2_clip_clear_strobe(voice2_clip_clear_strobe),
+    .voice3_enable(voice3_enable),
+    .voice3_trigger_strobe(voice3_trigger_strobe),
+    .voice3_reset_strobe(voice3_reset_strobe),
+    .voice3_clip_clear_strobe(voice3_clip_clear_strobe),
 
     .voice_velocity(voice_velocity),
     .voice_loop_len(voice_loop_len),
@@ -201,6 +201,10 @@ phase0_audio_path phase0_audio_path_inst (
     .voice2_trigger_strobe(voice2_trigger_strobe),
     .voice2_reset_strobe(voice2_reset_strobe),
     .voice2_clip_clear_strobe(voice2_clip_clear_strobe),
+    .voice3_enable(voice3_enable),
+    .voice3_trigger_strobe(voice3_trigger_strobe),
+    .voice3_reset_strobe(voice3_reset_strobe),
+    .voice3_clip_clear_strobe(voice3_clip_clear_strobe),
 
     .voice_velocity(voice_velocity),
     .voice_loop_len(voice_loop_len),

@@ -84,7 +84,7 @@ wire               voice2_clip_seen;
 wire [15:0]        voice2_peak_level;
 wire signed [15:0] voice2_sample_data;
 wire               voice2_runtime_enable;
-n	wire               voice3_sample_valid;
+	wire               voice3_sample_valid;
 	wire               voice3_active;
 	wire               voice3_excite_busy;
 	wire               voice3_clip_seen;
@@ -199,7 +199,7 @@ phase1_reduced_voice phase1_reduced_voice2_inst (
     .clip_seen        (voice2_clip_seen),
     .peak_level       (voice2_peak_level)
 );
-nphase1_reduced_voice phase1_reduced_voice3_inst (
+phase1_reduced_voice phase1_reduced_voice3_inst (
     .sys_clk          (sys_clk),
     .sys_rst_n        (sys_rst_n),
     .sample_tick      (sample_tick),
