@@ -40,6 +40,7 @@ static uint32_t phase0_m2_logical_slot;
 static uint32_t phase0_m2_phys_age[PHASE0_M2_PHYSICAL_SLOTS];
 static uint32_t phase0_m2_age_counter;
 static uint32_t phase0_rx_command_count;
+static uint32_t phase0_rx_quiet_count;
 static uint32_t phase0_rx_error_count;
 static uint32_t phase0_rx_last_error;
 static uint32_t phase0_rx_line_len;
@@ -261,6 +262,7 @@ static void phase0_program_defaults(void)
     phase0_m2_phys_age[2] = 0u;
     phase0_m2_phys_age[3] = 0u;
     phase0_rx_command_count = 0u;
+    phase0_rx_quiet_count = 0u;
     phase0_rx_error_count = 0u;
     phase0_rx_last_error = PHASE0_RX_ERROR_NONE;
     phase0_rx_line_len = 0u;
@@ -577,6 +579,7 @@ static void phase0_rx_process_line(void)
     }
 
     phase0_rx_line_len = 0u;
+    phase0_rx_quiet_count = 1u;
 }
 
 static void phase0_rx_process_byte(uint32_t rx_byte)
@@ -671,11 +674,15 @@ void phase0_main(void)
         phase0_delay(PHASE0_REPORT_DELAY);
         phase0_service_uart_rx();
         status = phase0_status();
-        /* Suppress periodic report while an RX line is being assembled
-           to avoid telemetry causing RX parse errors. */
-        if (phase0_rx_line_len == 0u) {
+        /* Suppress periodic report during and after RX activity.
+           rx_quiet_count provides a post-command quiet window so
+           the next command arrives before the next telemetry burst. */
+        if (phase0_rx_line_len == 0u && phase0_rx_quiet_count == 0u) {
             phase0_uart_put_frame('R', status);
             phase0_report_voice_debug();
+        }
+        if (phase0_rx_quiet_count > 0u) {
+            phase0_rx_quiet_count--;
         }
     }
 }
