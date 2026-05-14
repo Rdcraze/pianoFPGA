@@ -16,7 +16,7 @@
     (PHASE0_VOICE1_CONTROL_ENABLE_M)
 #define PHASE0_VOICE2_CONTROL_BASELINE \
     (PHASE0_VOICE2_CONTROL_ENABLE_M)
-#define PHASE0_RR_EVENT_COUNT 6u
+#define PHASE0_RR_EVENT_COUNT 8u
 #define PHASE0_RX_MAX_LINE_BYTES 16u
 #define PHASE0_RX_ERROR_NONE 0u
 #define PHASE0_RX_ERROR_MALFORMED 1u
@@ -30,7 +30,7 @@
 static uint32_t phase0_cc_counter;
 static uint32_t phase0_rr_next_voice;
 static uint32_t phase0_rr_event_count;
-static uint32_t phase0_rr_assign_count[3];
+static uint32_t phase0_rr_assign_count[4];
 static uint32_t phase0_rr_last_voice;
 static uint32_t phase0_rr_drop_steal_count;
 static uint32_t phase0_rx_command_count;
@@ -295,6 +295,10 @@ static uint32_t phase0_trigger_voice_index(uint32_t voice_index)
     case 2u:
         phase0_trigger_voice2_note();
         return 1u;
+    case 3u:
+        phase0_mmio_write32(PHASE0_CTRL_ADDR(PHASE0_REG_VOICE3_CONTROL),
+                            PHASE0_VOICE3_CONTROL_ENABLE_M | PHASE0_VOICE3_CONTROL_TRIGGER_M);
+        return 1u;
     default:
         return 0u;
     }
@@ -310,7 +314,7 @@ static void phase0_round_robin_note_event(void)
         phase0_rr_last_voice = voice_index;
 
         phase0_rr_next_voice = voice_index + 1u;
-        if (phase0_rr_next_voice >= 3u) {
+        if (phase0_rr_next_voice >= 4u) {
             phase0_rr_next_voice = 0u;
         }
     } else {
