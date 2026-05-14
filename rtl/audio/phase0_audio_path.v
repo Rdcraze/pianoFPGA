@@ -84,13 +84,14 @@ wire               voice2_clip_seen;
 wire [15:0]        voice2_peak_level;
 wire signed [15:0] voice2_sample_data;
 wire               voice2_runtime_enable;
-	wire               voice3_sample_valid;
-	wire               voice3_active;
-	wire               voice3_excite_busy;
-	wire               voice3_clip_seen;
-	wire [15:0]        voice3_peak_level;
-	wire signed [15:0] voice3_sample_data;
-	wire               voice3_runtime_enable;
+
+wire               voice3_sample_valid;
+wire               voice3_active;
+wire               voice3_excite_busy;
+wire               voice3_clip_seen;
+wire [15:0]        voice3_peak_level;
+wire signed [15:0] voice3_sample_data;
+wire               voice3_runtime_enable;
 
 wire               sample_valid_any;
 wire               active_any;
@@ -98,7 +99,7 @@ wire               excite_busy_any;
 wire signed [17:0] voice0_mix_ext;
 wire signed [17:0] voice1_mix_ext;
 wire signed [17:0] voice2_mix_ext;
-	wire signed [17:0] voice3_mix_ext;
+wire signed [17:0] voice3_mix_ext;
 wire signed [18:0] mix_sum;
 wire signed [15:0] mix_sample_sat;
 wire [15:0]        mix_peak_now;
@@ -199,6 +200,7 @@ phase1_reduced_voice phase1_reduced_voice2_inst (
     .clip_seen        (voice2_clip_seen),
     .peak_level       (voice2_peak_level)
 );
+
 phase1_reduced_voice phase1_reduced_voice3_inst (
     .sys_clk          (sys_clk),
     .sys_rst_n        (sys_rst_n),
@@ -316,6 +318,15 @@ assign voice2_status_word = {
     voice2_excite_busy,
     voice2_active
 };
+assign voice3_status_word = {
+    voice3_peak_level,
+    11'd0,
+    voice3_enable,
+    voice3_sample_valid,
+    voice3_clip_seen,
+    voice3_excite_busy,
+    voice3_active
+};
 assign voice_mix_status_word = {
     voice_mix_peak_level_reg,
     11'd0,
@@ -335,15 +346,6 @@ assign voice1_valid_count    = voice1_valid_count_reg;
 assign voice2_trigger_count  = voice2_trigger_count_reg;
 assign voice2_active_count   = voice2_active_count_reg;
 assign voice2_valid_count    = voice2_valid_count_reg;
-assign voice3_status_word = {
-voice3_peak_level,
-11'd0,
-voice3_enable,
-voice3_sample_valid,
-voice3_clip_seen,
-voice3_excite_busy,
-voice3_active
-};
 assign voice3_trigger_count  = voice3_trigger_count_reg;
 assign voice3_active_count   = voice3_active_count_reg;
 assign voice3_valid_count    = voice3_valid_count_reg;
@@ -358,12 +360,12 @@ always @(posedge sys_clk or negedge sys_rst_n) begin
         voice1_trigger_count_reg  <= 32'd0;
         voice1_active_count_reg   <= 32'd0;
         voice1_valid_count_reg    <= 32'd0;
-        voice3_trigger_count_reg  <= 32'd0;
-        voice3_active_count_reg   <= 32'd0;
-        voice3_valid_count_reg    <= 32'd0;
         voice2_trigger_count_reg  <= 32'd0;
         voice2_active_count_reg   <= 32'd0;
         voice2_valid_count_reg    <= 32'd0;
+        voice3_trigger_count_reg  <= 32'd0;
+        voice3_active_count_reg   <= 32'd0;
+        voice3_valid_count_reg    <= 32'd0;
         voice_mix_clip_count_reg  <= 32'd0;
         voice_mix_clip_seen_reg   <= 1'b0;
         voice_mix_peak_level_reg  <= 16'd0;
@@ -375,12 +377,12 @@ always @(posedge sys_clk or negedge sys_rst_n) begin
         voice1_trigger_count_reg  <= 32'd0;
         voice1_active_count_reg   <= 32'd0;
         voice1_valid_count_reg    <= 32'd0;
-        voice3_trigger_count_reg  <= 32'd0;
-        voice3_active_count_reg   <= 32'd0;
-        voice3_valid_count_reg    <= 32'd0;
         voice2_trigger_count_reg  <= 32'd0;
         voice2_active_count_reg   <= 32'd0;
         voice2_valid_count_reg    <= 32'd0;
+        voice3_trigger_count_reg  <= 32'd0;
+        voice3_active_count_reg   <= 32'd0;
+        voice3_valid_count_reg    <= 32'd0;
         voice_mix_clip_count_reg  <= 32'd0;
         voice_mix_clip_seen_reg   <= 1'b0;
         voice_mix_peak_level_reg  <= 16'd0;
@@ -403,10 +405,11 @@ always @(posedge sys_clk or negedge sys_rst_n) begin
         end
 
         if (voice2_trigger_strobe && voice2_runtime_enable) begin
-n        if (voice3_trigger_strobe && voice3_runtime_enable) begin
-            voice3_trigger_count_reg <= voice3_trigger_count_reg + 1'b1;
-        end
             voice2_trigger_count_reg <= voice2_trigger_count_reg + 1'b1;
+        end
+
+        if (voice3_trigger_strobe && voice3_runtime_enable) begin
+            voice3_trigger_count_reg <= voice3_trigger_count_reg + 1'b1;
         end
 
         if (voice0_sample_valid) begin
@@ -426,13 +429,14 @@ n        if (voice3_trigger_strobe && voice3_runtime_enable) begin
         if (voice2_sample_valid) begin
             voice2_valid_count_reg <= voice2_valid_count_reg + 1'b1;
             if (voice2_active) begin
-n        if (voice3_sample_valid) begin
+                voice2_active_count_reg <= voice2_active_count_reg + 1'b1;
+            end
+        end
+
+        if (voice3_sample_valid) begin
             voice3_valid_count_reg <= voice3_valid_count_reg + 1'b1;
             if (voice3_active) begin
                 voice3_active_count_reg <= voice3_active_count_reg + 1'b1;
-            end
-        end
-                voice2_active_count_reg <= voice2_active_count_reg + 1'b1;
             end
         end
 
