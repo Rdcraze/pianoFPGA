@@ -169,12 +169,17 @@ static void phase0_report_voice_debug(void)
     phase0_uart_put_frame('O', phase0_voice_read(PHASE0_REG_VOICE2_TRIGGER_COUNT));
     phase0_uart_put_frame('D', phase0_voice_read(PHASE0_REG_VOICE2_ACTIVE_COUNT));
     phase0_uart_put_frame('E', phase0_voice_read(PHASE0_REG_VOICE2_VALID_COUNT));
+    phase0_uart_putc('V'); phase0_uart_putc('3'); phase0_uart_putc('='); phase0_uart_put_hex32(phase0_voice_read(PHASE0_REG_VOICE3_STATUS)); phase0_uart_putc('\r'); phase0_uart_putc('\n');
+    phase0_uart_putc('V'); phase0_uart_putc('T'); phase0_uart_putc('='); phase0_uart_put_hex32(phase0_voice_read(PHASE0_REG_VOICE3_TRIGGER_COUNT)); phase0_uart_putc('\r'); phase0_uart_putc('\n');
+    phase0_uart_putc('V'); phase0_uart_putc('A'); phase0_uart_putc('='); phase0_uart_put_hex32(phase0_voice_read(PHASE0_REG_VOICE3_ACTIVE_COUNT)); phase0_uart_putc('\r'); phase0_uart_putc('\n');
+    phase0_uart_putc('V'); phase0_uart_putc('V'); phase0_uart_putc('='); phase0_uart_put_hex32(phase0_voice_read(PHASE0_REG_VOICE3_VALID_COUNT)); phase0_uart_putc('\r'); phase0_uart_putc('\n');
     phase0_uart_put_frame('G', phase0_rr_event_count);
     phase0_uart_put_frame('H', phase0_rr_last_voice);
     phase0_uart_put_frame('J', phase0_rr_assign_count[0]);
     phase0_uart_put_frame('L', phase0_rr_assign_count[1]);
     phase0_uart_put_frame('N', phase0_rr_assign_count[2]);
     phase0_uart_put_frame('P', phase0_rr_drop_steal_count);
+    phase0_uart_putc('S'); phase0_uart_putc('3'); phase0_uart_putc('='); phase0_uart_put_hex32(phase0_rr_assign_count[3]); phase0_uart_putc('\r'); phase0_uart_putc('\n');
     phase0_uart_putc('S'); phase0_uart_putc('T'); phase0_uart_putc('='); phase0_uart_put_hex32(phase0_m2_steal_count); phase0_uart_putc('\r'); phase0_uart_putc('\n');
     phase0_uart_put_frame('Q', phase0_rx_command_count);
     phase0_uart_put_frame('X', ((phase0_rx_last_error & 0xFFFFu) << 16) |
@@ -433,25 +438,6 @@ static void phase0_run_round_robin_smoke(void)
     }
 }
 
-static void phase0_diag_dump_voice3(void)
-{
-    phase0_uart_putc('V'); phase0_uart_putc('3'); phase0_uart_putc('=');
-    phase0_uart_put_hex32(phase0_voice_read(PHASE0_REG_VOICE3_STATUS));
-    phase0_uart_putc('\r'); phase0_uart_putc('\n');
-    phase0_uart_putc('V'); phase0_uart_putc('T'); phase0_uart_putc('=');
-    phase0_uart_put_hex32(phase0_voice_read(PHASE0_REG_VOICE3_TRIGGER_COUNT));
-    phase0_uart_putc('\r'); phase0_uart_putc('\n');
-    phase0_uart_putc('V'); phase0_uart_putc('A'); phase0_uart_putc('=');
-    phase0_uart_put_hex32(phase0_voice_read(PHASE0_REG_VOICE3_ACTIVE_COUNT));
-    phase0_uart_putc('\r'); phase0_uart_putc('\n');
-    phase0_uart_putc('V'); phase0_uart_putc('V'); phase0_uart_putc('=');
-    phase0_uart_put_hex32(phase0_voice_read(PHASE0_REG_VOICE3_VALID_COUNT));
-    phase0_uart_putc('\r'); phase0_uart_putc('\n');
-    phase0_uart_putc('S'); phase0_uart_putc('3'); phase0_uart_putc('=');
-    phase0_uart_put_hex32(phase0_rr_assign_count[3]);
-    phase0_uart_putc('\r'); phase0_uart_putc('\n');
-}
-
 static void phase0_rx_record_error(uint32_t error_code)
 {
     phase0_rx_last_error = error_code;
@@ -574,19 +560,6 @@ static void phase0_rx_process_line(void)
         return;
     m3a_invalid:
         phase0_rx_record_error(PHASE0_RX_ERROR_UNSUPPORTED_ARG);
-        phase0_rx_line_len = 0u;
-        phase0_rx_quiet_count = 1u;
-        return;
-    }
-
-    /* !D\r\n — diagnostics dump: emit voice3 telemetry once */
-    if ((phase0_rx_line_len == 4u) &&
-        (phase0_rx_line[0] == '!') &&
-        (phase0_rx_line[1] == 'D') &&
-        (phase0_rx_line[2] == '\r') &&
-        (phase0_rx_line[3] == '\n')) {
-        phase0_diag_dump_voice3();
-        phase0_rx_command_count++;
         phase0_rx_line_len = 0u;
         phase0_rx_quiet_count = 1u;
         return;
