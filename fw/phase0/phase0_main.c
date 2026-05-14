@@ -539,6 +539,8 @@ static void phase0_rx_process_line(void)
                 }
             }
 
+            phase0_mmio_write32(PHASE0_CTRL_ADDR(PHASE0_REG_VOICE_DAMP_MIX),
+                                PHASE0_VOICE_DEFAULT_DAMP_MIX);
             phase0_write_per_voice_params(phys, loop_len_val, velocity_val);
             phase0_rr_assign_count[phase0_m2_logical_slot]++;
             phase0_rr_event_count++;
@@ -563,12 +565,23 @@ static void phase0_rx_process_line(void)
         return;
     }
 
+    /* !F\r\n — note-off: release all voices via high damping */
+    if ((phase0_rx_line_len == 4u) &&
+        (phase0_rx_line[0] == '!') &&
+        (phase0_rx_line[1] == 'F') &&
+        (phase0_rx_line[2] == '\r') &&
+        (phase0_rx_line[3] == '\n')) {
+        phase0_mmio_write32(PHASE0_CTRL_ADDR(PHASE0_REG_VOICE_DAMP_MIX), 32767u);
+        phase0_rx_command_count++;
+    } else
     /* Bare !N\r\n — inline fixed-note trigger */
     if ((phase0_rx_line_len == 4u) &&
         (phase0_rx_line[0] == '!') &&
         (phase0_rx_line[1] == 'N') &&
         (phase0_rx_line[2] == '\r') &&
         (phase0_rx_line[3] == '\n')) {
+        phase0_mmio_write32(PHASE0_CTRL_ADDR(PHASE0_REG_VOICE_DAMP_MIX),
+                            PHASE0_VOICE_DEFAULT_DAMP_MIX);
         phase0_lru_steal_note_event();
         phase0_rx_command_count++;
     } else if ((phase0_rx_line_len >= 2u) &&
