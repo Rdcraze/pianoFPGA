@@ -671,7 +671,11 @@ void phase0_main(void)
         phase0_delay(PHASE0_REPORT_DELAY);
         phase0_service_uart_rx();
         status = phase0_status();
-        phase0_uart_put_frame('R', status);
-        phase0_report_voice_debug();
+        /* Suppress periodic report while an RX line is being assembled
+           to avoid telemetry causing RX parse errors. */
+        if (phase0_rx_line_len == 0u) {
+            phase0_uart_put_frame('R', status);
+            phase0_report_voice_debug();
+        }
     }
 }
