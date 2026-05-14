@@ -102,6 +102,7 @@ wire signed [17:0] voice2_mix_ext;
 wire signed [17:0] voice3_mix_ext;
 wire signed [18:0] mix_sum;
 wire signed [15:0] mix_sample_sat;
+reg  signed [15:0] mix_sample_sat_reg;
 wire [15:0]        mix_peak_now;
 wire               mix_clip_now;
 wire               mix_clip_clear_any;
@@ -253,7 +254,7 @@ phase0_body_filter phase0_body_filter_inst (
     .sys_clk    (sys_clk),
     .sys_rst_n  (sys_rst_n),
     .sample_tick(sample_tick),
-    .sample_in  (mix_sample_sat),
+    .sample_in  (mix_sample_sat_reg),
     .sample_out (body_filter_out)
 );
 
@@ -369,6 +370,7 @@ always @(posedge sys_clk or negedge sys_rst_n) begin
         voice_mix_clip_count_reg  <= 32'd0;
         voice_mix_clip_seen_reg   <= 1'b0;
         voice_mix_peak_level_reg  <= 16'd0;
+        mix_sample_sat_reg       <= 16'sd0;
     end else if (voice_diag_clear_strobe) begin
         voice_sample_count_reg    <= 32'd0;
         voice_trigger_count_reg   <= 32'd0;
@@ -386,11 +388,13 @@ always @(posedge sys_clk or negedge sys_rst_n) begin
         voice_mix_clip_count_reg  <= 32'd0;
         voice_mix_clip_seen_reg   <= 1'b0;
         voice_mix_peak_level_reg  <= 16'd0;
+        mix_sample_sat_reg       <= 16'sd0;
     end else begin
         if (mix_clip_clear_any) begin
             voice_mix_clip_seen_reg  <= 1'b0;
             voice_mix_peak_level_reg <= 16'd0;
         end
+        mix_sample_sat_reg <= mix_sample_sat;
 
         if (sample_tick) begin
             voice_sample_count_reg <= voice_sample_count_reg + 1'b1;
