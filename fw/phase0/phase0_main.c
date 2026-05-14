@@ -341,8 +341,14 @@ static void phase0_lru_steal_note_event(void)
     /* Find free physical slot */
     phys = PHASE0_M2_PHYSICAL_SLOTS;
     for (vi = 0u; vi < PHASE0_M2_PHYSICAL_SLOTS; vi++) {
-        if ((phase0_mmio_read32(PHASE0_CTRL_ADDR(PHASE0_REG_VOICE_STATUS +
-                               (uint32_t)(vi * 0x34u))) &
+        uint32_t status_off;
+        switch (vi) {
+        case 0u: status_off = PHASE0_REG_VOICE_STATUS;  break;
+        case 1u: status_off = PHASE0_REG_VOICE1_STATUS; break;
+        case 2u: status_off = PHASE0_REG_VOICE2_STATUS; break;
+        default: status_off = PHASE0_REG_VOICE3_STATUS; break;
+        }
+        if ((phase0_mmio_read32(PHASE0_CTRL_ADDR(status_off)) &
              PHASE0_VOICE_STATUS_ACTIVE_M) == 0u) {
             phys = vi;
             break;
