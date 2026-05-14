@@ -553,9 +553,13 @@ static void phase0_rx_process_line(void)
         }
 
         phase0_rx_command_count++;
+        phase0_rx_line_len = 0u;
+        phase0_rx_quiet_count = 1u;
         return;
     m3a_invalid:
         phase0_rx_record_error(PHASE0_RX_ERROR_UNSUPPORTED_ARG);
+        phase0_rx_line_len = 0u;
+        phase0_rx_quiet_count = 1u;
         return;
     }
 
