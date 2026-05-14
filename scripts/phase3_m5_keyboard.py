@@ -38,8 +38,9 @@ def midi_to_freq(note: int) -> float:
 
 
 def freq_to_loop_len(freq: float) -> int:
-    """Convert frequency in Hz to waveguide loop length."""
-    raw = round(FS / freq)
+    """Convert frequency in Hz to waveguide loop length.
+    Calibrated so A4 (440 Hz) maps exactly to A4_LOOP_LEN = 106."""
+    raw = round(A4_LOOP_LEN * A4_FREQ / freq)
     return max(LOOP_MIN, min(LOOP_MAX, raw))
 
 
@@ -156,7 +157,7 @@ def main():
                         sys.exit(0)
         print(f"ERROR: unknown note name '{sys.argv[2]}'", file=sys.stderr)
         sys.exit(1)
-    elif cmd == "release":
+    elif cmd in ("release", "off", "panic"):
         print(cmd_release(), end="")
     elif cmd == "bare":
         print(cmd_bare(), end="")
