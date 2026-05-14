@@ -1,199 +1,136 @@
 # Orchestrator Pickup Note
 
-Date: `2026-05-02`
+Date: `2026-05-04`
 Repo: `/mnt/e/projects/piano-agents`
 Active branch: `codex/phase1c-uart-boundary-fix`
 Active orchestrator id: `1c005a25-956c-4b69-9b69-9bf3cd9a8d68`
 
 ## Current State
 
-The project is in controlled-scaling mode after accepting the Phase 1C UART RX command-ingress baseline.
+Phase 1 is complete (all exit criteria PASS). Phase 2 body filter is deployed. The codebase is clean after removing diagnostic scaffolding from the volume investigation.
 
-Accepted UART RX baseline:
+### Baseline Anchors
 
-- Exact promoted SOF SHA-256: `CAB259BC697ABB5F76AD48120AE4CD65AB1FD4311FC9AEA59F620868E3F3D7F5`
-- Programmer checksum: `0x005F102E`
-- Resource/timing anchor: `7,963 / 10,320` LEs, `14 / 46` M9Ks, `80,896 / 423,936` memory bits, `6 / 46` DSP9s, `1 / 2` PLLs
-- Timing anchor: slow-85C `sys_clk_50m` setup slack `+2.438 ns`, hold slack nonnegative, TNS `0.000`
-- Firmware ROM anchor: `507 / 1024` words
-- Frozen UART order: `I/S/R/V/F/T/A/W/Y/U/B/C/M/K/Z/O/D/E/G/H/J/L/N/P/Q/X`
-- Accepted no-command profile: latest `G=6`, `H=2`, `J/L/N=2`, `T/U/O=2`, `P=0`, `K=0`, `Q=0`, `X=0`
-- Accepted six-command profile: latest `G=12`, `H=2`, `J/L/N=4`, `T/U/O=4`, `P=0`, `K=0`, `Q=6`, `X=0`
+| Anchor | Value |
+|---|---|
+| Board | EP4CE10F17C8 (Wildfire "ZhengTu Pro") |
+| SOF checksum (latest) | `0x006815EE` (varies per commit) |
+| LEs | 7,963 / 10,320 (23%) |
+| M9Ks | 14 / 46 (70%) |
+| DSP9s | ~10 / 46 (22%, includes body filter) |
+| ROM words | 539 / 1,024 (53%) |
+| setup slack (slow-85C) | +2.438 ns |
+| hold slack (slow-85C) | +0.406 ns |
+| UART order (frozen) | I/S/R/V/F/T/A/W/Y/U/B/C/M/K/Z/O/D/E/G/H/J/L/N/P/Q/X (CC suffix) |
+| No-command profile | G=6 Q=0 X=0 K=0 CC=0x003D0900 |
 
-Interpretation:
+### Active Features (deployed and validated)
 
-- The platform can host the current minimal hybrid architecture.
-- Logic and on-chip memory remain the primary constraints.
-- DSP headroom is still comparatively large.
-- Do not infer "plenty of room"; future steps must be one controlled dimension at a time, with timing, resource, UART, and waveform evidence.
+| Feature | Commit | Status |
+|---|---|---|
+| CC counter measurement hook | `7ed2c62`, `72e83d3` | PASS |
+| WM8978 speaker output enable (R49 SPKOUTP_EN) | `6149c59` | PASS |
+| Speaker volume (R54/R55 50→0, +20 dB) | `6934692` | PASS |
+| Full-scale velocity (0x4000→0x7FFF, +6 dB) | `647edee` | PASS |
+| Excitation >>>1 guard (K=105→K=0) | `c25d1a7` | PASS |
+| Body FIR mix 25%→50% (+6 dB) | `c25d1a7` | PASS |
+| Phase 2 body IIR filter (2 biquads) | `ad94631` | PASS, K=0 |
+| Sample_gen test path (codec diagnostic) | `c1c922c` | Kept as diagnostic tool |
+| ModelSim gain trace (pipeline analysis) | `fe34677`, `1242740` | Docs |
 
-## Live Coordination Source
+### Gain Calibration Summary
 
-Use `pianoagent` as the live coordination source.
+Per-voice digital: -11.7 dBFS (ModelSim measured)
+3-voice sum: -2.1 dBFS digital (K=0)
+sample_gen reference: -5.58 dBFS through external mic
+Waveguide first-strike (3-voice simultaneous): -1.93 dBFS through external mic
+Round-robin single voice: -37.5 dBFS through external mic
 
-Do not use the old TeamBus MCP tools. In particular:
+The codec path is verified. The digital gain chain is calibrated. The external mic attenuates ~5-6 dB. K=0 at all gain settings.
 
-- Do not call any `mcp__teambus__` tool.
-- Do not call `mcp__pianoagent__.wait_for_work`.
-- Use `pianoagent` MCP tools only for dashboard/task/message/artifact/path-lock operations.
-- Use the local wait runner for idle waiting, in the foreground.
+### Obsoleted Code
 
-Role bindings currently observed:
+`obsolete/` directory contains the re-trigger and 3-voice simultaneous diagnostic code that was removed in `c95f08a`. The re-trigger approach was architecturally incompatible with the waveguide RTL (`trigger_strobe && enable` clears the delay line). See `obsolete/README.md`.
 
-- Orchestrator: `1c005a25-956c-4b69-9b69-9bf3cd9a8d68`
-- Implementer: `6f88abfe-bfb2-4cbd-a558-6d82248ed93c`
-- Verifier: `e9722d83-b000-4165-a5a7-36b758c2e8d8`
-- Manual-reader: `75ce19e2-58a5-4c98-a7f7-d9d4f3c93a5e`
+## Live Coordination
 
-Last observed `pianoagent` dashboard state:
+Use `pianoagent` MCP tools. Never call `mcp__teambus__` or `mcp__pianoagent__.wait_for_work`.
 
-- `106` done, `1` in progress, `1` todo, `0` blocked
-- No active path locks
-- No unread orchestrator inbox messages
+### Agent IDs (current from dashboard)
 
-## Idle Wait Convention
+| Role | Agent ID |
+|---|---|
+| Orchestrator | `1c005a25-956c-4b69-9b69-9bf3cd9a8d68` |
+| Implementer | `5ed7d08b-d179-4fdc-ada6-5e1f57099943` |
+| Verifier | `e8db32f8-3c5f-4a11-bf2d-8f6e3ad76c4c` |
+| Manual-reader | `6c00703d-f4e9-4320-be40-354d65623776` |
 
-When idle, run the local wait runner in the foreground and preserve the cursor:
+### Manual-Reader Scope
 
-```bash
-python3 /home/rdcraze/mcp/teambus/wait_teambus.py work --agent-id <agent-id> --after-cursor <cursor>
-```
+Board facts only: pinout, clock/reset, codec registers, schematic/page references. NOT phase-gate assessments, design judgment, or exit-criteria decisions.
 
-When a wait returns, inspect the JSON and act on:
-
-- `cursor`: save it and pass it as `--after-cursor` on the next wait.
-- `reasons`: decide why the runner woke.
-- `message_ids`: read and acknowledge relevant messages with `pianoagent`.
-- `claimable_task_ids`: claim/start the relevant task if it belongs to this role.
-- `task_ids`, `artifact_ids`, `stale_agent_ids`: inspect and respond as appropriate.
-
-After handling the wake reason, return to foreground waiting when idle.
-
-Operational details:
-
-- Do not busy-poll dashboard or inbox.
-- If `all_agents_waiting` repeats without cursor progress, do not loop on dashboard/inbox. Notify the relevant agent or update the relevant queued/in-progress task status so that the affected runner wakes.
-- For a known active task, prefer task-specific waiting to avoid repeated all-waiting wakeups:
+## Wait Loop (NEVER set --timeout)
 
 ```bash
-python3 /home/rdcraze/mcp/teambus/wait_teambus.py work --agent-id <agent-id> --after-cursor <cursor> --task-id <task-id>
+wsl bash -c "cd /home/rdcraze/mcp/teambus && python3 wait_teambus.py work --agent-id 1c005a25-956c-4b69-9b69-9bf3cd9a8d68 --after-cursor <cursor> --task-id <task-id>"
 ```
 
-- If a Codex turn is interrupted while a wait runner is active, check for a stale local wait process before starting another one.
-- Keep the wait runner in the foreground; do not intentionally leave it as a background terminal task.
+Keep in foreground. After each wake: save cursor, inspect reasons, read/ack messages, act on task completions.
 
-## Git Convention
+**Last known cursor: `6591`**
 
-Track changes with Git from this point.
+### Orchestrator Loop Rule
 
-- Commits are allowed if they are reversible and non-destructive.
-- Do not revert user or agent changes unless explicitly asked.
-- Ignore unrelated dirty files unless they block the task.
-- At the time this note was updated, pre-existing dirty work included CRLF-only changes in:
-  - `reports/phase1c_uart_rx_host_smoke_tooling_parser_regression.log`
-  - `reports/phase1c_uart_rx_host_smoke_tooling_selftest.log`
-- Also present and not touched by this note update:
-  - `.claude/`
-  - `docs/verifier_handoff_manual.md`
-  - `implementer_handoff.md`
+Always end every turn with a wait command unless there are zero todo tasks. When todo=0 and no claimed/in_progress tasks exist, do not wait — instead proactively plan the next workstream and assign new tasks.
 
-Recent relevant commits:
+## Verification Flow
 
-- `56ef89c` Validate Phase 1C measurement hook options
-- `54d3904` Add Phase 1C measurement hook options memo
-- `4567f50` Validate Phase 1C UART RX host smoke tooling
-- `5e6cd48` Add Phase 1C UART RX host smoke tooling
-- `4a6138d` Add Phase 1C waveform validation checklist
-- `5f1c94a` Accept Phase 1C UART RX command ingress
+Every code modification needs a verifier validation task:
+1. Create verifier task referencing implementer's report
+2. Verifier must: compile Quartus, program FPGA, capture UART + audio, run audio checklist
+3. Verifier submits validation report → orchestrator reviews → accept/revise
 
-## Active Work
+## Key Paths
 
-`task-68752505` is in progress with implementer `6f88abfe-bfb2-4cbd-a558-6d82248ed93c`.
-
-Task: draft `reports/phase1c_first_measurement_hook_contract.md`.
-
-Scope:
-
-- Design-only.
-- Pick exactly one lowest-risk first measurement hook candidate.
-- Do not implement anything.
-- Do not edit RTL, firmware, constraints, build scripts, project files, generated bitstreams, host tools, existing reports, register behavior, UART behavior, or resource-affecting files.
-
-`task-fc35ad1e` is queued for verifier and depends on `task-68752505`.
-
-Task: validate `reports/phase1c_first_measurement_hook_contract.md` into `reports/phase1c_first_measurement_hook_contract_validation.md`.
-
-## Essential Artifacts
-
-Use these before asking agents to rediscover context:
-
-- `reports/phase1c_uart_rx_command_ingress_acceptance_decision.md`
-- `reports/phase1c_uart_rx_boundary_audio_rerun_validation.md`
-- `reports/phase1c_waveform_validation_checklist.md`
-- `reports/phase1c_uart_rx_host_smoke_tooling_report.md`
-- `reports/phase1c_uart_rx_host_smoke_tooling_validation.md`
-- `reports/phase1c_measurement_hooks_options.md`
-- `reports/phase1c_measurement_hooks_options_validation.md`
-- `reports/phase1c_uart_rx_command_ingress_boundary_fix_report.md`
-- `reports/phase1c_uart_rx_command_ingress_boundary_fix_validation.md`
-- `reports/phase1c_uart_rx_command_ingress_impl_report.md`
-- `reports/phase1c_uart_rx_command_ingress_validation.md`
-- `reports/phase1c_uart_rx_command_ingress_contract_acceptance_decision.md`
-- `reports/phase1c_uart_rx_command_ingress_contract.md`
-- `docs/project_brief.md`
-- `docs/platform_decisions.md`
-
-Host-side tooling:
-
-- `scripts/phase1c_uart_telemetry.py`
-- `scripts/test_phase1c_uart_telemetry.py`
-- `scripts/phase1c_uart_rx_baseline_smoke.py`
-- `scripts/test_phase1c_uart_rx_baseline_smoke.py`
+- Project brief: `docs/project_brief.md`
+- Board capabilities: `docs/board_capabilities_report.md`
+- Audio checklist: `reports/phase1c_audio_verification_checklist.md`
+- Platform decisions: `docs/platform_decisions.md`
+- Orchestrator commands: `CLAUDE.md` (project root)
+- Gain trace: `reports/phase1c_modelsim_gain_trace.md`
+- Volume fix reports: `reports/phase1c_waveguide_gain_fix_v2_validation.md`
+- Clean baseline: `reports/phase1c_clean_baseline_revalidation.md`
+- Phase 1 exit: `reports/phase1_exit_assessment.md`
+- Phase 2 proposal: `reports/phase2_first_step_proposal.md`
+- Obsolete code: `obsolete/README.md`
 
 ## Blocked Feature Gates
 
-Do not authorize these without a separate explicit decision and full validation plan:
+Do not authorize without explicit decision + validation plan:
+SDRAM, fourth voice, richer physics, exact-48k PLL, larger CPU/ISA, hardware dispatcher, voice stealing, per-note state, per-voice parameter banks, host-selected parameters, codec config RX, diagnostic clear RX, sample playback, UI/TFT/touch, CPU audio-loop expansion, non-prefix UART changes, register-map changes.
 
-- SDRAM
-- fourth voice
-- richer physics
-- exact 48 kHz PLL/sample-rate work
-- larger CPU or ISA
-- hardware dispatcher
-- voice stealing
-- per-note state
-- per-voice parameter banks
-- host-selected note/voice/parameter controls
-- codec config RX
-- diagnostic clear RX
-- sample playback
-- UI/TFT/touch
-- CPU work in the audio sample loop
-- non-prefix UART changes
-- register-map changes before current accepted ranges
+## Next Workstream
 
-## Next Orchestrator Move
+Phase 2 per `docs/project_brief.md` lines 124-138:
+- Multi-string coupling (two- or three-string per note)
+- Improved hammer dynamics and damper behavior
+- Body/soundboard stage is DONE (body IIR filter, `ad94631`)
 
-Wait for implementer to finish `task-68752505`.
+All remaining Phase 2 items are single-strike physics — no re-trigger needed. Propose one scoped improvement, create implementer task, validate, repeat.
 
-Recommended wait command shape:
+## Recent Commits (most recent first)
 
-```bash
-python3 /home/rdcraze/mcp/teambus/wait_teambus.py work --agent-id 1c005a25-956c-4b69-9b69-9bf3cd9a8d68 --after-cursor <cursor> --task-id task-68752505
 ```
-
-When the artifact arrives:
-
-- read `reports/phase1c_first_measurement_hook_contract.md`,
-- acknowledge implementer messages,
-- confirm the task is marked done and path locks are released,
-- wake verifier for `task-fc35ad1e` if needed,
-- wait for `reports/phase1c_first_measurement_hook_contract_validation.md`.
-
-If all agents report waiting while an active task remains in progress:
-
-- avoid dashboard/inbox polling loops,
-- post a targeted message to the assigned agent or role,
-- or update the task status with a concrete wake note.
-
-Do not start implementation of any measurement hook from the contract memo. Treat the current workstream as design guidance only until an explicit implementation task is created and validated.
+c95f08a revert: remove 3-voice simultaneous and re-trigger diagnostic code
+c5f0709 fix: add explicit ENABLE bit to voice trigger writes        [obsoleted]
+e381f3c fix: add clear-then-set edge on voice trigger for re-trigger [obsoleted]
+f2a938a feat: add 3-voice simultaneous trigger test mode             [obsoleted]
+1242740 docs: update gain trace with ModelSim measured values
+fe34677 docs: add waveguide pipeline gain trace (bit-accurate analysis)
+c25d1a7 fix: back off excitation gain to >>> 1 (K=105 overshoot)     ← ACTIVE BASELINE
+4c5ab03 fix: increase waveguide digital gain by 18 dB
+c1c922c feat: add sample_gen test tone path for codec output isolation
+ad94631 feat: add Phase 2 biquad IIR body/soundboard filter
+647edee fix: increase audio output level to match reference volume
+6149c59 fix: enable WM8978 speaker output driver (R49 SPKOUTP_EN=1)
+```

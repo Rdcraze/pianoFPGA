@@ -44,6 +44,14 @@ wire        voice2_enable;
 wire        voice2_trigger_strobe;
 wire        voice2_reset_strobe;
 wire        voice2_clip_clear_strobe;
+wire        voice3_enable;
+assign voice3_enable = 1'b0;
+assign voice3_trigger_strobe = 1'b0;
+assign voice3_reset_strobe = 1'b0;
+assign voice3_clip_clear_strobe = 1'b0;
+wire        voice3_trigger_strobe;
+wire        voice3_reset_strobe;
+wire        voice3_clip_clear_strobe;
 wire [15:0] voice_velocity;
 wire [6:0]  voice_loop_len;
 wire [15:0] voice_loop_gain;
@@ -72,6 +80,10 @@ wire [31:0] voice2_status_word;
 wire [31:0] voice2_trigger_count;
 wire [31:0] voice2_active_count;
 wire [31:0] voice2_valid_count;
+wire [31:0] voice3_status_word;
+wire [31:0] voice3_trigger_count;
+wire [31:0] voice3_active_count;
+wire [31:0] voice3_valid_count;
 wire [31:0] voice_mix_status_word;
 wire [31:0] voice_mix_clip_count;
 
@@ -120,6 +132,10 @@ phase0_control_regs phase0_control_regs_inst (
     .voice1_active_count(voice1_active_count),
     .voice1_valid_count(voice1_valid_count),
     .voice2_status_word(voice2_status_word),
+    .voice3_status_word(voice3_status_word),
+    .voice3_trigger_count(voice3_trigger_count),
+    .voice3_active_count(voice3_active_count),
+    .voice3_valid_count(voice3_valid_count),
     .voice2_trigger_count(voice2_trigger_count),
     .voice2_active_count(voice2_active_count),
     .voice2_valid_count(voice2_valid_count),
@@ -150,6 +166,7 @@ phase0_control_regs phase0_control_regs_inst (
     .voice2_trigger_strobe(voice2_trigger_strobe),
     .voice2_reset_strobe(voice2_reset_strobe),
     .voice2_clip_clear_strobe(voice2_clip_clear_strobe),
+
     .voice_velocity(voice_velocity),
     .voice_loop_len(voice_loop_len),
     .voice_loop_gain(voice_loop_gain),
@@ -184,6 +201,7 @@ phase0_audio_path phase0_audio_path_inst (
     .voice2_trigger_strobe(voice2_trigger_strobe),
     .voice2_reset_strobe(voice2_reset_strobe),
     .voice2_clip_clear_strobe(voice2_clip_clear_strobe),
+
     .voice_velocity(voice_velocity),
     .voice_loop_len(voice_loop_len),
     .voice_loop_gain(voice_loop_gain),
@@ -203,6 +221,10 @@ phase0_audio_path phase0_audio_path_inst (
     .voice1_active_count(voice1_active_count),
     .voice1_valid_count(voice1_valid_count),
     .voice2_status_word(voice2_status_word),
+    .voice3_status_word(voice3_status_word),
+    .voice3_trigger_count(voice3_trigger_count),
+    .voice3_active_count(voice3_active_count),
+    .voice3_valid_count(voice3_valid_count),
     .voice2_trigger_count(voice2_trigger_count),
     .voice2_active_count(voice2_active_count),
     .voice2_valid_count(voice2_valid_count),

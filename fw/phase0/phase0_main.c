@@ -162,12 +162,22 @@ static void phase0_report_voice_debug(void)
     phase0_uart_put_frame('O', phase0_voice_read(PHASE0_REG_VOICE2_TRIGGER_COUNT));
     phase0_uart_put_frame('D', phase0_voice_read(PHASE0_REG_VOICE2_ACTIVE_COUNT));
     phase0_uart_put_frame('E', phase0_voice_read(PHASE0_REG_VOICE2_VALID_COUNT));
+    phase0_uart_putc('V'); phase0_uart_putc('3'); phase0_uart_putc('='); phase0_uart_put_hex32(phase0_voice_read(PHASE0_REG_VOICE3_STATUS)); phase0_uart_putc(''); phase0_uart_putc('
+');
+    phase0_uart_putc('V'); phase0_uart_putc('T'); phase0_uart_putc('='); phase0_uart_put_hex32(phase0_voice_read(PHASE0_REG_VOICE3_TRIGGER_COUNT)); phase0_uart_putc(''); phase0_uart_putc('
+');
+    phase0_uart_putc('V'); phase0_uart_putc('A'); phase0_uart_putc('='); phase0_uart_put_hex32(phase0_voice_read(PHASE0_REG_VOICE3_ACTIVE_COUNT)); phase0_uart_putc(''); phase0_uart_putc('
+');
+    phase0_uart_putc('V'); phase0_uart_putc('V'); phase0_uart_putc('='); phase0_uart_put_hex32(phase0_voice_read(PHASE0_REG_VOICE3_VALID_COUNT)); phase0_uart_putc(''); phase0_uart_putc('
+');
     phase0_uart_put_frame('G', phase0_rr_event_count);
     phase0_uart_put_frame('H', phase0_rr_last_voice);
     phase0_uart_put_frame('J', phase0_rr_assign_count[0]);
     phase0_uart_put_frame('L', phase0_rr_assign_count[1]);
     phase0_uart_put_frame('N', phase0_rr_assign_count[2]);
     phase0_uart_put_frame('P', phase0_rr_drop_steal_count);
+    phase0_uart_putc('S'); phase0_uart_putc('3'); phase0_uart_putc('='); phase0_uart_put_hex32(phase0_rr_assign_count[3]); phase0_uart_putc(''); phase0_uart_putc('
+');
     phase0_uart_put_frame('Q', phase0_rx_command_count);
     phase0_uart_put_frame('X', ((phase0_rx_last_error & 0xFFFFu) << 16) |
                                 (phase0_rx_error_count & 0xFFFFu));
@@ -229,6 +239,8 @@ static void phase0_program_defaults(void)
     phase0_write_voice_control(PHASE0_VOICE_CONTROL_CLIP_CLEAR_M);
     phase0_write_voice1_control(PHASE0_VOICE1_CONTROL_CLIP_CLEAR_M);
     phase0_write_voice2_control(PHASE0_VOICE2_CONTROL_CLIP_CLEAR_M);
+    phase0_mmio_write32(PHASE0_CTRL_ADDR(PHASE0_REG_VOICE3_CONTROL),
+                        PHASE0_VOICE3_CONTROL_CLIP_CLEAR_M);
     phase0_voice_clear_counters();
     phase0_cc_counter = 0u;
     phase0_rr_next_voice = 0u;
@@ -236,6 +248,7 @@ static void phase0_program_defaults(void)
     phase0_rr_assign_count[0] = 0u;
     phase0_rr_assign_count[1] = 0u;
     phase0_rr_assign_count[2] = 0u;
+    phase0_rr_assign_count[3] = 0u;
     phase0_rr_last_voice = 0xFFFFFFFFu;
     phase0_rr_drop_steal_count = 0u;
     phase0_rx_command_count = 0u;
