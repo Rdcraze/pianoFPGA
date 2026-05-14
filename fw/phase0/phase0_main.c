@@ -426,8 +426,59 @@ static void phase0_rx_enter_discard(uint32_t error_code)
     phase0_rx_discard_prev_cr = 0u;
 }
 
+static uint32_t phase0_rx_hex_nibble(char c)
+{
+    if ((c >= '0') && (c <= '9')) {
+        return (uint32_t)(c - '0');
+    }
+    if ((c >= 'A') && (c <= 'F')) {
+        return (uint32_t)(c - 'A' + 10);
+    }
+    if ((c >= 'a') && (c <= 'f')) {
+        return (uint32_t)(c - 'a' + 10);
+    }
+    return 0xFFFFFFFFu;
+}
+
 static void phase0_rx_process_line(void)
 {
+    uint32_t i;
+    uint32_t nibble;
+    uint32_t loop_len_val;
+    uint32_t velocity_val;
+
+    /* !NLLLLVVVV\r\n — parameterized note with pitch and velocity */
+    if ((phase0_rx_line_len == 12u) &&
+        (phase0_rx_line[0] == '!') &&
+        (phase0_rx_line[1] == 'N') &&
+        (phase0_rx_line[10] == '\r') &&
+        (phase0_rx_line[11] == '\n')) {
+        loop_len_val = 0u;
+        velocity_val = 0u;
+        for (i = 0u; i < 4u; i++) {
+            nibble = phase0_rx_hex_nibble(phase0_rx_line[2u + i]);
+            if (nibble > 15u) { goto m3a_invalid; }
+            loop_len_val = (loop_len_val << 4u) | nibble;
+            nibble = phase0_rx_hex_nibble(phase0_rx_line[6u + i]);
+            if (nibble > 15u) { goto m3a_invalid; }
+            velocity_val = (velocity_val << 4u) | nibble;
+        }
+        if (loop_len_val < 32u) { loop_len_val = 32u; }
+        if (loop_len_val > 127u) { loop_len_val = 127u; }
+        if (velocity_val > 32767u) { velocity_val = 32767u; }
+        phase0_mmio_write32(PHASE0_CTRL_ADDR(PHASE0_REG_VOICE_LOOP_LEN),
+                            loop_len_val & 0x7Fu);
+        phase0_mmio_write32(PHASE0_CTRL_ADDR(PHASE0_REG_VOICE_VELOCITY),
+                            velocity_val & 0x7FFFu);
+        phase0_lru_steal_note_event();
+        phase0_rx_command_count++;
+        return;
+    m3a_invalid:
+        phase0_rx_record_error(PHASE0_RX_ERROR_UNSUPPORTED_ARG);
+        return;
+    }
+
+    /* Bare !N\r\n — inline fixed-note trigger */
     if ((phase0_rx_line_len == 4u) &&
         (phase0_rx_line[0] == '!') &&
         (phase0_rx_line[1] == 'N') &&
