@@ -26,6 +26,28 @@ Extend M6 live-play with an interactive mode that reads from stdin or a named pi
 - Any ROM reclamation: M8 proved function extraction does not save words
 - Lookup tables in firmware: 93 words insufficient for useful table size
 
+## Proposed Implementer Task
+
+Title: "Implement Phase 3 M9 interactive stdin-to-UART keyboard wrapper"
+
+Extend M6 live-play with an interactive `--interactive` mode that reads tokens from stdin, converts to commands via M5 mapper, and either dry-runs or sends via serial. No firmware/RTL changes. Add `--transcript LOG` option. Self-check must verify: interactive parse, M7a up/down event compatibility, release/panic aliases, and dry-run CRLF framing.
+
+## Proposed Verifier Task
+
+Title: "Validate Phase 3 M9 interactive keyboard wrapper"
+
+Verifier checks: ASCII-only source, no FW/RTL diffs, self-check PASS, dry-run transcript matches expected commands for test sequence `A4,C5,off`, hardware serial test with `--port COMx` sends valid commands (Q increments, X=0, K=0). Rollback: remove script, no FW/RTL restored needed.
+
+## Acceptance Gates
+
+| Gate | Threshold |
+| --- | --- |
+| Host-tool-only | No FW/RTL/SDC/pin/PLL changes |
+| Dry-run output | repr(cmd) with CRLF framing |
+| Self-check | PASS with A4,C5,off sequence |
+| Interactive mode | Reads stdin, emits M5 commands |
+| Hardware UART | K=0, X=0, Q increments |
+
 ## Next Task
 
-"Implement M9: interactive stdin-to-UART keyboard wrapper extending M6"
+"Implement Phase 3 M9: interactive stdin-to-UART keyboard wrapper extending M6"
