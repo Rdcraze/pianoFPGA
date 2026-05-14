@@ -466,6 +466,28 @@ static void phase0_rx_process_line(void)
         if (loop_len_val < 32u) { loop_len_val = 32u; }
         if (loop_len_val > 127u) { loop_len_val = 127u; }
         if (velocity_val > 32767u) { velocity_val = 32767u; }
+
+        /* Monophonic guard: reset all active voices before retuning */
+        if ((phase0_mmio_read32(PHASE0_CTRL_ADDR(PHASE0_REG_VOICE_STATUS)) &
+             PHASE0_VOICE_STATUS_ACTIVE_M) != 0u) {
+            phase0_write_voice_control(PHASE0_VOICE_CONTROL_RESET_M);
+        }
+        if ((phase0_mmio_read32(PHASE0_CTRL_ADDR(PHASE0_REG_VOICE1_STATUS)) &
+             PHASE0_VOICE_STATUS_ACTIVE_M) != 0u) {
+            phase0_mmio_write32(PHASE0_CTRL_ADDR(PHASE0_REG_VOICE1_CONTROL),
+                                PHASE0_VOICE1_CONTROL_RESET_M);
+        }
+        if ((phase0_mmio_read32(PHASE0_CTRL_ADDR(PHASE0_REG_VOICE2_STATUS)) &
+             PHASE0_VOICE_STATUS_ACTIVE_M) != 0u) {
+            phase0_mmio_write32(PHASE0_CTRL_ADDR(PHASE0_REG_VOICE2_CONTROL),
+                                PHASE0_VOICE2_CONTROL_RESET_M);
+        }
+        if ((phase0_mmio_read32(PHASE0_CTRL_ADDR(PHASE0_REG_VOICE3_STATUS)) &
+             PHASE0_VOICE_STATUS_ACTIVE_M) != 0u) {
+            phase0_mmio_write32(PHASE0_CTRL_ADDR(PHASE0_REG_VOICE3_CONTROL),
+                                PHASE0_VOICE3_CONTROL_RESET_M);
+        }
+
         phase0_mmio_write32(PHASE0_CTRL_ADDR(PHASE0_REG_VOICE_LOOP_LEN),
                             loop_len_val & 0x7Fu);
         phase0_mmio_write32(PHASE0_CTRL_ADDR(PHASE0_REG_VOICE_VELOCITY),
