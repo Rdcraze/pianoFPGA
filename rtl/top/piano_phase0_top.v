@@ -48,6 +48,14 @@ wire        voice3_enable;
 wire        voice3_trigger_strobe;
 wire        voice3_reset_strobe;
 wire        voice3_clip_clear_strobe;
+wire [15:0] voice0_velocity;
+wire [6:0]  voice0_loop_len;
+wire [15:0] voice1_velocity;
+wire [6:0]  voice1_loop_len;
+wire [15:0] voice2_velocity;
+wire [6:0]  voice2_loop_len;
+wire [15:0] voice3_velocity;
+wire [6:0]  voice3_loop_len;
 wire [15:0] voice_velocity;
 wire [6:0]  voice_loop_len;
 wire [15:0] voice_loop_gain;
@@ -166,6 +174,22 @@ phase0_control_regs phase0_control_regs_inst (
     .voice3_trigger_strobe(voice3_trigger_strobe),
     .voice3_reset_strobe(voice3_reset_strobe),
     .voice3_clip_clear_strobe(voice3_clip_clear_strobe),
+    .voice0_velocity(voice0_velocity),
+    .voice0_loop_len(voice0_loop_len),
+    .voice0_velocity(voice0_velocity),
+    .voice1_loop_len(voice1_loop_len),
+    .voice1_velocity(voice1_velocity),
+    .voice2_loop_len(voice2_loop_len),
+    .voice2_velocity(voice2_velocity),
+    .voice3_loop_len(voice3_loop_len),
+    .voice3_velocity(voice3_velocity),
+    .voice0_loop_len(voice0_loop_len),
+    .voice1_velocity(voice1_velocity),
+    .voice1_loop_len(voice1_loop_len),
+    .voice2_velocity(voice2_velocity),
+    .voice2_loop_len(voice2_loop_len),
+    .voice3_velocity(voice3_velocity),
+    .voice3_loop_len(voice3_loop_len),
 
     .voice_velocity(voice_velocity),
     .voice_loop_len(voice_loop_len),
@@ -205,6 +229,22 @@ phase0_audio_path phase0_audio_path_inst (
     .voice3_trigger_strobe(voice3_trigger_strobe),
     .voice3_reset_strobe(voice3_reset_strobe),
     .voice3_clip_clear_strobe(voice3_clip_clear_strobe),
+    .voice0_velocity(voice0_velocity),
+    .voice0_loop_len(voice0_loop_len),
+    .voice0_velocity(voice0_velocity),
+    .voice1_loop_len(voice1_loop_len),
+    .voice1_velocity(voice1_velocity),
+    .voice2_loop_len(voice2_loop_len),
+    .voice2_velocity(voice2_velocity),
+    .voice3_loop_len(voice3_loop_len),
+    .voice3_velocity(voice3_velocity),
+    .voice0_loop_len(voice0_loop_len),
+    .voice1_velocity(voice1_velocity),
+    .voice1_loop_len(voice1_loop_len),
+    .voice2_velocity(voice2_velocity),
+    .voice2_loop_len(voice2_loop_len),
+    .voice3_velocity(voice3_velocity),
+    .voice3_loop_len(voice3_loop_len),
 
     .voice_velocity(voice_velocity),
     .voice_loop_len(voice_loop_len),

@@ -58,6 +58,14 @@ module phase0_control_regs (
     output reg         voice3_clip_clear_strobe,
     output reg  [15:0] voice_velocity,
     output reg  [6:0]  voice_loop_len,
+    output reg  [15:0] voice0_velocity,
+    output reg  [6:0]  voice0_loop_len,
+    output reg  [15:0] voice1_velocity,
+    output reg  [6:0]  voice1_loop_len,
+    output reg  [15:0] voice2_velocity,
+    output reg  [6:0]  voice2_loop_len,
+    output reg  [15:0] voice3_velocity,
+    output reg  [6:0]  voice3_loop_len,
     output reg  [15:0] voice_loop_gain,
     output reg  [15:0] voice_damp_mix,
     output reg signed [15:0] voice_disp_coeff,
@@ -97,10 +105,18 @@ localparam [7:0] REG_VOICE2_TRIGGER_COUNT = 8'h78;
 localparam [7:0] REG_VOICE2_ACTIVE_COUNT  = 8'h7C;
 localparam [7:0] REG_VOICE2_VALID_COUNT   = 8'h80;
 localparam [7:0] REG_VOICE3_CONTROL       = 8'h84;
-	localparam [7:0] REG_VOICE3_STATUS        = 8'h88;
-	localparam [7:0] REG_VOICE3_TRIGGER_COUNT = 8'h8C;
-	localparam [7:0] REG_VOICE3_ACTIVE_COUNT  = 8'h90;
-	localparam [7:0] REG_VOICE3_VALID_COUNT   = 8'h94;
+localparam [7:0] REG_VOICE3_STATUS        = 8'h88;
+localparam [7:0] REG_VOICE3_TRIGGER_COUNT = 8'h8C;
+localparam [7:0] REG_VOICE3_ACTIVE_COUNT  = 8'h90;
+localparam [7:0] REG_VOICE3_VALID_COUNT   = 8'h94;
+localparam [7:0] REG_VOICE0_LOOP_LEN      = 8'h98;
+localparam [7:0] REG_VOICE0_VELOCITY      = 8'h9C;
+localparam [7:0] REG_VOICE1_LOOP_LEN      = 8'hA0;
+localparam [7:0] REG_VOICE1_VELOCITY      = 8'hA4;
+localparam [7:0] REG_VOICE2_LOOP_LEN      = 8'hA8;
+localparam [7:0] REG_VOICE2_VELOCITY      = 8'hAC;
+localparam [7:0] REG_VOICE3_LOOP_LEN      = 8'hB0;
+localparam [7:0] REG_VOICE3_VELOCITY      = 8'hB4;
 
 function [15:0] clamp_uq15;
     input [31:0] value;
@@ -158,6 +174,14 @@ always @(posedge sys_clk or negedge sys_rst_n) begin
         voice3_clip_clear_strobe <= 1'b0;
         voice_velocity <= 16'h4000;
         voice_loop_len <= 7'd106;
+        voice0_velocity <= 16'h4000;
+        voice0_loop_len <= 7'd106;
+        voice1_velocity <= 16'h4000;
+        voice1_loop_len <= 7'd106;
+        voice2_velocity <= 16'h4000;
+        voice2_loop_len <= 7'd106;
+        voice3_velocity <= 16'h4000;
+        voice3_loop_len <= 7'd106;
         voice_loop_gain <= 16'd32640;
         voice_damp_mix <= 16'd16384;
         voice_disp_coeff <= 16'sd9952;
@@ -175,7 +199,6 @@ always @(posedge sys_clk or negedge sys_rst_n) begin
         voice2_trigger_strobe <= 1'b0;
         voice2_reset_strobe <= 1'b0;
         voice2_clip_clear_strobe <= 1'b0;
-        voice3_enable <= 1'b1;
         voice3_trigger_strobe <= 1'b0;
         voice3_reset_strobe <= 1'b0;
         voice3_clip_clear_strobe <= 1'b0;
@@ -211,9 +234,17 @@ always @(posedge sys_clk or negedge sys_rst_n) begin
                 end
                 REG_VOICE_VELOCITY: begin
                     voice_velocity <= clamp_uq15(reg_wdata);
+                    voice0_velocity <= clamp_uq15(reg_wdata);
+                    voice1_velocity <= clamp_uq15(reg_wdata);
+                    voice2_velocity <= clamp_uq15(reg_wdata);
+                    voice3_velocity <= clamp_uq15(reg_wdata);
                 end
                 REG_VOICE_LOOP_LEN: begin
                     voice_loop_len <= clamp_loop_len(reg_wdata);
+                    voice0_loop_len <= clamp_loop_len(reg_wdata);
+                    voice1_loop_len <= clamp_loop_len(reg_wdata);
+                    voice2_loop_len <= clamp_loop_len(reg_wdata);
+                    voice3_loop_len <= clamp_loop_len(reg_wdata);
                 end
                 REG_VOICE_LOOP_GAIN: begin
                     voice_loop_gain <= clamp_uq15(reg_wdata);
@@ -247,6 +278,30 @@ always @(posedge sys_clk or negedge sys_rst_n) begin
                     voice3_trigger_strobe <= reg_wdata[1];
                     voice3_reset_strobe <= reg_wdata[2];
                     voice3_clip_clear_strobe <= reg_wdata[8];
+                end
+                REG_VOICE0_LOOP_LEN: begin
+                    voice0_loop_len <= clamp_loop_len(reg_wdata);
+                end
+                REG_VOICE0_VELOCITY: begin
+                    voice0_velocity <= clamp_uq15(reg_wdata);
+                end
+                REG_VOICE1_LOOP_LEN: begin
+                    voice1_loop_len <= clamp_loop_len(reg_wdata);
+                end
+                REG_VOICE1_VELOCITY: begin
+                    voice1_velocity <= clamp_uq15(reg_wdata);
+                end
+                REG_VOICE2_LOOP_LEN: begin
+                    voice2_loop_len <= clamp_loop_len(reg_wdata);
+                end
+                REG_VOICE2_VELOCITY: begin
+                    voice2_velocity <= clamp_uq15(reg_wdata);
+                end
+                REG_VOICE3_LOOP_LEN: begin
+                    voice3_loop_len <= clamp_loop_len(reg_wdata);
+                end
+                REG_VOICE3_VELOCITY: begin
+                    voice3_velocity <= clamp_uq15(reg_wdata);
                 end
                 default: begin
                 end
@@ -333,10 +388,7 @@ always @(*) begin
                 reg_rdata = 32'd0;
             end
             REG_VOICE1_CONTROL: begin
-                reg_rdata = {
-                    31'd0,
-                    voice1_enable
-                };
+                reg_rdata = {31'd0, voice1_enable};
             end
             REG_VOICE1_STATUS: begin
                 reg_rdata = voice1_status_word;
@@ -357,10 +409,7 @@ always @(*) begin
                 reg_rdata = voice_mix_clip_count;
             end
             REG_VOICE2_CONTROL: begin
-                reg_rdata = {
-                    31'd0,
-                    voice2_enable
-                };
+                reg_rdata = {31'd0, voice2_enable};
             end
             REG_VOICE2_STATUS: begin
                 reg_rdata = voice2_status_word;
@@ -375,10 +424,7 @@ always @(*) begin
                 reg_rdata = voice2_valid_count;
             end
             REG_VOICE3_CONTROL: begin
-                reg_rdata = {
-                    31'd0,
-                    voice3_enable
-                };
+                reg_rdata = {31'd0, voice3_enable};
             end
             REG_VOICE3_STATUS: begin
                 reg_rdata = voice3_status_word;
@@ -391,6 +437,30 @@ always @(*) begin
             end
             REG_VOICE3_VALID_COUNT: begin
                 reg_rdata = voice3_valid_count;
+            end
+            REG_VOICE0_LOOP_LEN: begin
+                reg_rdata = {25'd0, voice0_loop_len};
+            end
+            REG_VOICE0_VELOCITY: begin
+                reg_rdata = {16'd0, voice0_velocity};
+            end
+            REG_VOICE1_LOOP_LEN: begin
+                reg_rdata = {25'd0, voice1_loop_len};
+            end
+            REG_VOICE1_VELOCITY: begin
+                reg_rdata = {16'd0, voice1_velocity};
+            end
+            REG_VOICE2_LOOP_LEN: begin
+                reg_rdata = {25'd0, voice2_loop_len};
+            end
+            REG_VOICE2_VELOCITY: begin
+                reg_rdata = {16'd0, voice2_velocity};
+            end
+            REG_VOICE3_LOOP_LEN: begin
+                reg_rdata = {25'd0, voice3_loop_len};
+            end
+            REG_VOICE3_VELOCITY: begin
+                reg_rdata = {16'd0, voice3_velocity};
             end
             default: begin
                 reg_rdata = 32'd0;
