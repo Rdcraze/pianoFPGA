@@ -16,7 +16,9 @@
     (PHASE0_VOICE1_CONTROL_ENABLE_M)
 #define PHASE0_VOICE2_CONTROL_BASELINE \
     (PHASE0_VOICE2_CONTROL_ENABLE_M)
-#define PHASE0_RR_EVENT_COUNT 8u
+#define PHASE0_RR_EVENT_COUNT 12u
+#define PHASE0_M2_LOGICAL_SLOTS 6u
+#define PHASE0_M2_PHYSICAL_SLOTS 4u
 #define PHASE0_RX_MAX_LINE_BYTES 16u
 #define PHASE0_RX_ERROR_NONE 0u
 #define PHASE0_RX_ERROR_MALFORMED 1u
@@ -33,6 +35,10 @@ static uint32_t phase0_rr_event_count;
 static uint32_t phase0_rr_assign_count[4];
 static uint32_t phase0_rr_last_voice;
 static uint32_t phase0_rr_drop_steal_count;
+static uint32_t phase0_m2_steal_count;
+static uint32_t phase0_m2_logical_slot;
+static uint32_t phase0_m2_phys_age[PHASE0_M2_PHYSICAL_SLOTS];
+static uint32_t phase0_m2_age_counter;
 static uint32_t phase0_rx_command_count;
 static uint32_t phase0_rx_error_count;
 static uint32_t phase0_rx_last_error;
@@ -173,6 +179,7 @@ static void phase0_report_voice_debug(void)
     phase0_uart_put_frame('N', phase0_rr_assign_count[2]);
     phase0_uart_put_frame('P', phase0_rr_drop_steal_count);
     phase0_uart_putc('S'); phase0_uart_putc('3'); phase0_uart_putc('='); phase0_uart_put_hex32(phase0_rr_assign_count[3]); phase0_uart_putc('\r'); phase0_uart_putc('\n');
+    phase0_uart_putc('S'); phase0_uart_putc('T'); phase0_uart_putc('='); phase0_uart_put_hex32(phase0_m2_steal_count); phase0_uart_putc('\r'); phase0_uart_putc('\n');
     phase0_uart_put_frame('Q', phase0_rx_command_count);
     phase0_uart_put_frame('X', ((phase0_rx_last_error & 0xFFFFu) << 16) |
                                 (phase0_rx_error_count & 0xFFFFu));
@@ -246,6 +253,13 @@ static void phase0_program_defaults(void)
     phase0_rr_assign_count[3] = 0u;
     phase0_rr_last_voice = 0xFFFFFFFFu;
     phase0_rr_drop_steal_count = 0u;
+    phase0_m2_steal_count = 0u;
+    phase0_m2_logical_slot = 0u;
+    phase0_m2_age_counter = 0u;
+    phase0_m2_phys_age[0] = 0u;
+    phase0_m2_phys_age[1] = 0u;
+    phase0_m2_phys_age[2] = 0u;
+    phase0_m2_phys_age[3] = 0u;
     phase0_rx_command_count = 0u;
     phase0_rx_error_count = 0u;
     phase0_rx_last_error = PHASE0_RX_ERROR_NONE;
@@ -312,22 +326,72 @@ static uint32_t phase0_trigger_voice_index(uint32_t voice_index)
     }
 }
 
-static void phase0_round_robin_note_event(void)
+static void phase0_lru_steal_note_event(void)
 {
-    uint32_t voice_index = phase0_rr_next_voice;
+    uint32_t vi;
+    uint32_t best_age;
+    uint32_t steal_vi;
+    uint32_t phys;
 
-    if (phase0_trigger_voice_index(voice_index) != 0u) {
-        phase0_rr_assign_count[voice_index]++;
-        phase0_rr_event_count++;
-        phase0_rr_last_voice = voice_index;
+    /* Assign the current logical slot to next free physical voice */
+    phase0_rr_assign_count[phase0_m2_logical_slot]++;
+    phase0_rr_event_count++;
+    phase0_rr_last_voice = phase0_m2_logical_slot;
 
-        phase0_rr_next_voice = voice_index + 1u;
-        if (phase0_rr_next_voice >= 4u) {
-            phase0_rr_next_voice = 0u;
+    /* Find free physical slot */
+    phys = PHASE0_M2_PHYSICAL_SLOTS;
+    for (vi = 0u; vi < PHASE0_M2_PHYSICAL_SLOTS; vi++) {
+        if ((phase0_mmio_read32(PHASE0_CTRL_ADDR(PHASE0_REG_VOICE_STATUS +
+                               (uint32_t)(vi * 0x34u))) &
+             PHASE0_VOICE_STATUS_ACTIVE_M) == 0u) {
+            phys = vi;
+            break;
         }
-    } else {
+    }
+
+    /* Steal oldest if all busy */
+    if (phys == PHASE0_M2_PHYSICAL_SLOTS) {
+        best_age = 0xFFFFFFFFu;
+        steal_vi = 0u;
+        for (vi = 0u; vi < PHASE0_M2_PHYSICAL_SLOTS; vi++) {
+            if (phase0_m2_phys_age[vi] < best_age) {
+                best_age = phase0_m2_phys_age[vi];
+                steal_vi = vi;
+            }
+        }
+        phys = steal_vi;
+        phase0_m2_steal_count++;
         phase0_rr_drop_steal_count++;
-        phase0_rr_next_voice = 0u;
+
+        /* Reset stolen voice before re-trigger */
+        switch (phys) {
+        case 0u:
+            phase0_write_voice_control(PHASE0_VOICE_CONTROL_RESET_M);
+            break;
+        case 1u:
+            phase0_mmio_write32(PHASE0_CTRL_ADDR(PHASE0_REG_VOICE1_CONTROL),
+                                PHASE0_VOICE1_CONTROL_RESET_M);
+            break;
+        case 2u:
+            phase0_mmio_write32(PHASE0_CTRL_ADDR(PHASE0_REG_VOICE2_CONTROL),
+                                PHASE0_VOICE2_CONTROL_RESET_M);
+            break;
+        default:
+            phase0_mmio_write32(PHASE0_CTRL_ADDR(PHASE0_REG_VOICE3_CONTROL),
+                                PHASE0_VOICE3_CONTROL_RESET_M);
+            break;
+        }
+    }
+
+    /* Trigger the physical voice */
+    phase0_trigger_voice_index(phys);
+    phase0_m2_phys_age[phys] = phase0_m2_age_counter;
+    phase0_m2_age_counter++;
+
+    /* Advance logical slot */
+    phase0_m2_logical_slot++;
+    if (phase0_m2_logical_slot >= PHASE0_M2_LOGICAL_SLOTS) {
+        phase0_m2_logical_slot = 0u;
     }
 }
 
@@ -336,7 +400,7 @@ static void phase0_run_round_robin_smoke(void)
     uint32_t event_index;
 
     for (event_index = 0u; event_index < PHASE0_RR_EVENT_COUNT; event_index++) {
-        phase0_round_robin_note_event();
+        phase0_lru_steal_note_event();
     }
 }
 
@@ -363,7 +427,7 @@ static void phase0_rx_process_line(void)
         (phase0_rx_line[1] == 'N') &&
         (phase0_rx_line[2] == '\r') &&
         (phase0_rx_line[3] == '\n')) {
-        phase0_round_robin_note_event();
+        phase0_lru_steal_note_event();
         phase0_rx_command_count++;
     } else if ((phase0_rx_line_len >= 2u) &&
                (phase0_rx_line[0] == '!') &&
