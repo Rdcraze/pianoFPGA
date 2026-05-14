@@ -96,11 +96,11 @@ localparam [7:0] REG_VOICE2_STATUS        = 8'h74;
 localparam [7:0] REG_VOICE2_TRIGGER_COUNT = 8'h78;
 localparam [7:0] REG_VOICE2_ACTIVE_COUNT  = 8'h7C;
 localparam [7:0] REG_VOICE2_VALID_COUNT   = 8'h80;
-    localparam [7:0] REG_VOICE3_CONTROL       = 8'h84;
-    localparam [7:0] REG_VOICE3_STATUS        = 8'h88;
-    localparam [7:0] REG_VOICE3_TRIGGER_COUNT = 8'h8C;
-    localparam [7:0] REG_VOICE3_ACTIVE_COUNT  = 8'h90;
-    localparam [7:0] REG_VOICE3_VALID_COUNT   = 8'h94;
+localparam [7:0] REG_VOICE3_CONTROL       = 8'h84;
+	localparam [7:0] REG_VOICE3_STATUS        = 8'h88;
+	localparam [7:0] REG_VOICE3_TRIGGER_COUNT = 8'h8C;
+	localparam [7:0] REG_VOICE3_ACTIVE_COUNT  = 8'h90;
+	localparam [7:0] REG_VOICE3_VALID_COUNT   = 8'h94;
 
 function [15:0] clamp_uq15;
     input [31:0] value;
@@ -362,12 +362,6 @@ always @(*) begin
                     voice2_enable
                 };
             end
-                REG_VOICE3_CONTROL: begin
-                    voice3_enable <= reg_wdata[0];
-                    voice3_trigger_strobe <= reg_wdata[1];
-                    voice3_reset_strobe <= reg_wdata[2];
-                    voice3_clip_clear_strobe <= reg_wdata[8];
-                end
             REG_VOICE2_STATUS: begin
                 reg_rdata = voice2_status_word;
             end
