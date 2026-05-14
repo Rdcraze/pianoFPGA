@@ -326,6 +326,29 @@ static uint32_t phase0_trigger_voice_index(uint32_t voice_index)
     }
 }
 
+static void phase0_write_per_voice_params(uint32_t phys, uint32_t loop_len_val,
+                                            uint32_t velocity_val)
+{
+    switch (phys) {
+    case 0u:
+        phase0_mmio_write32(PHASE0_CTRL_ADDR(PHASE0_REG_VOICE0_LOOP_LEN), loop_len_val);
+        phase0_mmio_write32(PHASE0_CTRL_ADDR(PHASE0_REG_VOICE0_VELOCITY), velocity_val);
+        break;
+    case 1u:
+        phase0_mmio_write32(PHASE0_CTRL_ADDR(PHASE0_REG_VOICE1_LOOP_LEN), loop_len_val);
+        phase0_mmio_write32(PHASE0_CTRL_ADDR(PHASE0_REG_VOICE1_VELOCITY), velocity_val);
+        break;
+    case 2u:
+        phase0_mmio_write32(PHASE0_CTRL_ADDR(PHASE0_REG_VOICE2_LOOP_LEN), loop_len_val);
+        phase0_mmio_write32(PHASE0_CTRL_ADDR(PHASE0_REG_VOICE2_VELOCITY), velocity_val);
+        break;
+    default:
+        phase0_mmio_write32(PHASE0_CTRL_ADDR(PHASE0_REG_VOICE3_LOOP_LEN), loop_len_val);
+        phase0_mmio_write32(PHASE0_CTRL_ADDR(PHASE0_REG_VOICE3_VELOCITY), velocity_val);
+        break;
+    }
+}
+
 static void phase0_lru_steal_note_event(void)
 {
     uint32_t vi;
@@ -467,21 +490,63 @@ static void phase0_rx_process_line(void)
         if (loop_len_val > 127u) { loop_len_val = 127u; }
         if (velocity_val > 32767u) { velocity_val = 32767u; }
 
-        /* Monophonic guard: unconditionally reset all voices before retuning.
-           Resetting an idle voice is harmless (delay line already zero). */
-        phase0_write_voice_control(PHASE0_VOICE_CONTROL_RESET_M);
-        phase0_mmio_write32(PHASE0_CTRL_ADDR(PHASE0_REG_VOICE1_CONTROL),
-                            PHASE0_VOICE1_CONTROL_RESET_M);
-        phase0_mmio_write32(PHASE0_CTRL_ADDR(PHASE0_REG_VOICE2_CONTROL),
-                            PHASE0_VOICE2_CONTROL_RESET_M);
-        phase0_mmio_write32(PHASE0_CTRL_ADDR(PHASE0_REG_VOICE3_CONTROL),
-                            PHASE0_VOICE3_CONTROL_RESET_M);
+        /* Polyphonic: the LRU scheduler selects and triggers a physical voice.
+           We set per-voice loop_len/velocity BEFORE the trigger so each voice
+           retains its own pitch. The LRU steal path handles reset of stolen voice. */
+        {
+            uint32_t phys;
+            uint32_t vi;
+            uint32_t best_age;
+            uint32_t steal_vi;
 
-        phase0_mmio_write32(PHASE0_CTRL_ADDR(PHASE0_REG_VOICE_LOOP_LEN),
-                            loop_len_val & 0x7Fu);
-        phase0_mmio_write32(PHASE0_CTRL_ADDR(PHASE0_REG_VOICE_VELOCITY),
-                            velocity_val & 0x7FFFu);
-        phase0_lru_steal_note_event();
+            phys = PHASE0_M2_PHYSICAL_SLOTS;
+            for (vi = 0u; vi < PHASE0_M2_PHYSICAL_SLOTS; vi++) {
+                uint32_t so;
+                switch (vi) {
+                case 0u: so = PHASE0_REG_VOICE_STATUS;  break;
+                case 1u: so = PHASE0_REG_VOICE1_STATUS; break;
+                case 2u: so = PHASE0_REG_VOICE2_STATUS; break;
+                default: so = PHASE0_REG_VOICE3_STATUS; break;
+                }
+                if ((phase0_mmio_read32(PHASE0_CTRL_ADDR(so)) &
+                     PHASE0_VOICE_STATUS_ACTIVE_M) == 0u) {
+                    phys = vi;
+                    break;
+                }
+            }
+            if (phys == PHASE0_M2_PHYSICAL_SLOTS) {
+                best_age = 0xFFFFFFFFu;
+                steal_vi = 0u;
+                for (vi = 0u; vi < PHASE0_M2_PHYSICAL_SLOTS; vi++) {
+                    if (phase0_m2_phys_age[vi] < best_age) {
+                        best_age = phase0_m2_phys_age[vi];
+                        steal_vi = vi;
+                    }
+                }
+                phys = steal_vi;
+                phase0_m2_steal_count++;
+                phase0_rr_drop_steal_count++;
+                switch (phys) {
+                case 0u: phase0_write_voice_control(PHASE0_VOICE_CONTROL_RESET_M); break;
+                case 1u: phase0_mmio_write32(PHASE0_CTRL_ADDR(PHASE0_REG_VOICE1_CONTROL), PHASE0_VOICE1_CONTROL_RESET_M); break;
+                case 2u: phase0_mmio_write32(PHASE0_CTRL_ADDR(PHASE0_REG_VOICE2_CONTROL), PHASE0_VOICE2_CONTROL_RESET_M); break;
+                default: phase0_mmio_write32(PHASE0_CTRL_ADDR(PHASE0_REG_VOICE3_CONTROL), PHASE0_VOICE3_CONTROL_RESET_M); break;
+                }
+            }
+
+            phase0_write_per_voice_params(phys, loop_len_val, velocity_val);
+            phase0_rr_assign_count[phase0_m2_logical_slot]++;
+            phase0_rr_event_count++;
+            phase0_rr_last_voice = phase0_m2_logical_slot;
+            phase0_trigger_voice_index(phys);
+            phase0_m2_phys_age[phys] = phase0_m2_age_counter;
+            phase0_m2_age_counter++;
+            phase0_m2_logical_slot++;
+            if (phase0_m2_logical_slot >= PHASE0_M2_LOGICAL_SLOTS) {
+                phase0_m2_logical_slot = 0u;
+            }
+        }
+
         phase0_rx_command_count++;
         return;
     m3a_invalid:
