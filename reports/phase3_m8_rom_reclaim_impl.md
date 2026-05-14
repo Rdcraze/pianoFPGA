@@ -16,9 +16,13 @@ Commits: `9506e65` (attempt), `restored to b0926cf` (rollback)
 
 The inline voice3 tag sequences were compact. Wrapping them in a function call adds a call/return pair, and the `!D` parser handler adds conditional checks. Overhead exceeded savings.
 
-## Rollback (task-6b7142c9)
+## Rollback (task-6b7142c9, cleanup task-02bd6dda)
 
-Firmware restored to pre-M8 accepted baseline (b0926cf). ROM confirmed at 931/1024. Voice3 telemetry tags (V3/VT/VA/VV/S3/ST) are back in the periodic report path. No !D handler remains.
+Commit: `bb2415d`. Firmware restored to pre-M8 accepted baseline (b0926cf).
+`git diff b0926cf -- fw/phase0/phase0_main.c` confirms no net diff.
+ROM: 931/1024 (build: `.\fw\phase0\build.ps1`, 931 words in phase0.mem).
+Voice3 telemetry (V3/VT/VA/VV/S3/ST) is back in the periodic report path.
+No !D handler remains. Binary build logs removed.
 
 ## ROM Budget Reality
 
