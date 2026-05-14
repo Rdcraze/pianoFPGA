@@ -84,10 +84,38 @@ def self_check() -> bool:
         if not (0 <= velocity <= VELOCITY_MAX):
             print(f"FAIL {note_name(note)}: velocity={velocity:#x} out of range")
             errors += 1
+    # A4 exact match
+    a4_cmd = midi_to_command(69)
+    if a4_cmd.strip() != "!N006A7FFF":
+        print(f"FAIL A4: expected !N006A7FFF, got {a4_cmd.strip()}")
+        errors += 1
+    else:
+        print("A4=0x6A: PASS")
+
+    # note/name equivalence
+    for midi, name in [(21, "A0"), (60, "C4"), (69, "A4"), (108, "C8")]:
+        cmd_note = midi_to_command(midi)
+        freq = A4_FREQ * (2.0 ** ((midi - A4_MIDI) / 12.0))
+        vel = VELOCITY_DEFAULT
+        cmd_name = midi_to_command(midi, vel)
+        if cmd_note != cmd_name:
+            print(f"FAIL {name}/MIDI{midi}: note={cmd_note.strip()} name={cmd_name.strip()}")
+            errors += 1
+        else:
+            print(f"{name}/MIDI{midi} equiv: PASS")
+
+    # Release aliases
+    for alias in ["release", "off", "panic"]:
+        if cmd_release().strip() != "!F":
+            print(f"FAIL {alias}: expected !F, got {cmd_release().strip()}")
+            errors += 1
+        else:
+            print(f"{alias}=!F: PASS")
+
     if errors:
         print(f"\n{errors} error(s) found")
     else:
-        print(f"PASS: all {NOTE_MAX - NOTE_MIN + 1} notes produce valid commands")
+        print(f"PASS: all {NOTE_MAX - NOTE_MIN + 1} notes + A4 exact + name equiv + release aliases")
     return errors == 0
 
 
