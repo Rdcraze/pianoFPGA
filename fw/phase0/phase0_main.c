@@ -412,6 +412,9 @@ static void phase0_lru_steal_note_event(void)
         }
     }
 
+    /* Write default per-voice params for bare !N compatibility */
+    phase0_write_per_voice_params(phys, 106u, 32767u);
+
     /* Trigger the physical voice */
     phase0_trigger_voice_index(phys);
     phase0_m2_phys_age[phys] = phase0_m2_age_counter;
