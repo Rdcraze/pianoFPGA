@@ -1,31 +1,44 @@
 # Phase 3 M9 Interactive Implementation
 
-Date: 2026-05-14 | Agent: claude-implementer | Commits: `50129b7`, `c4c66cb`
+Date: 2026-05-15 | Agent: claude-implementer | Commits: `50129b7`, `c4c66cb`, `286b91f`
 
 **Zero firmware/RTL/Quartus changes.** ROM remains 931/1024. Host-tool only.
 
 ## Features
 
-- Incremental per-token processing: each stdin token immediately resolves to a UART command or suppression
-- M7a active-note state: up:X suppresses while other notes remain active
-- Dry-run forces no-serial, prints `repr(cmd)` with visible `\r\n` framing
-- Serial send via pyserial with configurable baud/delay
+- Incremental per-token processing with immediate send/suppress
+- M7a active-note state: up:X suppresses while others active
+- All release aliases (off/release/panic/all-off) always emit !F and clear active state
+- Dry-run forces no-serial, prints repr(cmd) with visible `\r\n` framing
+- Console output includes active state per token
+- Serial send via pyserial
 - Transcript logging (`--transcript PATH`)
-- Extended self-check: A4/C5/off, down/up overlap, panic, bare, quit-with-active, CRLF
+- 8 self-checks including empty-state panic
 
 ## Usage
 
 ```
 echo "A4 C5 off" | python scripts/phase3_m9_interactive.py --dry-run
+echo "panic" | python scripts/phase3_m9_interactive.py --dry-run
 python scripts/phase3_m9_interactive.py --self-check
-python scripts/phase3_m9_interactive.py --port COM3 --baud 115200 < notes.txt
 ```
 
 ## Self-Check Output
 
-All 7 checks PASS: `A4,C5,off` (3 sent), `down/up` overlap (3 sent), panic (2 sent), off-after-off (4 sent), bare (1 sent), CRLF framing, quit-with-active (!F sent).
+All 8 checks PASS: A4/C5/off (3), down/up overlap (3), panic (2), off-after-off (4), bare (1), empty-panic (1), CRLF, quit-with-active.
 
-## Dependencies
+## Dry-Run Examples
 
-- Standard library for dry-run/self-check
-- `pyserial` required for `--port` hardware mode
+```
+$ echo "panic" | python scripts/phase3_m9_interactive.py --dry-run
+DRY: '!F\r\n'
+[panic] SENT '!F\r\n' active=[]
+
+$ echo "A4 C5 off" | python scripts/phase3_m9_interactive.py --dry-run
+DRY: '!N006A7FFF\r\n'
+[A4] SENT '!N006A7FFF\r\n' active=[69]
+DRY: '!N00597FFF\r\n'
+[C5] SENT '!N00597FFF\r\n' active=[69, 72]
+DRY: '!F\r\n'
+[off] SENT '!F\r\n' active=[]
+```
