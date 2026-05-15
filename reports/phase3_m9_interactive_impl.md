@@ -25,7 +25,19 @@ python scripts/phase3_m9_interactive.py --self-check
 
 ## Self-Check Output
 
-All 8 checks PASS: A4/C5/off (3), down/up overlap (3), panic (2), off-after-off (4), bare (1), empty-panic (1), CRLF, quit-with-active.
+```
+$ python scripts/phase3_m9_interactive.py --self-check
+=== M9 self-check ===
+  A4,C5,off: sent=3 PASS
+  down/up overlap: sent=3 PASS
+  panic: sent=2 PASS
+  off after off: sent=4 PASS
+  bare: sent=1 PASS
+  empty panic sends !F: sent=1 PASS
+  CRLF framing: '!N006A7FFF\r\n' PASS
+  quit with active: !F sent PASS
+PASS: all M9 self-checks
+```
 
 ## Dry-Run Examples
 
@@ -34,11 +46,15 @@ $ echo "panic" | python scripts/phase3_m9_interactive.py --dry-run
 DRY: '!F\r\n'
 [panic] SENT '!F\r\n' active=[]
 
-$ echo "A4 C5 off" | python scripts/phase3_m9_interactive.py --dry-run
+$ echo "down:A4 down:C5 up:A4 up:C5 panic" | python scripts/phase3_m9_interactive.py --dry-run
 DRY: '!N006A7FFF\r\n'
-[A4] SENT '!N006A7FFF\r\n' active=[69]
+[down:A4] SENT '!N006A7FFF\r\n' active=[69]
 DRY: '!N00597FFF\r\n'
-[C5] SENT '!N00597FFF\r\n' active=[69, 72]
+[down:C5] SENT '!N00597FFF\r\n' active=[69, 72]
+[up:A4] suppressed active=[72]
 DRY: '!F\r\n'
-[off] SENT '!F\r\n' active=[]
+[up:C5] SENT '!F\r\n' active=[]
+DRY: '!F\r\n'
+[panic] SENT '!F\r\n' active=[]
+Sent 4 commands
 ```
