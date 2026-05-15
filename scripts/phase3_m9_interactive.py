@@ -100,14 +100,11 @@ def _resolve_token(tok: str, state) -> Optional[str]:
         state.log.append(f"[{tok}] quit -> no active notes")
         return None
 
-    # Release/panic
+    # Release/panic: always emit !F for operator safety
     if tl in RELEASE_ALIASES:
-        if state.active:
-            state.active.clear()
-            state.log.append(f"[{tok}] release -> !F sent")
-            return cmd_release()
-        state.log.append(f"[{tok}] release -> no active notes, suppressed")
-        return None
+        state.active.clear()
+        state.log.append(f"[{tok}] release -> active=[] -> !F sent")
+        return cmd_release()
 
     # Bare trigger
     if tl in {"bare", "!n"}:
@@ -194,13 +191,13 @@ def process_stream(in_stream, send_fn, transcript, state):
                     tokens.append(tok)
         for tok in tokens:
             cmd = _resolve_token(tok, state)
-            entry = f"[{tok}] -> "
+            entry = f"[{tok}] "
             if cmd:
                 send_fn(cmd)
                 state.sent_count += 1
-                entry += f"SENT {cmd!r}"
+                entry += f"SENT {cmd!r} active={sorted(state.active)}"
             else:
-                entry += "suppressed"
+                entry += f"suppressed active={sorted(state.active)}"
             print(entry)
             if transcript:
                 transcript.write(entry + "\n")
@@ -229,6 +226,7 @@ def self_check() -> bool:
     ok &= _run(["A4", "panic"], "panic", 2)
     ok &= _run(["A4", "off", "C5", "off"], "off after off", 4)
     ok &= _run(["bare"], "bare", 1)
+    ok &= _run(["panic"], "empty panic sends !F", 1)
 
     # CRLF framing
     s = M9State()
