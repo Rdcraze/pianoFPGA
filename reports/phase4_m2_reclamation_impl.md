@@ -64,7 +64,7 @@ Setup slack was still well above the +2.0 ns hard gate, but the LE went the wron
 
 The Phase 1 attribution hypothesis was that Quartus would pack the array storage tighter than four named registers. In practice, the opposite happened in this codebase:
 
-- The original named scalars (`voice1_enable`, `voice2_enable`, ...) are independently driven by literal-address case branches. Quartus appears to have already been packing the original 4×(enable/trigger/reset/clip_clear) into a tight set of LCs, and the per-address case decode shared LUT inputs efficiently.
+- The original named scalars (`voice1_enable`, `voice2_enable`, ...) are independently driven by literal-address case branches. Quartus appears to have already been packing the original 4 x (enable/trigger/reset/clip_clear) into a tight set of LCs, and the per-address case decode shared LUT inputs efficiently.
 - The new array-based form forced Quartus to materialize an indexed register array with a separate combinational `voice_ctrl_idx` decoder. The combinational LUTs to compute `idx`, gate writes by `voice_ctrl_match`, and select between shared-mirror writes and indexed writes added 305 combinational LCs (with only 4 register-LC reduction). Net: LE up.
 - The same pattern shows up in the legacy `REG_VOICE_VELOCITY`/`REG_VOICE_LOOP_LEN` shared-mirror writes: the array form looks tidier but synthesizes to wider per-bit MUX logic between the shared write source, the indexed write source, and the per-voice read paths.
 
@@ -112,7 +112,7 @@ Logs preserved at:
 - `.kiro/quartus_m2.log` (Candidate A regression run)
 - `.kiro/quartus_m2_revert.log` (post-revert clean run)
 
-Both logs are local-only (not committed) — they are large multi-megabyte Quartus stdout dumps and add no information beyond the `.fit.summary` and `.sta.summary` already in `quartus/phase0/output_files/`.
+Both logs are local-only (not committed) -- they are large multi-megabyte Quartus stdout dumps and add no information beyond the `.fit.summary` and `.sta.summary` already in `quartus/phase0/output_files/`.
 
 ### ModelSim
 
@@ -133,7 +133,7 @@ Not run for this slice. Justification:
 1. **Accept Candidate C** as a small repo-hygiene improvement (delete `phase0_soc_stub.v`).
 2. **Treat Candidate A as NO-GO** for the array-consolidation strategy. If LE recovery from `phase0_control_regs.v` is desired later, a different strategy is needed: not array-vs-scalar, but rather **selective collapse of the 32-bit readback case** (which is the largest single combinational construct in the module) without touching the write logic. That is a separate, narrower experiment for a future scoping task.
 3. **Do not pursue further Candidate A variants** in this branch without first proving in a smaller test the variant actually saves LE in this Quartus 13.0.1 toolchain.
-4. The bigger Phase 4 picture remains: SDRAM is held, headroom recovery is the right direction, but the easy wins on this codebase are not where the M1 scope predicted. Phase 4 may need a fundamentally different architectural path (e.g., voice time-multiplexing — explicitly out of scope for M2) rather than register-file refactoring.
+4. The bigger Phase 4 picture remains: SDRAM is held, headroom recovery is the right direction, but the easy wins on this codebase are not where the M1 scope predicted. Phase 4 may need a fundamentally different architectural path (e.g., voice time-multiplexing -- explicitly out of scope for M2) rather than register-file refactoring.
 
 ## Honest Assessment
 
@@ -146,10 +146,12 @@ This task therefore lands as a partial NO-GO with one small hygiene win. The orc
 
 This report stays narrow per task scope. No new architectural decisions are taken.
 
-## Commit Plan
+## Committed Result
 
-Single commit:
-- delete `rtl/control/phase0_soc_stub.v`
+Implementation commit: `5db0378` on branch `codex/phase1c-uart-boundary-fix`.
+
+Single commit contents:
+- delete `rtl/control/phase0_soc_stub.v` (Candidate C, dead-file removal)
 - add `reports/phase4_m2_reclamation_impl.md`
 
-No other source changes.
+No other source changes. Candidate A (control_regs array consolidation) was implemented locally, Quartus-validated to regress by +146 LE, and reverted before this commit; the reverted experiment is therefore not represented in the diff. Post-commit Quartus full compile is bit-identical to the pre-M2 baseline: LE 9,992, ROM 931, setup +2.914 ns, hold +0.405 ns, M9K 16, DSP9 28, 0 errors, 16 warnings.
