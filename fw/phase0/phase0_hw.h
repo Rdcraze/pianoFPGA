@@ -4,9 +4,14 @@
 #include <stdint.h>
 
 /*
- * Provisional Phase 0 memory map for the future RISC-V control subsystem.
- * The current RTL still uses phase0_soc_stub.v, but keeping the firmware
- * contract stable now makes later CPU integration smaller and clearer.
+ * Phase 0 memory map for the live RV32I control subsystem.
+ * The Phase 0 control plane is the in-tree RV32I core
+ * (phase0_rv32i_core.v, phase0_boot_rom.v, phase0_data_ram.v,
+ * phase0_rv32i_soc.v) executing fw/phase0 over this ROM/RAM/MMIO map.
+ * The earlier deterministic bring-up agent rtl/control/phase0_soc_stub.v
+ * was retired in Phase 0 task-9d00cc2f and the dead file was removed in
+ * Phase 4 M2 (commit 5db0378). Keeping this header stable preserves the
+ * firmware-visible contract across that transition.
  */
 #define PHASE0_ROM_BASE   0x00000000u
 #define PHASE0_ROM_SIZE   0x00001000u

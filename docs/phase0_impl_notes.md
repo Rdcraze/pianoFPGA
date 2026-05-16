@@ -266,7 +266,7 @@ Update for `task-d80ba15e`:
 
 - the codec block now exports the full STATUS upper byte directly, so the documented/software-visible bit mapping is no longer vulnerable to truncation or shifting between `wm8978_codec_stub.v` and `piano_phase0_top.v`
 - STATUS bit `24` is now a true completion fence for CPU-owned codec writes: it stays asserted from the sys-domain request through I2C-side activity and only drops after transaction completion is observed back in `sys_clk`
-- STATUS bit `27` remains the narrower “request queued for handoff” indicator, which is intentionally different from bit `24`
+- STATUS bit `27` remains the narrower "request queued for handoff" indicator, which is intentionally different from bit `24`
 
 Update for dynamic ModelSim debug on 2026-04-21:
 
@@ -316,6 +316,12 @@ Update for `task-e5e0096b`:
   - `vsim -c work.piano_phase0_top_tb -do "run 12 ms; quit -f"` passed with `TB_PASS fabric_status=80190758 soc_state=18 codec_write_exercised=1 write_count=18 dac_toggle_count=1668 uart_capture_count=36`
   - `vsim -c work.piano_phase0_top_nack_tb -do "run 12 ms; quit -f"` passed with `TB_NACK_PASS fabric_status=60190728 soc_state=18 nack_count=1 stop_count=1`
   - `quartus/phase0/build.ps1 -Stage compile` succeeded and regenerated `quartus/phase0/output_files/piano_phase0_top.sof`; latest slow-`85C` setup slack is `7.325 ns` on `sys_clk_50m`, `18.225 ns` on `i2c_clk`, and `328.130 ns` on `audio_bclk`
+
+Update for Phase 4 M2 (`task-0692867c`, commit `5db0378`):
+
+- `rtl/control/phase0_soc_stub.v` has been removed from the source tree. The deterministic bring-up agent it described was already superseded by the live RV32I subsystem in `task-9d00cc2f`; M2 deleted the dead file because it was no longer referenced by the QSF, top-level RTL, simulation testbenches, build scripts, or firmware. The current Phase 0 control plane is the RV32I subsystem (`phase0_rv32i_core.v`, `phase0_boot_rom.v`, `phase0_data_ram.v`, `phase0_rv32i_soc.v`, plus `phase0_uart_mmio.v`) executing `fw/phase0` against the documented ROM/RAM/MMIO map.
+- All earlier update sections in this document that mention `rtl/control/phase0_soc_stub.v` describe historical Phase 0 milestones (`task-8ee45684`, `task-4ad912d3`, `task-09810cec`, `task-e5e0096b`, etc.). They are kept as accurate records of how the design got here, but the file itself no longer exists in the live tree, and any behavior they attribute to the stub is now provided by the RV32I subsystem and firmware.
+- Source/script references repaired for this rename: `fw/phase0/phase0_hw.h` no longer claims the RTL "still uses" the stub. Verifier-side report `reports/phase4_m2_reclamation_validation.md` is preserved as historical evidence; `reports/phase4_m2_stale_reference_repair.md` records this follow-up cleanup explicitly.
 
 ## File Map
 
