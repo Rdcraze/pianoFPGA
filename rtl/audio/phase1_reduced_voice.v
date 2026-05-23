@@ -27,6 +27,16 @@ module phase1_reduced_voice (
 localparam signed [17:0] Q18_MAX = 18'sd131071;
 localparam signed [17:0] Q18_MIN = -18'sd131071 - 18'sd1;
 
+// Phase 4 M7: velocity-layered hammer threshold. Velocities at or above
+// this value at trigger time select the "bright" hammer curve (layer 1);
+// below this value the original "soft" curve (layer 0) is selected and
+// bit-exact preservation of the pre-M7 behavior is guaranteed. The
+// threshold 16'h6000 is deliberately above the reduced-voice TB default
+// velocity 16'h4000 so the existing golden-sample TB stays bit-exact;
+// production firmware writes 0x7FFF (full scale) at boot, so production
+// audio uses layer 1 by default.
+localparam [15:0] VELOCITY_LAYER_THRESHOLD = 16'h6000;
+
 localparam [3:0] STATE_IDLE          = 4'd0;
 localparam [3:0] STATE_AP_FINISH     = 4'd1;
 localparam [3:0] STATE_DAMP_A_SETUP  = 4'd2;
@@ -52,6 +62,7 @@ reg       clear_active;
 reg       clear_for_trigger;
 reg [3:0] excite_index;
 reg [15:0] quiet_count;
+reg       velocity_layer_q;
 
 (* ramstyle = "M9K" *) reg signed [17:0] delay_line [0:127];
 (* ramstyle = "M9K" *) reg signed [17:0] body_history [0:31];
@@ -143,24 +154,50 @@ endfunction
 
 function [15:0] excitation_rom;
     input [3:0] index;
+    input       layer;
     begin
-        case (index)
-            4'd0:  excitation_rom = 16'd1200;
-            4'd1:  excitation_rom = 16'd9000;
-            4'd2:  excitation_rom = 16'd24000;
-            4'd3:  excitation_rom = 16'd32627;
-            4'd4:  excitation_rom = 16'd26000;
-            4'd5:  excitation_rom = 16'd19500;
-            4'd6:  excitation_rom = 16'd14300;
-            4'd7:  excitation_rom = 16'd10400;
-            4'd8:  excitation_rom = 16'd7500;
-            4'd9:  excitation_rom = 16'd5300;
-            4'd10: excitation_rom = 16'd3700;
-            4'd11: excitation_rom = 16'd2500;
-            4'd12: excitation_rom = 16'd1600;
-            4'd13: excitation_rom = 16'd1000;
-            4'd14: excitation_rom = 16'd500;
-            default: excitation_rom = 16'd200;
+        case ({layer, index})
+            // Layer 0 (soft): preserves the original 16-entry curve
+            // bit-exact for all velocity_q15 < VELOCITY_LAYER_THRESHOLD.
+            5'b0_0000: excitation_rom = 16'd1200;
+            5'b0_0001: excitation_rom = 16'd9000;
+            5'b0_0010: excitation_rom = 16'd24000;
+            5'b0_0011: excitation_rom = 16'd32627;
+            5'b0_0100: excitation_rom = 16'd26000;
+            5'b0_0101: excitation_rom = 16'd19500;
+            5'b0_0110: excitation_rom = 16'd14300;
+            5'b0_0111: excitation_rom = 16'd10400;
+            5'b0_1000: excitation_rom = 16'd7500;
+            5'b0_1001: excitation_rom = 16'd5300;
+            5'b0_1010: excitation_rom = 16'd3700;
+            5'b0_1011: excitation_rom = 16'd2500;
+            5'b0_1100: excitation_rom = 16'd1600;
+            5'b0_1101: excitation_rom = 16'd1000;
+            5'b0_1110: excitation_rom = 16'd500;
+            5'b0_1111: excitation_rom = 16'd200;
+            // Layer 1 (bright): sharper attack and slightly higher
+            // early peak. No entry exceeds 16'd32767. Same total
+            // footprint (16 entries) and same numeric format as
+            // layer 0; downstream multipliers and saturation logic
+            // are unchanged. Selected when velocity_q15 >=
+            // VELOCITY_LAYER_THRESHOLD at trigger time.
+            5'b1_0000: excitation_rom = 16'd2400;
+            5'b1_0001: excitation_rom = 16'd16000;
+            5'b1_0010: excitation_rom = 16'd30000;
+            5'b1_0011: excitation_rom = 16'd32767;
+            5'b1_0100: excitation_rom = 16'd24000;
+            5'b1_0101: excitation_rom = 16'd16500;
+            5'b1_0110: excitation_rom = 16'd11000;
+            5'b1_0111: excitation_rom = 16'd7600;
+            5'b1_1000: excitation_rom = 16'd5200;
+            5'b1_1001: excitation_rom = 16'd3500;
+            5'b1_1010: excitation_rom = 16'd2400;
+            5'b1_1011: excitation_rom = 16'd1600;
+            5'b1_1100: excitation_rom = 16'd1000;
+            5'b1_1101: excitation_rom = 16'd600;
+            5'b1_1110: excitation_rom = 16'd300;
+            5'b1_1111: excitation_rom = 16'd100;
+            default:    excitation_rom = 16'd200;
         endcase
     end
 endfunction
@@ -203,6 +240,7 @@ always @(posedge sys_clk or negedge sys_rst_n) begin
         body_tap16        <= 18'sd0;
         mult_sample       <= 18'sd0;
         mult_coeff        <= 16'sd0;
+        velocity_layer_q  <= 1'b0;
     end else begin
         sample_valid <= 1'b0;
 
@@ -238,6 +276,12 @@ always @(posedge sys_clk or negedge sys_rst_n) begin
             body_tap16        <= 18'sd0;
             mult_sample       <= 18'sd0;
             mult_coeff        <= 16'sd0;
+            // Phase 4 M7: latch the velocity layer at trigger so the
+            // hammer curve is consistent for the entire 16-step
+            // excitation window. On reset_strobe (no trigger) we
+            // also latch from the current velocity_q15 input but the
+            // value is only consumed when excite_busy fires later.
+            velocity_layer_q  <= (velocity_q15 >= VELOCITY_LAYER_THRESHOLD);
         end else if (clear_active) begin
             delay_line[clear_index] <= 18'sd0;
 
@@ -304,7 +348,7 @@ always @(posedge sys_clk or negedge sys_rst_n) begin
                 STATE_GAIN_FINISH: begin
                     fb_sample <= product_to_q18(mult_product);
                     if (excite_busy) begin
-                        mult_sample <= $signed({1'b0, excitation_rom(excite_index), 1'b0});
+                        mult_sample <= $signed({1'b0, excitation_rom(excite_index, velocity_layer_q), 1'b0});
                         mult_coeff  <= $signed(velocity_q15[15:0]);
                         state       <= STATE_EXCITE_FINISH;
                     end else begin
