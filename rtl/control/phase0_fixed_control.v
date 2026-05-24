@@ -155,7 +155,10 @@ assign voice_diag_clear_strobe  = 1'b0;
 // -------------------------------------------------------------------------
 assign voice_loop_gain  = 16'd32640;
 assign voice_disp_coeff = 16'sd9952;
-assign voice_body_mix   = 16'd8192;
+// Phase 6 M3: body_mix preset raised from 16'd8192 to 16'd12288
+// (+50% body content) to add piano-like warmth, paired with the
+// mid-range body-filter retune in rtl/audio/phase0_body_filter.v.
+assign voice_body_mix   = 16'd12288;
 
 // -------------------------------------------------------------------------
 // Per-voice loop_len / velocity registers

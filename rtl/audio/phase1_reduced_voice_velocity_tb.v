@@ -65,7 +65,7 @@ phase1_reduced_voice dut (
     .loop_gain_q15    (16'd32640),
     .damp_mix_q15     (16'd16384),
     .disp_coeff_q15   (16'sd9952),
-    .body_mix_q15     (16'd8192),
+    .body_mix_q15     (16'd12288),
     .sample_data      (sample_data),
     .sample_valid     (sample_valid),
     .active           (active),

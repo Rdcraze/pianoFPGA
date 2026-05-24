@@ -15,12 +15,44 @@ module phase0_body_filter (
     localparam signed [15:0] B1_A1 =  16'sd32240;
     localparam signed [15:0] B1_A2 = -16'sd15864;
 
-    // Q2.14 coefficients for Biquad 2: Peaking (+3 dB, fc~200 Hz, Q~1.0)
-    localparam signed [15:0] B2_B0 =  16'sd16459;
-    localparam signed [15:0] B2_B1 = -16'sd32391;
-    localparam signed [15:0] B2_B2 =  16'sd15943;
-    localparam signed [15:0] B2_A1 =  16'sd32391;
-    localparam signed [15:0] B2_A2 = -16'sd16019;
+    // Q2.14 coefficients for Biquad 2: Peaking EQ at fc=1500 Hz,
+    // Q=1.5, gain=+3 dB, Fs=46875 Hz. Phase 6 M3 retune from the
+    // earlier 200 Hz peaking filter; this band adds mid-range
+    // presence/warmth between the low-shelf body bass (biquad 1) and
+    // the voice's own waveguide brightness.
+    //
+    // Cookbook (RBJ Audio EQ Cookbook):
+    //   omega = 2*pi*fc/Fs = 0.20106 rad
+    //   cos(omega) = 0.97987, sin(omega) = 0.19967
+    //   A = sqrt(10^(gainDB/20)) = sqrt(10^(3/20)) = 1.1885
+    //   alpha = sin(omega) / (2*Q) = 0.06656
+    //   b0 = 1 + alpha*A = 1.07911
+    //   b1 = -2*cos(omega)        = -1.95974
+    //   b2 = 1 - alpha*A           = 0.92089
+    //   a0 = 1 + alpha/A           = 1.05601
+    //   a1 = -2*cos(omega)         = -1.95974
+    //   a2 = 1 - alpha/A           = 0.94399
+    //
+    // After normalization by a0 and conversion to the encoded form
+    // y = B0*x[n] + B1*x[n-1] + B2*x[n-2] + A1*y[n-1] + A2*y[n-2]
+    // (so A1_encoded = -(a1/a0) and A2_encoded = -(a2/a0)) the
+    // Q2.14 values are:
+    //   B2_B0 =  1.02187 * 16384 ~= 16742
+    //   B2_B1 = -1.85580 * 16384 ~= -30410
+    //   B2_B2 =  0.87205 * 16384 ~= 14289
+    //   B2_A1 =  1.85580 * 16384 ~= 30410
+    //   B2_A2 = -0.89394 * 16384 ~= -14645
+    //
+    // DC gain (z=1)     = (B0+B1+B2)/(1 - A1 - A2) = unity (peaking)
+    // Nyquist (z=-1)    = unity (peaking)
+    // Pole magnitude    = sqrt(0.89394) = 0.945 < 1 (stable)
+    // Pole arg          = atan2(0.18147, 0.92790) = 0.193 rad ~ 1440 Hz
+    //                     (close to design target 1500 Hz; rounding)
+    localparam signed [15:0] B2_B0 =  16'sd16742;
+    localparam signed [15:0] B2_B1 = -16'sd30410;
+    localparam signed [15:0] B2_B2 =  16'sd14289;
+    localparam signed [15:0] B2_A1 =  16'sd30410;
+    localparam signed [15:0] B2_A2 = -16'sd14645;
 
     // Stage 1 state
     reg signed [17:0] x1_z1, x1_z2;
