@@ -120,14 +120,27 @@ always #10 sys_clk = ~sys_clk;
 
 // Counters
 integer v0_trig, v1_trig, v2_trig, v3_trig;
+integer v0_reset_seen;
 always @(posedge sys_clk) begin
     if (sys_rst_n) begin
         if (voice_trigger_strobe)  v0_trig <= v0_trig + 1;
         if (voice1_trigger_strobe) v1_trig <= v1_trig + 1;
         if (voice2_trigger_strobe) v2_trig <= v2_trig + 1;
         if (voice3_trigger_strobe) v3_trig <= v3_trig + 1;
+        if (voice_reset_strobe)    v0_reset_seen <= v0_reset_seen + 1;
     end
 end
+
+task pulse_release;
+    begin
+        @(posedge sys_clk);
+        release_strobe = 1'b1;
+        @(posedge sys_clk);
+        release_strobe = 1'b0;
+        // Allow several cycles for the reset pulse to propagate.
+        repeat (4) @(posedge sys_clk);
+    end
+endtask
 
 task pulse_note;
     input [6:0] ll;
@@ -156,6 +169,7 @@ initial begin
     cmd_velocity  = 16'h7FFF;
     isolation_mode = 1'b0;
     v0_trig = 0; v1_trig = 0; v2_trig = 0; v3_trig = 0;
+    v0_reset_seen = 0;
 
     repeat (8) @(posedge sys_clk);
     sys_rst_n = 1'b1;
@@ -218,6 +232,48 @@ initial begin
         $display("ISO_TB_PASS voice0_params loop_len=32 vel=0x6000");
     end
 
+    // ----- Phase 6 M1.2: !F in isolation mode pulses voice0 reset ----
+    // isolation_mode is still 1 from above. Reset the local reset
+    // counter and verify a single release_strobe asserts the
+    // voice_reset_strobe pulse exactly once.
+    v0_reset_seen = 0;
+    pulse_release();
+    if (v0_reset_seen != 1) begin
+        $display("ISO_TB_FAIL release_in_isolation_resets_voice0 got=%0d want=1",
+                 v0_reset_seen);
+        fails = fails + 1;
+    end else begin
+        $display("ISO_TB_PASS release_in_isolation_resets_voice0 reset_count=%0d",
+                 v0_reset_seen);
+    end
+    // Damp mix should be raised to 32767 like normal release.
+    if (voice_damp_mix !== 16'd32767) begin
+        $display("ISO_TB_FAIL release_in_isolation_damp got=%04x want=7FFF",
+                 voice_damp_mix);
+        fails = fails + 1;
+    end else begin
+        $display("ISO_TB_PASS release_in_isolation_damp=0x7FFF");
+    end
+    // Triggers must NOT fire on a release.
+    if (v0_trig != 4 || v1_trig != 0 || v2_trig != 0 || v3_trig != 0) begin
+        $display("ISO_TB_FAIL release_in_isolation_no_trigger v0=%0d v1=%0d v2=%0d v3=%0d",
+                 v0_trig, v1_trig, v2_trig, v3_trig);
+        fails = fails + 1;
+    end else begin
+        $display("ISO_TB_PASS release_in_isolation_no_trigger");
+    end
+
+    // A subsequent isolated note still routes to voice0; reset is
+    // only on release, not on note.
+    pulse_note(7'd106, 16'h4000);
+    if (v0_trig != 5 || v1_trig != 0 || v2_trig != 0 || v3_trig != 0) begin
+        $display("ISO_TB_FAIL isolated_note_after_reset v0=%0d v1=%0d v2=%0d v3=%0d",
+                 v0_trig, v1_trig, v2_trig, v3_trig);
+        fails = fails + 1;
+    end else begin
+        $display("ISO_TB_PASS isolated_note_after_reset");
+    end
+
     // ----- Disable isolation; resume round-robin from voice_index 0 ---
     v0_trig = 0; v1_trig = 0; v2_trig = 0; v3_trig = 0;
     isolation_mode = 1'b0;
@@ -235,6 +291,27 @@ initial begin
     end else begin
         $display("ISO_TB_PASS post_isolation_roundrobin v0=%0d v1=%0d v2=%0d v3=%0d",
                  v0_trig, v1_trig, v2_trig, v3_trig);
+    end
+
+    // ----- Phase 6 M1.2: !F in normal mode does NOT pulse voice0 reset
+    // isolation_mode is 0 here (just disabled above). Pulse a release
+    // and confirm the reset counter does NOT advance, while damp mix
+    // still rises (preserving Phase 5 M2/M3 release semantics).
+    v0_reset_seen = 0;
+    pulse_release();
+    if (v0_reset_seen != 0) begin
+        $display("ISO_TB_FAIL release_in_normal_no_reset got=%0d want=0",
+                 v0_reset_seen);
+        fails = fails + 1;
+    end else begin
+        $display("ISO_TB_PASS release_in_normal_no_reset");
+    end
+    if (voice_damp_mix !== 16'd32767) begin
+        $display("ISO_TB_FAIL release_in_normal_damp got=%04x want=7FFF",
+                 voice_damp_mix);
+        fails = fails + 1;
+    end else begin
+        $display("ISO_TB_PASS release_in_normal_damp=0x7FFF");
     end
 
     if (fails == 0) begin

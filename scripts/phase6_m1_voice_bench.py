@@ -59,7 +59,16 @@ from typing import Dict, List, Tuple
 
 # -- Grid definition (matches Phase 6 M0 scope section 3) --
 LOOP_LEN_VALUES = [127, 106, 89, 53, 32]
-VELOCITY_VALUES = [0x2000, 0x4000, 0x7FFF]
+VELOCITY_VALUES_ORIGINAL = [0x2000, 0x4000, 0x7FFF]
+# Phase 6 M1.2 clean-level profile: lower velocities so that long
+# loop_len cells do not approach full-scale saturation under the
+# isolated voice0 baseline.
+VELOCITY_VALUES_CLEAN = [0x0800, 0x1000, 0x2000]
+# Default profile used by build_grid() and self-check assertions.
+VELOCITY_VALUES = VELOCITY_VALUES_ORIGINAL
+
+PROFILE_ORIGINAL = "original"
+PROFILE_CLEAN = "clean"
 
 PITCH_NAMES = {
     127: "loop127",  # ~370 Hz floor (clamp); not exactly A2
@@ -82,11 +91,15 @@ ISOLATE_ENABLE = b"!I1\r\n"
 ISOLATE_DISABLE = b"!I0\r\n"
 
 
-def build_grid() -> List[Dict]:
+def build_grid(profile: str = PROFILE_ORIGINAL) -> List[Dict]:
+    if profile == PROFILE_CLEAN:
+        velocities = VELOCITY_VALUES_CLEAN
+    else:
+        velocities = VELOCITY_VALUES_ORIGINAL
     cells = []
     idx = 0
     for loop_len in LOOP_LEN_VALUES:
-        for velocity in VELOCITY_VALUES:
+        for velocity in velocities:
             cmd = "!N{:04X}{:04X}".format(loop_len, velocity)
             pitch_name = PITCH_NAMES.get(loop_len, "loop{:d}".format(loop_len))
             cells.append({
@@ -110,7 +123,8 @@ def cmd_release_bytes() -> bytes:
 
 def run_bench(port: str, baud: int, sidecar_path: str,
               settle_s: float, capture_s: float, pause_s: float,
-              single_voice_isolate: bool) -> int:
+              single_voice_isolate: bool,
+              profile: str) -> int:
     try:
         import serial  # type: ignore
     except ImportError:
@@ -128,7 +142,7 @@ def run_bench(port: str, baud: int, sidecar_path: str,
               file=sys.stderr)
         return 2
 
-    cells = build_grid()
+    cells = build_grid(profile)
     session_start = time.monotonic()
     session_unix = time.time()
 
@@ -140,6 +154,7 @@ def run_bench(port: str, baud: int, sidecar_path: str,
         "capture_s": capture_s,
         "pause_s": pause_s,
         "single_voice_isolate": single_voice_isolate,
+        "profile": profile,
         "session_start_unix": session_unix,
         "pre_commands": [],
         "cells": [],
@@ -147,10 +162,10 @@ def run_bench(port: str, baud: int, sidecar_path: str,
     }
 
     print(
-        "Phase 6 M1 voice bench: {} cells, total {:.1f} s + setup{}".format(
-            len(cells),
+        "Phase 6 M1 voice bench: {} cells (profile={}), total {:.1f} s + setup{}".format(
+            len(cells), profile,
             len(cells) * (settle_s + capture_s + pause_s),
-            " (isolation_mode=ON)" if single_voice_isolate else ""),
+            " (isolation_mode=ON, M1.2 reset-on-!F)" if single_voice_isolate else ""),
         file=sys.stderr,
     )
     print(
@@ -226,18 +241,19 @@ def run_bench(port: str, baud: int, sidecar_path: str,
     return 0
 
 
-def cmd_plan(single_voice_isolate: bool) -> int:
-    cells = build_grid()
+def cmd_plan(single_voice_isolate: bool, profile: str) -> int:
+    cells = build_grid(profile)
     total = len(cells) * (SETTLE_S + CAPTURE_S + PAUSE_S)
     print(
-        "Phase 6 M1 grid: {:d} cells, total ~{:.1f} s{}".format(
-            len(cells), total,
-            " (isolation_mode=ON)" if single_voice_isolate else ""))
+        "Phase 6 M1 grid: {:d} cells (profile={}), total ~{:.1f} s{}".format(
+            len(cells), profile, total,
+            " (isolation_mode=ON, M1.2 reset-on-!F)" if single_voice_isolate else ""))
     print(
         "  per cell: settle {:.1f}s, capture {:.1f}s, pause {:.1f}s".format(
             SETTLE_S, CAPTURE_S, PAUSE_S))
     if single_voice_isolate:
         print("  pre:  !I1\\r\\n  (enable single-voice isolation mode)")
+        print("  per-cell !F is a hard reset of voice0 in M1.2 builds.")
     print()
     print("idx  pitch    loop_len velocity  command")
     print("---  -------  -------- --------  --------------")
@@ -263,6 +279,32 @@ def cmd_self_check() -> int:
         fails += 1
     else:
         print("PASS grid_size 15")
+
+    # Default profile is original.
+    if cells[0]["velocity"] != 0x2000:
+        print("FAIL default_profile_v0 got=%#06x want=0x2000" % cells[0]["velocity"])
+        fails += 1
+    else:
+        print("PASS default_profile=original (cell0 vel=0x2000)")
+
+    # Clean profile: same loop_len count, lower velocities.
+    clean = build_grid(PROFILE_CLEAN)
+    if len(clean) != 15:
+        print("FAIL clean_grid_size got={:d} want=15".format(len(clean)))
+        fails += 1
+    elif clean[0]["velocity"] != 0x0800 or clean[1]["velocity"] != 0x1000 or \
+         clean[2]["velocity"] != 0x2000:
+        print("FAIL clean_profile_velocities {} {} {}".format(
+            clean[0]["velocity"], clean[1]["velocity"], clean[2]["velocity"]))
+        fails += 1
+    elif clean[0]["command_ascii"] != "!N007F0800":
+        print("FAIL clean_c0_command got={}".format(clean[0]["command_ascii"]))
+        fails += 1
+    elif clean[14]["command_ascii"] != "!N00202000":
+        print("FAIL clean_last_command got={}".format(clean[14]["command_ascii"]))
+        fails += 1
+    else:
+        print("PASS clean_profile_grid (cell0 !N007F0800, last !N00202000)")
 
     # Check first row corner cell: loop_len=127 velocity=0x2000
     c0 = cells[0]
@@ -405,16 +447,22 @@ def main() -> int:
                    help="Send !I1 before the grid and !I0 after, so the "
                         "live RTL routes every command note to voice0 "
                         "and mutes voices 1/2/3 from the mix.")
+    p.add_argument("--profile", choices=[PROFILE_ORIGINAL, PROFILE_CLEAN],
+                   default=PROFILE_ORIGINAL,
+                   help="Velocity profile. 'original' uses 0x2000/0x4000/"
+                        "0x7FFF; 'clean' uses 0x0800/0x1000/0x2000 to "
+                        "avoid full-scale saturation on long loop_len "
+                        "cells.")
     args = p.parse_args()
 
     if args.self_check:
         return cmd_self_check()
     if args.plan:
-        return cmd_plan(args.single_voice_isolate)
+        return cmd_plan(args.single_voice_isolate, args.profile)
     if args.run:
         return run_bench(args.port, args.baud, args.sidecar,
                          args.settle_s, args.capture_s, args.pause_s,
-                         args.single_voice_isolate)
+                         args.single_voice_isolate, args.profile)
     return 1
 
 

@@ -134,7 +134,13 @@ assign voice2_enable          = 1'b1;
 assign voice3_enable          = 1'b1;
 assign voice_body_bypass      = 1'b0;
 assign voice_disp_bypass      = 1'b0;
-assign voice_reset_strobe     = 1'b0;
+// Phase 6 M1.2: voice0 reset is pulsed on release_strobe while
+// isolation_mode is high so that each !F between benchmark cells
+// fully clears the delay line and body history of voice0. In normal
+// (multi-voice command) mode the legacy assignment 1'b0 holds and !F
+// only raises voice_damp_mix as in Phase 5 M2/M3.
+reg                          voice0_reset_pulse;
+assign voice_reset_strobe     = voice0_reset_pulse;
 assign voice1_reset_strobe    = 1'b0;
 assign voice2_reset_strobe    = 1'b0;
 assign voice3_reset_strobe    = 1'b0;
@@ -208,6 +214,7 @@ always @(posedge sys_clk or negedge sys_rst_n) begin
         voice_index         <= 2'd0;
         trigger_pulse       <= 1'b0;
         command_mode        <= 1'b0;
+        voice0_reset_pulse  <= 1'b0;
         voice_damp_mix_reg  <= 16'd16384;
 
         voice0_loop_len_reg <= 7'd106;
@@ -220,6 +227,7 @@ always @(posedge sys_clk or negedge sys_rst_n) begin
         voice3_velocity_reg <= 16'h4000;
     end else begin
         trigger_pulse <= 1'b0;
+        voice0_reset_pulse <= 1'b0;
 
         // Autonomous round-robin sequencer (suppressed once any command
         // arrives so host control is exclusive).
@@ -283,6 +291,14 @@ always @(posedge sys_clk or negedge sys_rst_n) begin
         end else if (release_strobe) begin
             command_mode       <= 1'b1;
             voice_damp_mix_reg <= 16'd32767;
+            // Phase 6 M1.2: hard-reset voice0 between isolated cells
+            // so the next strike starts from a silent delay line.
+            // In normal mode this branch leaves voice0_reset_pulse
+            // at its default 0 and only the shared damp_mix is
+            // raised, preserving Phase 5 M2/M3 release semantics.
+            if (isolation_mode) begin
+                voice0_reset_pulse <= 1'b1;
+            end
         end
     end
 end
