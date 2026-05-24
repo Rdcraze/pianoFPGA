@@ -48,6 +48,14 @@ module phase0_fixed_control (
     input  wire [6:0]         cmd_loop_len,
     input  wire [15:0]        cmd_velocity,
 
+    // Phase 6 M1.1 single-voice isolation mode. When high, every
+    // command-driven note_strobe routes to voice0 only; voices 1/2/3
+    // see no command trigger from this controller. The top-level
+    // audio path additionally mutes voices 1/2/3 from the mix while
+    // isolation_mode is high so prior ringing cannot contaminate the
+    // captured strike. The four physical voices remain instantiated.
+    input  wire               isolation_mode,
+
     // Sample-generator / global control
     output wire               audio_enable,
     output wire               tone_enable,
@@ -234,30 +242,44 @@ always @(posedge sys_clk or negedge sys_rst_n) begin
             // First note after a release should clear release damping.
             voice_damp_mix_reg <= 16'd16384;
 
-            // Write parameters to the voice that will fire next cycle:
-            // post-incremented voice_index points at that voice.
-            case (voice_index + 2'd1)
-                2'd0: begin
-                    voice0_loop_len_reg <= cmd_loop_len;
-                    voice0_velocity_reg <= cmd_velocity;
-                end
-                2'd1: begin
-                    voice1_loop_len_reg <= cmd_loop_len;
-                    voice1_velocity_reg <= cmd_velocity;
-                end
-                2'd2: begin
-                    voice2_loop_len_reg <= cmd_loop_len;
-                    voice2_velocity_reg <= cmd_velocity;
-                end
-                default: begin
-                    voice3_loop_len_reg <= cmd_loop_len;
-                    voice3_velocity_reg <= cmd_velocity;
-                end
-            endcase
+            if (isolation_mode) begin
+                // Phase 6 M1.1: in isolation mode, every command note
+                // is routed to voice0 (no voice_index advance). The
+                // delay-line clear inside phase1_reduced_voice on
+                // trigger_strobe ensures the strike starts from a
+                // silent buffer.
+                voice0_loop_len_reg <= cmd_loop_len;
+                voice0_velocity_reg <= cmd_velocity;
+                voice_index         <= 2'd0;
+                trigger_pulse       <= 1'b1;
+                tick_counter        <= 14'd0;
+            end else begin
+                // Normal command-mode round-robin: write parameters
+                // to the voice that will fire next cycle (post-
+                // incremented voice_index points at that voice).
+                case (voice_index + 2'd1)
+                    2'd0: begin
+                        voice0_loop_len_reg <= cmd_loop_len;
+                        voice0_velocity_reg <= cmd_velocity;
+                    end
+                    2'd1: begin
+                        voice1_loop_len_reg <= cmd_loop_len;
+                        voice1_velocity_reg <= cmd_velocity;
+                    end
+                    2'd2: begin
+                        voice2_loop_len_reg <= cmd_loop_len;
+                        voice2_velocity_reg <= cmd_velocity;
+                    end
+                    default: begin
+                        voice3_loop_len_reg <= cmd_loop_len;
+                        voice3_velocity_reg <= cmd_velocity;
+                    end
+                endcase
 
-            voice_index   <= voice_index + 2'd1;
-            trigger_pulse <= 1'b1;
-            tick_counter  <= 14'd0;
+                voice_index   <= voice_index + 2'd1;
+                trigger_pulse <= 1'b1;
+                tick_counter  <= 14'd0;
+            end
         end else if (release_strobe) begin
             command_mode       <= 1'b1;
             voice_damp_mix_reg <= 16'd32767;

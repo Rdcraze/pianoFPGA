@@ -17,6 +17,9 @@
 //                       digits of velocity (clamped to 0..0x7FFF).
 //                       Hex digits are case-insensitive.
 //   "!F\r\n"            release: one release_strobe pulse, no trigger.
+//   "!I1\r\n"           enable single-voice isolation mode (Phase 6 M1.1).
+//                       Persistent until explicitly disabled.
+//   "!I0\r\n"           disable single-voice isolation mode.
 //
 // Commands are accumulated into a 16-byte line buffer. A complete line
 // is the bytes since the last CRLF, ending in CR LF. Anything longer
@@ -48,6 +51,7 @@ module phase0_uart_command #(
     output reg         release_strobe,
     output reg  [6:0]  cmd_loop_len,
     output reg  [15:0] cmd_velocity,
+    output reg         isolation_mode,
 
     output reg  [31:0] command_count,
     output reg  [15:0] error_count,
@@ -165,6 +169,7 @@ always @(posedge sys_clk or negedge sys_rst_n) begin
         release_strobe  <= 1'b0;
         cmd_loop_len    <= 7'd106;
         cmd_velocity    <= 16'h7FFF;
+        isolation_mode  <= 1'b0;
 
         command_count   <= 32'd0;
         error_count     <= 16'd0;
@@ -253,6 +258,37 @@ always @(posedge sys_clk or negedge sys_rst_n) begin
                                     command_count  <= command_count + 32'd1;
                                 end else if (line_buf[0] == 8'h21) begin
                                     // !X for some unknown X
+                                    last_error <= ERR_UNKNOWN_OPCODE;
+                                    if (error_count != 16'hFFFF) begin
+                                        error_count <= error_count + 16'd1;
+                                    end
+                                end else begin
+                                    last_error <= ERR_MALFORMED;
+                                    if (error_count != 16'hFFFF) begin
+                                        error_count <= error_count + 16'd1;
+                                    end
+                                end
+                                line_len <= 5'd0;
+                            end
+
+                            5'd5: begin
+                                // 5-byte commands: !I0\r\n, !I1\r\n
+                                if ((line_buf[0] == 8'h21) &&
+                                    (line_buf[1] == 8'h49) &&
+                                    (line_buf[3] == 8'h0D) &&
+                                    ((line_buf[2] == 8'h30) ||
+                                     (line_buf[2] == 8'h31))) begin
+                                    // !I<0|1>: set isolation mode.
+                                    isolation_mode <= (line_buf[2] == 8'h31);
+                                    command_count  <= command_count + 32'd1;
+                                end else if ((line_buf[0] == 8'h21) &&
+                                             (line_buf[1] == 8'h49)) begin
+                                    // !I<other>: bad argument.
+                                    last_error <= ERR_UNSUPPORTED_ARG;
+                                    if (error_count != 16'hFFFF) begin
+                                        error_count <= error_count + 16'd1;
+                                    end
+                                end else if (line_buf[0] == 8'h21) begin
                                     last_error <= ERR_UNKNOWN_OPCODE;
                                     if (error_count != 16'hFFFF) begin
                                         error_count <= error_count + 16'd1;

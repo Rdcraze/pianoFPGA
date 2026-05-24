@@ -44,6 +44,7 @@ module phase0_audio_path (
     input  wire [15:0] voice_damp_mix,
     input  wire signed [15:0] voice_disp_coeff,
     input  wire [15:0] voice_body_mix,
+    input  wire        isolation_mode,
     output wire        tx_valid,
     output wire [15:0] tx_sample,
     output wire [15:0] status_word,
@@ -238,9 +239,17 @@ assign sample_valid_any = voice0_sample_valid || voice1_sample_valid || voice2_s
 assign active_any       = voice0_active || voice1_active || voice2_active || voice3_active;
 assign excite_busy_any  = voice0_excite_busy || voice1_excite_busy || voice2_excite_busy || voice3_excite_busy;
 assign voice0_mix_ext   = {{2{voice0_sample_data[15]}}, voice0_sample_data};
-assign voice1_mix_ext   = {{2{voice1_sample_data[15]}}, voice1_sample_data};
-assign voice2_mix_ext   = {{2{voice2_sample_data[15]}}, voice2_sample_data};
-assign voice3_mix_ext   = {{2{voice3_sample_data[15]}}, voice3_sample_data};
+// Phase 6 M1.1: when isolation_mode is high, voices 1..3 are forced
+// to zero in the mix sum so a single-voice strike on voice0 is not
+// contaminated by residual ringing on the other voices. The voice
+// instances remain enabled and clocked; only their contribution to
+// the audible mix is gated.
+assign voice1_mix_ext   = isolation_mode ? 18'sd0 :
+                          {{2{voice1_sample_data[15]}}, voice1_sample_data};
+assign voice2_mix_ext   = isolation_mode ? 18'sd0 :
+                          {{2{voice2_sample_data[15]}}, voice2_sample_data};
+assign voice3_mix_ext   = isolation_mode ? 18'sd0 :
+                          {{2{voice3_sample_data[15]}}, voice3_sample_data};
 assign mix_sum          = {{1{voice0_mix_ext[17]}}, voice0_mix_ext} + {{1{voice1_mix_ext[17]}}, voice1_mix_ext} + {{1{voice2_mix_ext[17]}}, voice2_mix_ext} + {{1{voice3_mix_ext[17]}}, voice3_mix_ext};
 assign mix_clip_now     = (mix_sum > 19'sd32767) || (mix_sum < -19'sd32768);
 assign mix_sample_sat   = (mix_sum > 19'sd32767)  ? 16'sh7fff :

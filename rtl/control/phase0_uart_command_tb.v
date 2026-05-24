@@ -35,6 +35,7 @@ wire        note_strobe;
 wire        release_strobe;
 wire [6:0]  cmd_loop_len;
 wire [15:0] cmd_velocity;
+wire        isolation_mode;
 wire [31:0] command_count;
 wire [15:0] error_count;
 wire [15:0] last_error;
@@ -50,6 +51,7 @@ phase0_uart_command #(
     .release_strobe (release_strobe),
     .cmd_loop_len   (cmd_loop_len),
     .cmd_velocity   (cmd_velocity),
+    .isolation_mode (isolation_mode),
     .command_count  (command_count),
     .error_count    (error_count),
     .last_error     (last_error)
@@ -248,9 +250,78 @@ initial begin
         fails = fails + 1;
     end
 
+    // Phase 6 M1.1: isolation mode commands.
+    // 8. Default isolation_mode is 0.
+    if (isolation_mode !== 1'b0) begin
+        $display("UART_CMD_TB_FAIL isolation_default got=%b want=0",
+                 isolation_mode);
+        fails = fails + 1;
+    end
+
+    // 9. !I1\r\n => isolation_mode = 1, command_count++
+    send_byte("!"); send_byte("I"); send_byte("1");
+    send_crlf();
+    repeat (32) @(posedge sys_clk);
+    expect_eq32("command_count_after_9", command_count, 32'd6);
+    if (isolation_mode !== 1'b1) begin
+        $display("UART_CMD_TB_FAIL isolation_after_I1 got=%b want=1",
+                 isolation_mode);
+        fails = fails + 1;
+    end
+
+    // 10. !I0\r\n => isolation_mode = 0, command_count++
+    send_byte("!"); send_byte("I"); send_byte("0");
+    send_crlf();
+    repeat (32) @(posedge sys_clk);
+    expect_eq32("command_count_after_10", command_count, 32'd7);
+    if (isolation_mode !== 1'b0) begin
+        $display("UART_CMD_TB_FAIL isolation_after_I0 got=%b want=0",
+                 isolation_mode);
+        fails = fails + 1;
+    end
+
+    // 11. !IZ\r\n => UNSUPPORTED_ARG (7), error_count++, command_count
+    //     stable, isolation_mode stable.
+    send_byte("!"); send_byte("I"); send_byte("Z");
+    send_crlf();
+    repeat (32) @(posedge sys_clk);
+    expect_eq32("command_count_after_11", command_count, 32'd7);
+    expect_eq16("error_count_after_11", error_count, 16'd3);
+    expect_eq16("last_error_after_11",  last_error,  16'd7);
+    if (isolation_mode !== 1'b0) begin
+        $display("UART_CMD_TB_FAIL isolation_after_IZ got=%b want=0",
+                 isolation_mode);
+        fails = fails + 1;
+    end
+
+    // 12. !I1 again then a !N: isolation_mode stays high, note_strobe
+    //     fires, command_count covers both.
+    send_byte("!"); send_byte("I"); send_byte("1");
+    send_crlf();
+    repeat (32) @(posedge sys_clk);
+    if (isolation_mode !== 1'b1) begin
+        $display("UART_CMD_TB_FAIL isolation_after_I1_repeat got=%b want=1",
+                 isolation_mode);
+        fails = fails + 1;
+    end
+    send_byte("!"); send_byte("N");
+    send_crlf();
+    repeat (32) @(posedge sys_clk);
+    expect_eq32("command_count_after_12", command_count, 32'd9);
+    if (notes_seen !== 5) begin
+        $display("UART_CMD_TB_FAIL notes_seen_after_12 got=%0d want=5",
+                 notes_seen);
+        fails = fails + 1;
+    end
+    if (isolation_mode !== 1'b1) begin
+        $display("UART_CMD_TB_FAIL isolation_after_I1_then_N got=%b want=1",
+                 isolation_mode);
+        fails = fails + 1;
+    end
+
     if (fails == 0) begin
-        $display("UART_CMD_TB_PASS notes=%0d releases=%0d errors=%0d",
-                 notes_seen, releases_seen, error_count);
+        $display("UART_CMD_TB_PASS notes=%0d releases=%0d errors=%0d isolation=%b",
+                 notes_seen, releases_seen, error_count, isolation_mode);
     end else begin
         $display("UART_CMD_TB_FAIL fails=%0d", fails);
     end

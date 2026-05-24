@@ -77,6 +77,10 @@ DEFAULT_PORT = "COM5"
 DEFAULT_BAUD = 115200
 DEFAULT_SIDECAR = "reports/phase6_m1_voice_bench_session.json"
 
+# Phase 6 M1.1 isolation-mode commands.
+ISOLATE_ENABLE = b"!I1\r\n"
+ISOLATE_DISABLE = b"!I0\r\n"
+
 
 def build_grid() -> List[Dict]:
     cells = []
@@ -105,7 +109,8 @@ def cmd_release_bytes() -> bytes:
 
 
 def run_bench(port: str, baud: int, sidecar_path: str,
-              settle_s: float, capture_s: float, pause_s: float) -> int:
+              settle_s: float, capture_s: float, pause_s: float,
+              single_voice_isolate: bool) -> int:
     try:
         import serial  # type: ignore
     except ImportError:
@@ -134,14 +139,18 @@ def run_bench(port: str, baud: int, sidecar_path: str,
         "settle_s": settle_s,
         "capture_s": capture_s,
         "pause_s": pause_s,
+        "single_voice_isolate": single_voice_isolate,
         "session_start_unix": session_unix,
+        "pre_commands": [],
         "cells": [],
+        "post_commands": [],
     }
 
     print(
-        "Phase 6 M1 voice bench: {} cells, total {:.1f} s + setup".format(
+        "Phase 6 M1 voice bench: {} cells, total {:.1f} s + setup{}".format(
             len(cells),
-            len(cells) * (settle_s + capture_s + pause_s)),
+            len(cells) * (settle_s + capture_s + pause_s),
+            " (isolation_mode=ON)" if single_voice_isolate else ""),
         file=sys.stderr,
     )
     print(
@@ -151,6 +160,16 @@ def run_bench(port: str, baud: int, sidecar_path: str,
     )
     # Give the operator 3 s to start the audio capture if needed.
     time.sleep(3.0)
+
+    if single_voice_isolate:
+        ser.write(ISOLATE_ENABLE)
+        sidecar["pre_commands"].append({
+            "command": "!I1",
+            "send_t_session_s": round(time.monotonic() - session_start, 3),
+        })
+        # Brief settle so the isolation_mode flag latches before the
+        # first strike.
+        time.sleep(0.1)
 
     for cell in cells:
         # Settle: emit !F first to silence any prior ringing.
@@ -184,6 +203,19 @@ def run_bench(port: str, baud: int, sidecar_path: str,
 
     # Final !F to silence the last ring.
     ser.write(cmd_release_bytes())
+    sidecar["post_commands"].append({
+        "command": "!F",
+        "send_t_session_s": round(time.monotonic() - session_start, 3),
+    })
+
+    if single_voice_isolate:
+        time.sleep(0.05)
+        ser.write(ISOLATE_DISABLE)
+        sidecar["post_commands"].append({
+            "command": "!I0",
+            "send_t_session_s": round(time.monotonic() - session_start, 3),
+        })
+
     ser.close()
 
     with open(sidecar_path, "w", encoding="ascii") as fp:
@@ -194,15 +226,18 @@ def run_bench(port: str, baud: int, sidecar_path: str,
     return 0
 
 
-def cmd_plan() -> int:
+def cmd_plan(single_voice_isolate: bool) -> int:
     cells = build_grid()
     total = len(cells) * (SETTLE_S + CAPTURE_S + PAUSE_S)
     print(
-        "Phase 6 M1 grid: {:d} cells, total ~{:.1f} s".format(
-            len(cells), total))
+        "Phase 6 M1 grid: {:d} cells, total ~{:.1f} s{}".format(
+            len(cells), total,
+            " (isolation_mode=ON)" if single_voice_isolate else ""))
     print(
         "  per cell: settle {:.1f}s, capture {:.1f}s, pause {:.1f}s".format(
             SETTLE_S, CAPTURE_S, PAUSE_S))
+    if single_voice_isolate:
+        print("  pre:  !I1\\r\\n  (enable single-voice isolation mode)")
     print()
     print("idx  pitch    loop_len velocity  command")
     print("---  -------  -------- --------  --------------")
@@ -210,6 +245,9 @@ def cmd_plan() -> int:
         print("{:3d}  {:7s}  {:>8d} {:#06x}    {}\\r\\n".format(
             c["index"], c["pitch_name"],
             c["loop_len"], c["velocity"], c["command_ascii"]))
+    if single_voice_isolate:
+        print()
+        print("post: !F\\r\\n  + !I0\\r\\n  (release, then disable isolation)")
     return 0
 
 
@@ -289,7 +327,11 @@ def cmd_self_check() -> int:
         "settle_s": SETTLE_S,
         "capture_s": CAPTURE_S,
         "pause_s": PAUSE_S,
+        "single_voice_isolate": True,
         "session_start_unix": 1700000000.0,
+        "pre_commands": [
+            {"command": "!I1", "send_t_session_s": 0.005},
+        ],
         "cells": [
             {
                 "index": cells[0]["index"],
@@ -300,6 +342,10 @@ def cmd_self_check() -> int:
                 "send_t_session_s": 1.234,
             },
         ],
+        "post_commands": [
+            {"command": "!F", "send_t_session_s": 5.500},
+            {"command": "!I0", "send_t_session_s": 5.555},
+        ],
     }
     s = json.dumps(fake, sort_keys=True)
     fake2 = json.loads(s)
@@ -309,8 +355,26 @@ def cmd_self_check() -> int:
     elif fake2["cells"][0]["command"] != "!N007F2000":
         print("FAIL sidecar cell command")
         fails += 1
+    elif fake2["pre_commands"][0]["command"] != "!I1":
+        print("FAIL sidecar pre_command")
+        fails += 1
+    elif fake2["post_commands"][1]["command"] != "!I0":
+        print("FAIL sidecar post_command")
+        fails += 1
     else:
-        print("PASS sidecar JSON round-trip")
+        print("PASS sidecar JSON round-trip (isolation mode)")
+
+    # Isolation command bytes
+    if ISOLATE_ENABLE != b"!I1\r\n":
+        print("FAIL isolate_enable_bytes {!r}".format(ISOLATE_ENABLE))
+        fails += 1
+    else:
+        print("PASS isolate_enable_bytes !I1\\r\\n")
+    if ISOLATE_DISABLE != b"!I0\r\n":
+        print("FAIL isolate_disable_bytes {!r}".format(ISOLATE_DISABLE))
+        fails += 1
+    else:
+        print("PASS isolate_disable_bytes !I0\\r\\n")
 
     if fails == 0:
         print("PHASE6_M1_BENCH_PASS cells={:d}".format(len(cells)))
@@ -337,15 +401,20 @@ def main() -> int:
     p.add_argument("--settle-s", type=float, default=SETTLE_S)
     p.add_argument("--capture-s", type=float, default=CAPTURE_S)
     p.add_argument("--pause-s", type=float, default=PAUSE_S)
+    p.add_argument("--single-voice-isolate", action="store_true",
+                   help="Send !I1 before the grid and !I0 after, so the "
+                        "live RTL routes every command note to voice0 "
+                        "and mutes voices 1/2/3 from the mix.")
     args = p.parse_args()
 
     if args.self_check:
         return cmd_self_check()
     if args.plan:
-        return cmd_plan()
+        return cmd_plan(args.single_voice_isolate)
     if args.run:
         return run_bench(args.port, args.baud, args.sidecar,
-                         args.settle_s, args.capture_s, args.pause_s)
+                         args.settle_s, args.capture_s, args.pause_s,
+                         args.single_voice_isolate)
     return 1
 
 
