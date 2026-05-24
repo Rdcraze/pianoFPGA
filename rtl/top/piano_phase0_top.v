@@ -1,14 +1,11 @@
 `timescale 1ns / 1ps
 
-// Phase 5 M0 top-level. The RISC-V SoC + firmware + MMIO + register-file
-// control stack has been replaced with phase0_fixed_control, a small
-// fixed-function RTL controller. The audio path, codec wrapper, and
-// audio-mclk PLL are unchanged. Obsolete CPU/firmware control sources
-// are archived under obsolete/riscv_control/.
-//
-// uart1_rx is currently unconsumed; the fixed controller drives uart1_tx
-// idle high. UART command and telemetry support is intentionally deferred
-// to a later milestone that will introduce a small RTL UART block.
+// Phase 5 M1 top-level. The Phase 5 M0 fixed-function controller drives
+// audio defaults and the four-voice round-robin trigger sequencer; the
+// new phase0_uart_status_tx block owns uart1_tx and emits a periodic
+// ASCII status frame at 115200 8N1. uart1_rx remains unconsumed; UART
+// RX command parsing is deferred to Phase 5 M2. Obsolete RV32I + MMIO +
+// firmware sources are archived under obsolete/riscv_control/.
 
 module piano_phase0_top (
     input  wire       sys_clk_50m,
@@ -92,6 +89,7 @@ wire [31:0] voice3_active_count;
 wire [31:0] voice3_valid_count;
 wire [31:0] voice_mix_status_word;
 wire [31:0] voice_mix_clip_count;
+wire [1:0]  voice_index_status;
 
 phase0_reset_sync phase0_reset_sync_inst (
     .clk   (sys_clk_50m),
@@ -145,7 +143,19 @@ phase0_fixed_control phase0_fixed_control_inst (
     .voice_damp_mix           (voice_damp_mix),
     .voice_disp_coeff         (voice_disp_coeff),
     .voice_body_mix           (voice_body_mix),
-    .uart1_tx                 (uart1_tx)
+    .voice_index_status       (voice_index_status)
+);
+
+phase0_uart_status_tx #(
+    .CLK_FREQ_HZ   (50_000_000),
+    .BAUD_RATE     (115_200),
+    .CADENCE_CYCLES(25_000_000)
+) phase0_uart_status_tx_inst (
+    .sys_clk     (sys_clk_50m),
+    .sys_rst_n   (core_rst_n),
+    .sample_tick (sample_tick),
+    .voice_index (voice_index_status),
+    .uart_tx     (uart1_tx)
 );
 
 // uart1_rx is intentionally unconsumed in M0. Sink it into an unloaded

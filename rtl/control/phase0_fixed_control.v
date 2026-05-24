@@ -87,8 +87,9 @@ module phase0_fixed_control (
     output wire signed [15:0] voice_disp_coeff,
     output wire [15:0]        voice_body_mix,
 
-    // Idle UART TX. Held high (RS-232 idle / 8N1 mark).
-    output wire               uart1_tx
+    // Round-robin voice index for telemetry consumers (e.g. M1 UART
+    // status TX). Tracks the next voice the sequencer will fire.
+    output wire [1:0]         voice_index_status
 );
 
 // -------------------------------------------------------------------------
@@ -182,10 +183,8 @@ assign voice1_trigger_strobe = trigger_pulse && (voice_index == 2'd1);
 assign voice2_trigger_strobe = trigger_pulse && (voice_index == 2'd2);
 assign voice3_trigger_strobe = trigger_pulse && (voice_index == 2'd3);
 
-// -------------------------------------------------------------------------
-// UART1 TX idle. RS-232 idle state is high (mark). A future milestone may
-// replace this with a small RTL transmitter without revisiting top-level.
-// -------------------------------------------------------------------------
-assign uart1_tx = 1'b1;
+// Telemetry handle on the round-robin voice index. Stays in sys_clk;
+// no CDC required at the consumer.
+assign voice_index_status = voice_index;
 
 endmodule

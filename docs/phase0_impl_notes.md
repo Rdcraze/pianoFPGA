@@ -340,6 +340,14 @@ Resource impact: LE 10,099 -> 3,614 (-6,485, ~64% reduction); setup slow-85C `sy
 
 Sections of this document above this update describe the obsolete architecture (RV32I core, MMIO map, firmware boot, UART command/telemetry contract, ROM/data RAM sizing) and remain useful as historical context for the archived files. They no longer describe the live design. See `reports/phase5_m0_fixed_control_flattening.md` for the new live architecture, the deferred UART functionality, and the recommended Phase 5 M1+ milestones.
 
+## Update for Phase 5 M1 (2026-05-24)
+
+UART TX status frames restored under the fixed-function architecture. New module `rtl/peripherals/phase0_uart_status_tx.v` instantiates the existing `rtl/peripherals/uart_tx.v` (8N1, 115200) and emits a 40-byte ASCII frame on `uart1_tx` every ~500 ms (25,000,000 sys_clk cycles). Frame format: `P5M1 BOOT=XXXXXXXX TICK=XXXXXXXX VC=XX\r\n`, where BOOT is a monotonic frame counter, TICK is a sample-tick snapshot at frame start, and VC is the round-robin voice index 00..03. The status block is sys_clk-domain only with no CDC. `phase0_fixed_control.v` now exposes `voice_index_status` instead of owning `uart1_tx` directly.
+
+UART RX command parsing is still deferred to Phase 5 M2. `uart1_rx` remains unconsumed in the top-level. Phase 3 host wrappers in `scripts/phase3_*` continue to be useful only as legacy host-side regression tools until M2 reintroduces a small RTL command parser.
+
+Quartus impact vs accepted M0 baseline: LE 3,614 -> 3,976 (+362), setup slack slow-85C `sys_clk_50m` +5.539 ns -> +5.885 ns, hold/TNS clean, M9K and DSP9 unchanged, warnings 20 -> 18 (idle uart1_tx and unused-signal sinks consumed). See `reports/phase5_m1_uart_status_tx_impl.md`.
+
 ## File Map
 
 - `rtl/top/piano_phase0_top.v`
