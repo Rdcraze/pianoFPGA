@@ -291,48 +291,124 @@ def analyze_segment(samples: List[int], sr: int) -> Dict[str, float]:
 # ---- Real-data path -----------------------------------------------------
 
 
+def coherent_average(samples: List[int], sr: int,
+                     start_times_s: List[float], window_s: float) -> List[int]:
+    """Coherently average K time-locked windows starting at each
+    start time. Returns a list of length window_samples with the
+    per-sample mean across all K windows.
+    """
+    n = int(window_s * sr)
+    accum = [0.0] * n
+    count = 0
+    for t in start_times_s:
+        i0 = max(0, int(t * sr))
+        i1 = i0 + n
+        if i1 > len(samples):
+            continue
+        for j in range(n):
+            accum[j] += samples[i0 + j]
+        count += 1
+    if count == 0:
+        return [0] * n
+    return [int(round(accum[j] / count)) for j in range(n)]
+
+
+def compute_snr_db(strike_window: List[int], noise_window: List[int]) -> float:
+    """Compute SNR in dB as 20*log10(strike_rms / noise_rms)."""
+    s_rms = rms(strike_window)
+    n_rms = rms(noise_window)
+    if s_rms <= 1e-9 or n_rms <= 1e-9:
+        return 0.0
+    return 20.0 * math.log10(s_rms / n_rms)
+
+
 def run_real(wav_path: str, sidecar_path: str,
              audio_start_unix: Optional[float],
-             out_csv: str, out_md: Optional[str]) -> int:
+             out_csv: str, out_md: Optional[str],
+             coherent_average_flag: bool) -> int:
     samples, sr = read_wav_mono(wav_path)
     with open(sidecar_path, "r", encoding="ascii") as fp:
         sidecar = json.load(fp)
-    if sidecar.get("schema") != "phase6_m1_voice_bench.v1":
-        print("ERROR: sidecar schema mismatch: {}".format(sidecar.get("schema")),
+    schema = sidecar.get("schema", "")
+    if schema not in ("phase6_m1_voice_bench.v1", "phase6_m1_voice_bench.v2"):
+        print("ERROR: sidecar schema mismatch: {}".format(schema),
               file=sys.stderr)
         return 2
+    is_v2 = schema == "phase6_m1_voice_bench.v2"
+    repeats = int(sidecar.get("repeats", 1)) if is_v2 else 1
+
+    if coherent_average_flag and not is_v2:
+        print(
+            "WARN: --coherent-average requested but sidecar schema is v1 "
+            "(no per-cell repeat list). Falling back to single-strike "
+            "analysis.", file=sys.stderr)
+        coherent_average_flag = False
 
     # Compute base offset between WAV start and sidecar session start.
     session_unix = float(sidecar["session_start_unix"])
     if audio_start_unix is not None:
         wav_start_unix = float(audio_start_unix)
     else:
-        # Assume the audio capture started at the same monotonic moment
-        # as the bench session; this is the common case when the
-        # operator runs the bench and capture in parallel.
         wav_start_unix = session_unix
     base_offset_s = session_unix - wav_start_unix
 
+    # Helper: extract a time-locked window starting at an offset, length
+    # CAPTURE_S samples. Used for both per-cell strike window and the
+    # noise window before each strike.
+    def window_at(start_session_s: float) -> List[int]:
+        i0 = max(0, int((start_session_s + base_offset_s) * sr))
+        i1 = min(len(samples), i0 + int(CAPTURE_S * sr))
+        return samples[i0:i1]
+
     rows = []
     for cell in sidecar["cells"]:
-        cell_start_s = float(cell["send_t_session_s"]) + base_offset_s
-        i0 = max(0, int(cell_start_s * sr))
-        i1 = min(len(samples), i0 + int(CAPTURE_S * sr))
-        seg = samples[i0:i1]
+        # Normalize the timestamp field: v1 has a scalar, v2 has a list.
+        if is_v2:
+            send_times = list(cell["send_t_session_s"])
+        else:
+            send_times = [float(cell["send_t_session_s"])]
+
+        if coherent_average_flag and len(send_times) > 1:
+            # Build start times relative to wav start
+            start_times = [t + base_offset_s for t in send_times]
+            seg = coherent_average(samples, sr, start_times, CAPTURE_S)
+            # Noise window: ~0.5 s of "silence" just before the first
+            # strike of this cell (after the prior cell's pause). This
+            # is the cleanest available baseline for SNR.
+            noise_t = max(0.0, send_times[0] + base_offset_s - 0.5)
+            i0 = max(0, int(noise_t * sr))
+            i1 = min(len(samples), i0 + int(0.4 * sr))
+            noise_seg = samples[i0:i1]
+        else:
+            seg = window_at(send_times[0])
+            noise_t = max(0.0, send_times[0] + base_offset_s - 0.5)
+            i0 = max(0, int(noise_t * sr))
+            i1 = min(len(samples), i0 + int(0.4 * sr))
+            noise_seg = samples[i0:i1]
+
         m = analyze_segment(seg, sr)
+        snr_db = round(compute_snr_db(seg, noise_seg), 3)
+
         rows.append({
             "index": cell["index"],
             "pitch_name": cell["pitch_name"],
             "loop_len": cell["loop_len"],
             "velocity_hex": "{:#06x}".format(cell["velocity"]),
             "command": cell["command"],
+            "repeats": repeats if (coherent_average_flag and is_v2) else 1,
+            "snr_db": snr_db,
             **m,
         })
 
     write_csv(out_csv, rows)
     if out_md is not None:
         write_md(out_md, rows, wav_path, sidecar_path)
-    print("Wrote {} rows to {}".format(len(rows), out_csv), file=sys.stderr)
+    print(
+        "Wrote {} rows to {} (schema={}, coherent_average={})".format(
+            len(rows), out_csv, schema,
+            "ON" if (coherent_average_flag and is_v2) else "OFF"),
+        file=sys.stderr,
+    )
     return 0
 
 
@@ -343,6 +419,7 @@ def write_csv(path: str, rows: List[Dict]) -> None:
         return
     fields = [
         "index", "pitch_name", "loop_len", "velocity_hex", "command",
+        "repeats", "snr_db",
         "peak_abs", "peak_dbfs",
         "rms_100ms_dbfs", "rms_500ms_dbfs", "rms_3s_dbfs",
         "attack_ms", "decay_db_per_s", "spectral_centroid_hz",
@@ -360,17 +437,18 @@ def write_md(path: str, rows: List[Dict], wav: str, sidecar: str) -> None:
         fp.write("# Phase 6 M1 voice baseline (analyzed)\n\n")
         fp.write("- wav: {}\n".format(wav))
         fp.write("- sidecar: {}\n\n".format(sidecar))
-        fp.write("| idx | pitch | loop_len | vel | peak dBFS | RMS100 | RMS500 | "
-                 "RMS3 | attack ms | decay dB/s | centroid Hz | clips | "
-                 "silence ms |\n")
+        fp.write("| idx | pitch | loop_len | vel | K | SNR dB | peak dBFS | "
+                 "RMS100 | RMS500 | RMS3 | attack ms | decay dB/s | "
+                 "centroid Hz | clips | silence ms |\n")
         fp.write("| ---: | --- | ---: | --- | ---: | ---: | ---: | ---: | "
-                 "---: | ---: | ---: | ---: | ---: |\n")
+                 "---: | ---: | ---: | ---: | ---: | ---: | ---: |\n")
         for r in rows:
-            fp.write("| {idx} | {pitch} | {ll} | {vel} | {pk} | {r100} | "
-                     "{r500} | {r3} | {atk} | {dec} | {cen} | {clip} | "
-                     "{sil} |\n".format(
+            fp.write("| {idx} | {pitch} | {ll} | {vel} | {k} | {snr} | "
+                     "{pk} | {r100} | {r500} | {r3} | {atk} | {dec} | "
+                     "{cen} | {clip} | {sil} |\n".format(
                          idx=r["index"], pitch=r["pitch_name"],
                          ll=r["loop_len"], vel=r["velocity_hex"],
+                         k=r["repeats"], snr=r["snr_db"],
                          pk=r["peak_dbfs"], r100=r["rms_100ms_dbfs"],
                          r500=r["rms_500ms_dbfs"], r3=r["rms_3s_dbfs"],
                          atk=r["attack_ms"], dec=r["decay_db_per_s"],
@@ -456,8 +534,70 @@ def cmd_self_check() -> int:
     else:
         print("PASS v3 silence_after_ms={:.1f}".format(m3["silence_after_ms"]))
 
+    # Vector 4: Phase 6 M4 coherent averaging gain check. Generate K=16
+    # noisy copies of a deterministic decaying sine, coherently average
+    # them, subtract the known signal, and verify the residual noise
+    # RMS dropped by sqrt(K) = +10*log10(K) dB. This is the canonical
+    # test that the averaging math implements the predicted gain.
+    import random as _rand
+    _rand.seed(20260524)
+    K = 16
+    win_len = int(0.250 * sr)
+    sig = synthesize_decaying_sine(sr=sr, freq_hz=440.0,
+                                   duration_s=0.260,
+                                   attack_ms=2.0, tau_s=0.5, peak=0.3)
+    sig = sig[:win_len]
+    noise_sigma = 0.02 * 32767  # ~ -34 dBFS RMS Gaussian
+    big_buf = []
+    start_times = []
+    cur_t = 0.5
+    for j in range(int(0.5 * sr)):
+        big_buf.append(int(round(_rand.gauss(0.0, noise_sigma))))
+    # Per-strike noise so we can test the averaging
+    for r in range(K):
+        start_times.append(cur_t)
+        for j in range(win_len):
+            v = sig[j] + _rand.gauss(0.0, noise_sigma)
+            big_buf.append(max(-32768, min(32767, int(round(v)))))
+        cur_t += win_len / sr
+        # 100 ms gap of pure noise between strikes
+        for j in range(int(0.100 * sr)):
+            big_buf.append(int(round(_rand.gauss(0.0, noise_sigma))))
+        cur_t += 0.100
+
+    # Single-strike residual noise (subtract known signal)
+    s_idx = int(start_times[0] * sr)
+    single_strike = big_buf[s_idx:s_idx + win_len]
+    single_residual = [single_strike[j] - sig[j] for j in range(win_len)]
+    single_residual_rms = rms(single_residual)
+
+    # Coherent-averaged residual noise
+    avg_window = coherent_average(big_buf, sr, start_times, win_len / sr)
+    avg_residual = [avg_window[j] - sig[j] for j in range(win_len)]
+    avg_residual_rms = rms(avg_residual)
+
+    if single_residual_rms <= 1e-9 or avg_residual_rms <= 1e-9:
+        print("FAIL v4 residual_rms zero single={:.3f} avg={:.3f}".format(
+            single_residual_rms, avg_residual_rms))
+        fails += 1
+    else:
+        actual_gain_db = 20.0 * math.log10(single_residual_rms / avg_residual_rms)
+        expected_gain_db = 10.0 * math.log10(K)
+        if abs(actual_gain_db - expected_gain_db) > 0.5:
+            print(
+                "FAIL v4 coherent_avg_gain K={:d} expected={:+.2f} dB "
+                "actual={:+.2f} dB (single_residual={:.1f} avg_residual={:.1f})".format(
+                    K, expected_gain_db, actual_gain_db,
+                    single_residual_rms, avg_residual_rms))
+            fails += 1
+        else:
+            print(
+                "PASS v4 coherent_avg_gain K={:d} expected={:+.2f} dB "
+                "actual={:+.2f} dB".format(
+                    K, expected_gain_db, actual_gain_db))
+
     if fails == 0:
-        print("PHASE6_M1_ANALYZE_PASS vectors=3")
+        print("PHASE6_M1_ANALYZE_PASS vectors=4")
         return 0
     print("PHASE6_M1_ANALYZE_FAIL fails={:d}".format(fails))
     return 1
@@ -481,6 +621,13 @@ def main() -> int:
                    help="Output CSV path")
     p.add_argument("--out-md", default=None,
                    help="Optional output markdown path")
+    p.add_argument("--coherent-average", action="store_true",
+                   help="Phase 6 M4: when sidecar schema is v2 with K>1, "
+                        "coherently average the K time-locked strike "
+                        "windows per cell before computing FFT band "
+                        "metrics. Yields +10*log10(K) dB SNR for "
+                        "time-locked content. Ignored on v1 sidecars "
+                        "with a warning.")
     args = p.parse_args()
 
     if args.self_check:
@@ -489,7 +636,7 @@ def main() -> int:
         print("ERROR: --sidecar is required with --wav", file=sys.stderr)
         return 2
     return run_real(args.wav, args.sidecar, args.audio_start_unix,
-                    args.out, args.out_md)
+                    args.out, args.out_md, args.coherent_average)
 
 
 if __name__ == "__main__":

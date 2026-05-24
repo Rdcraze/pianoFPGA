@@ -124,7 +124,8 @@ def cmd_release_bytes() -> bytes:
 def run_bench(port: str, baud: int, sidecar_path: str,
               settle_s: float, capture_s: float, pause_s: float,
               single_voice_isolate: bool,
-              profile: str) -> int:
+              profile: str,
+              repeats: int) -> int:
     try:
         import serial  # type: ignore
     except ImportError:
@@ -147,7 +148,7 @@ def run_bench(port: str, baud: int, sidecar_path: str,
     session_unix = time.time()
 
     sidecar = {
-        "schema": "phase6_m1_voice_bench.v1",
+        "schema": "phase6_m1_voice_bench.v2",
         "port": port,
         "baud": baud,
         "settle_s": settle_s,
@@ -155,6 +156,7 @@ def run_bench(port: str, baud: int, sidecar_path: str,
         "pause_s": pause_s,
         "single_voice_isolate": single_voice_isolate,
         "profile": profile,
+        "repeats": repeats,
         "session_start_unix": session_unix,
         "pre_commands": [],
         "cells": [],
@@ -162,9 +164,10 @@ def run_bench(port: str, baud: int, sidecar_path: str,
     }
 
     print(
-        "Phase 6 M1 voice bench: {} cells (profile={}), total {:.1f} s + setup{}".format(
-            len(cells), profile,
-            len(cells) * (settle_s + capture_s + pause_s),
+        "Phase 6 M1 voice bench: {} cells x {} repeats (profile={}), "
+        "total {:.1f} s + setup{}".format(
+            len(cells), repeats, profile,
+            len(cells) * repeats * (settle_s + capture_s + pause_s),
             " (isolation_mode=ON, M1.2 reset-on-!F)" if single_voice_isolate else ""),
         file=sys.stderr,
     )
@@ -187,34 +190,40 @@ def run_bench(port: str, baud: int, sidecar_path: str,
         time.sleep(0.1)
 
     for cell in cells:
-        # Settle: emit !F first to silence any prior ringing.
-        ser.write(cmd_release_bytes())
-        time.sleep(settle_s)
+        send_times = []
+        for r in range(repeats):
+            # Settle: emit !F first to silence any prior ringing.
+            # In isolation mode this is the M1.2 hard-reset of voice0.
+            ser.write(cmd_release_bytes())
+            time.sleep(settle_s)
 
-        # Strike.
-        send_t = time.monotonic() - session_start
-        ser.write(cell["command_bytes"])
+            # Strike.
+            send_t = time.monotonic() - session_start
+            ser.write(cell["command_bytes"])
+            send_times.append(round(send_t, 3))
+
+            print(
+                "[{:02d}.{:02d}] t={:7.3f}s strike {:s} {}".format(
+                    cell["index"], r, send_t, cell["command_ascii"],
+                    cell["pitch_name"],
+                ),
+                file=sys.stderr,
+            )
+
+            # Capture window.
+            time.sleep(capture_s)
+
+            # Pause.
+            time.sleep(pause_s)
+
         sidecar["cells"].append({
             "index": cell["index"],
             "loop_len": cell["loop_len"],
             "velocity": cell["velocity"],
             "pitch_name": cell["pitch_name"],
             "command": cell["command_ascii"],
-            "send_t_session_s": round(send_t, 3),
+            "send_t_session_s": send_times,
         })
-        print(
-            "[{:02d}] t={:7.3f}s strike {:s} {}".format(
-                cell["index"], send_t, cell["command_ascii"],
-                cell["pitch_name"],
-            ),
-            file=sys.stderr,
-        )
-
-        # Capture window.
-        time.sleep(capture_s)
-
-        # Pause.
-        time.sleep(pause_s)
 
     # Final !F to silence the last ring.
     ser.write(cmd_release_bytes())
@@ -241,12 +250,12 @@ def run_bench(port: str, baud: int, sidecar_path: str,
     return 0
 
 
-def cmd_plan(single_voice_isolate: bool, profile: str) -> int:
+def cmd_plan(single_voice_isolate: bool, profile: str, repeats: int) -> int:
     cells = build_grid(profile)
-    total = len(cells) * (SETTLE_S + CAPTURE_S + PAUSE_S)
+    total = len(cells) * repeats * (SETTLE_S + CAPTURE_S + PAUSE_S)
     print(
-        "Phase 6 M1 grid: {:d} cells (profile={}), total ~{:.1f} s{}".format(
-            len(cells), profile, total,
+        "Phase 6 M1 grid: {:d} cells x {:d} repeats (profile={}), total ~{:.1f} s{}".format(
+            len(cells), repeats, profile, total,
             " (isolation_mode=ON, M1.2 reset-on-!F)" if single_voice_isolate else ""))
     print(
         "  per cell: settle {:.1f}s, capture {:.1f}s, pause {:.1f}s".format(
@@ -254,6 +263,9 @@ def cmd_plan(single_voice_isolate: bool, profile: str) -> int:
     if single_voice_isolate:
         print("  pre:  !I1\\r\\n  (enable single-voice isolation mode)")
         print("  per-cell !F is a hard reset of voice0 in M1.2 builds.")
+    if repeats > 1:
+        print("  per-cell repeated K={:d} times for coherent averaging.".format(
+            repeats))
     print()
     print("idx  pitch    loop_len velocity  command")
     print("---  -------  -------- --------  --------------")
@@ -363,13 +375,14 @@ def cmd_self_check() -> int:
     # Sidecar schema dry-run: build a fake sidecar with two cells and
     # validate JSON serialization round-trip.
     fake = {
-        "schema": "phase6_m1_voice_bench.v1",
+        "schema": "phase6_m1_voice_bench.v2",
         "port": "COM_TEST",
         "baud": 115200,
         "settle_s": SETTLE_S,
         "capture_s": CAPTURE_S,
         "pause_s": PAUSE_S,
         "single_voice_isolate": True,
+        "repeats": 4,
         "session_start_unix": 1700000000.0,
         "pre_commands": [
             {"command": "!I1", "send_t_session_s": 0.005},
@@ -381,7 +394,7 @@ def cmd_self_check() -> int:
                 "velocity": cells[0]["velocity"],
                 "pitch_name": cells[0]["pitch_name"],
                 "command": cells[0]["command_ascii"],
-                "send_t_session_s": 1.234,
+                "send_t_session_s": [1.234, 7.234, 13.234, 19.234],
             },
         ],
         "post_commands": [
@@ -403,8 +416,33 @@ def cmd_self_check() -> int:
     elif fake2["post_commands"][1]["command"] != "!I0":
         print("FAIL sidecar post_command")
         fails += 1
+    elif fake2["schema"] != "phase6_m1_voice_bench.v2":
+        print("FAIL sidecar schema not v2")
+        fails += 1
+    elif fake2["repeats"] != 4:
+        print("FAIL sidecar repeats")
+        fails += 1
+    elif not isinstance(fake2["cells"][0]["send_t_session_s"], list):
+        print("FAIL sidecar send_t_session_s should be list in v2")
+        fails += 1
+    elif len(fake2["cells"][0]["send_t_session_s"]) != 4:
+        print("FAIL sidecar send_t_session_s length")
+        fails += 1
     else:
-        print("PASS sidecar JSON round-trip (isolation mode)")
+        print("PASS sidecar v2 JSON round-trip (K=4 timestamp list)")
+
+    # K=4 grid command bytes: 5 cells x 3 velocities x 4 repeats =
+    # 60 strikes, but each strike uses the same per-cell command.
+    # Verify build_grid returns the same 15 commands regardless of
+    # repeats; the bench just sends each command 4 times in K=4.
+    if len(cells) != 15:
+        print("FAIL k4_grid_size {}".format(len(cells)))
+        fails += 1
+    elif cells[0]["command_bytes"] != b"!N007F2000\r\n":
+        print("FAIL k4_first_command")
+        fails += 1
+    else:
+        print("PASS k4_grid 15 cells, command bytes unchanged at K>=1")
 
     # Isolation command bytes
     if ISOLATE_ENABLE != b"!I1\r\n":
@@ -453,16 +491,27 @@ def main() -> int:
                         "0x7FFF; 'clean' uses 0x0800/0x1000/0x2000 to "
                         "avoid full-scale saturation on long loop_len "
                         "cells.")
+    p.add_argument("--repeats", "-K", type=int, default=1,
+                   help="Phase 6 M4: number of consecutive reset+strike "
+                        "events per cell. Coherent averaging in the "
+                        "analyzer gives +10*log10(K) dB SNR for "
+                        "time-locked content. K=1 (default) preserves "
+                        "the M1/M2/M3 single-strike behavior.")
     args = p.parse_args()
+
+    if args.repeats < 1:
+        print("ERROR: --repeats must be >= 1", file=sys.stderr)
+        return 2
 
     if args.self_check:
         return cmd_self_check()
     if args.plan:
-        return cmd_plan(args.single_voice_isolate, args.profile)
+        return cmd_plan(args.single_voice_isolate, args.profile, args.repeats)
     if args.run:
         return run_bench(args.port, args.baud, args.sidecar,
                          args.settle_s, args.capture_s, args.pause_s,
-                         args.single_voice_isolate, args.profile)
+                         args.single_voice_isolate, args.profile,
+                         args.repeats)
     return 1
 
 
