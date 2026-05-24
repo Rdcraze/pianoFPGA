@@ -1,0 +1,149 @@
+{
+  "baud": 115200,
+  "capture_s": 4.0,
+  "cells": [
+    {
+      "command": "!N007F2000",
+      "index": 0,
+      "loop_len": 127,
+      "pitch_name": "loop127",
+      "send_t_session_s": 4.125,
+      "velocity": 8192
+    },
+    {
+      "command": "!N007F4000",
+      "index": 1,
+      "loop_len": 127,
+      "pitch_name": "loop127",
+      "send_t_session_s": 10.141,
+      "velocity": 16384
+    },
+    {
+      "command": "!N007F7FFF",
+      "index": 2,
+      "loop_len": 127,
+      "pitch_name": "loop127",
+      "send_t_session_s": 16.156,
+      "velocity": 32767
+    },
+    {
+      "command": "!N006A2000",
+      "index": 3,
+      "loop_len": 106,
+      "pitch_name": "A4",
+      "send_t_session_s": 22.172,
+      "velocity": 8192
+    },
+    {
+      "command": "!N006A4000",
+      "index": 4,
+      "loop_len": 106,
+      "pitch_name": "A4",
+      "send_t_session_s": 28.203,
+      "velocity": 16384
+    },
+    {
+      "command": "!N006A7FFF",
+      "index": 5,
+      "loop_len": 106,
+      "pitch_name": "A4",
+      "send_t_session_s": 34.234,
+      "velocity": 32767
+    },
+    {
+      "command": "!N00592000",
+      "index": 6,
+      "loop_len": 89,
+      "pitch_name": "C5",
+      "send_t_session_s": 40.266,
+      "velocity": 8192
+    },
+    {
+      "command": "!N00594000",
+      "index": 7,
+      "loop_len": 89,
+      "pitch_name": "C5",
+      "send_t_session_s": 46.281,
+      "velocity": 16384
+    },
+    {
+      "command": "!N00597FFF",
+      "index": 8,
+      "loop_len": 89,
+      "pitch_name": "C5",
+      "send_t_session_s": 52.312,
+      "velocity": 32767
+    },
+    {
+      "command": "!N00352000",
+      "index": 9,
+      "loop_len": 53,
+      "pitch_name": "A5",
+      "send_t_session_s": 58.344,
+      "velocity": 8192
+    },
+    {
+      "command": "!N00354000",
+      "index": 10,
+      "loop_len": 53,
+      "pitch_name": "A5",
+      "send_t_session_s": 64.375,
+      "velocity": 16384
+    },
+    {
+      "command": "!N00357FFF",
+      "index": 11,
+      "loop_len": 53,
+      "pitch_name": "A5",
+      "send_t_session_s": 70.391,
+      "velocity": 32767
+    },
+    {
+      "command": "!N00202000",
+      "index": 12,
+      "loop_len": 32,
+      "pitch_name": "loop32",
+      "send_t_session_s": 76.422,
+      "velocity": 8192
+    },
+    {
+      "command": "!N00204000",
+      "index": 13,
+      "loop_len": 32,
+      "pitch_name": "loop32",
+      "send_t_session_s": 82.437,
+      "velocity": 16384
+    },
+    {
+      "command": "!N00207FFF",
+      "index": 14,
+      "loop_len": 32,
+      "pitch_name": "loop32",
+      "send_t_session_s": 88.469,
+      "velocity": 32767
+    }
+  ],
+  "pause_s": 1.0,
+  "port": "COM5",
+  "post_commands": [
+    {
+      "command": "!F",
+      "send_t_session_s": 93.484
+    },
+    {
+      "command": "!I0",
+      "send_t_session_s": 93.547
+    }
+  ],
+  "pre_commands": [
+    {
+      "command": "!I1",
+      "send_t_session_s": 3.016
+    }
+  ],
+  "profile": "original",
+  "schema": "phase6_m1_voice_bench.v1",
+  "session_start_unix": 1779615822.628757,
+  "settle_s": 1.0,
+  "single_voice_isolate": true
+}
