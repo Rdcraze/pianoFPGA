@@ -1,0 +1,22 @@
+# Phase 6 M1 voice-quality baseline CSV
+# Implementer-side: no hardware capture executed; rows below are the
+# planned grid only. The verifier task fills in metric columns after
+# running scripts/phase6_m1_voice_bench.py --run on the live M2 board
+# and feeding the resulting WAV plus sidecar JSON into
+# scripts/phase6_m1_voice_analyze.py.
+index,pitch_name,loop_len,velocity_hex,command,peak_abs,peak_dbfs,rms_100ms_dbfs,rms_500ms_dbfs,rms_3s_dbfs,attack_ms,decay_db_per_s,spectral_centroid_hz,clipping_count,silence_after_ms
+0,loop127,127,0x2000,!N007F2000,,,,,,,,,,
+1,loop127,127,0x4000,!N007F4000,,,,,,,,,,
+2,loop127,127,0x7FFF,!N007F7FFF,,,,,,,,,,
+3,A4,106,0x2000,!N006A2000,,,,,,,,,,
+4,A4,106,0x4000,!N006A4000,,,,,,,,,,
+5,A4,106,0x7FFF,!N006A7FFF,,,,,,,,,,
+6,C5,89,0x2000,!N00592000,,,,,,,,,,
+7,C5,89,0x4000,!N00594000,,,,,,,,,,
+8,C5,89,0x7FFF,!N00597FFF,,,,,,,,,,
+9,A5,53,0x2000,!N00352000,,,,,,,,,,
+10,A5,53,0x4000,!N00354000,,,,,,,,,,
+11,A5,53,0x7FFF,!N00357FFF,,,,,,,,,,
+12,loop32,32,0x2000,!N00202000,,,,,,,,,,
+13,loop32,32,0x4000,!N00204000,,,,,,,,,,
+14,loop32,32,0x7FFF,!N00207FFF,,,,,,,,,,
