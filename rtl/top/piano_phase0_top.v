@@ -1,5 +1,15 @@
 `timescale 1ns / 1ps
 
+// Phase 5 M0 top-level. The RISC-V SoC + firmware + MMIO + register-file
+// control stack has been replaced with phase0_fixed_control, a small
+// fixed-function RTL controller. The audio path, codec wrapper, and
+// audio-mclk PLL are unchanged. Obsolete CPU/firmware control sources
+// are archived under obsolete/riscv_control/.
+//
+// uart1_rx is currently unconsumed; the fixed controller drives uart1_tx
+// idle high. UART command and telemetry support is intentionally deferred
+// to a later milestone that will introduce a small RTL UART block.
+
 module piano_phase0_top (
     input  wire       sys_clk_50m,
     input  wire       sys_rst_n,
@@ -15,11 +25,6 @@ module piano_phase0_top (
 );
 
 wire        core_rst_n;
-wire        reg_wr_en;
-wire        reg_rd_en;
-wire [7:0]  reg_addr;
-wire [31:0] reg_wdata;
-wire [31:0] reg_rdata;
 wire        audio_enable;
 wire        tone_enable;
 wire [1:0]  wave_sel;
@@ -66,11 +71,8 @@ wire        codec_cfg_busy;
 wire        sample_tick;
 wire        tx_valid;
 wire [15:0] tx_sample;
-wire [15:0] soc_status;
-wire [15:0] uart_status;
 wire [15:0] audio_status;
 wire [7:0]  codec_status;
-wire [31:0] fabric_status;
 wire [31:0] voice_status_word;
 wire [31:0] voice_sample_count;
 wire [31:0] voice_trigger_count;
@@ -97,99 +99,59 @@ phase0_reset_sync phase0_reset_sync_inst (
     .srst_n(core_rst_n)
 );
 
-phase0_rv32i_soc phase0_soc_inst (
-    .sys_clk   (sys_clk_50m),
-    .sys_rst_n (core_rst_n),
-    .uart_rx   (uart1_rx),
-    .reg_rdata (reg_rdata),
-    .uart_tx   (uart1_tx),
-    .reg_wr_en (reg_wr_en),
-    .reg_rd_en (reg_rd_en),
-    .reg_addr  (reg_addr),
-    .reg_wdata (reg_wdata),
-    .status_word(soc_status),
-    .uart_status_word(uart_status)
+phase0_fixed_control phase0_fixed_control_inst (
+    .sys_clk                  (sys_clk_50m),
+    .sys_rst_n                (core_rst_n),
+    .sample_tick              (sample_tick),
+    .audio_enable             (audio_enable),
+    .tone_enable              (tone_enable),
+    .wave_sel                 (wave_sel),
+    .trigger_strobe           (trigger_strobe),
+    .codec_cfg_valid          (codec_cfg_valid),
+    .phase_step               (phase_step),
+    .gain                     (gain),
+    .decay_step               (decay_step),
+    .codec_cfg_word           (codec_cfg_word),
+    .voice_enable             (voice_enable),
+    .voice_trigger_strobe     (voice_trigger_strobe),
+    .voice_reset_strobe       (voice_reset_strobe),
+    .voice_clip_clear_strobe  (voice_clip_clear_strobe),
+    .voice_diag_clear_strobe  (voice_diag_clear_strobe),
+    .voice_body_bypass        (voice_body_bypass),
+    .voice_disp_bypass        (voice_disp_bypass),
+    .voice1_enable            (voice1_enable),
+    .voice1_trigger_strobe    (voice1_trigger_strobe),
+    .voice1_reset_strobe      (voice1_reset_strobe),
+    .voice1_clip_clear_strobe (voice1_clip_clear_strobe),
+    .voice2_enable            (voice2_enable),
+    .voice2_trigger_strobe    (voice2_trigger_strobe),
+    .voice2_reset_strobe      (voice2_reset_strobe),
+    .voice2_clip_clear_strobe (voice2_clip_clear_strobe),
+    .voice3_enable            (voice3_enable),
+    .voice3_trigger_strobe    (voice3_trigger_strobe),
+    .voice3_reset_strobe      (voice3_reset_strobe),
+    .voice3_clip_clear_strobe (voice3_clip_clear_strobe),
+    .voice_velocity           (voice_velocity),
+    .voice_loop_len           (voice_loop_len),
+    .voice0_velocity          (voice0_velocity),
+    .voice0_loop_len          (voice0_loop_len),
+    .voice1_velocity          (voice1_velocity),
+    .voice1_loop_len          (voice1_loop_len),
+    .voice2_velocity          (voice2_velocity),
+    .voice2_loop_len          (voice2_loop_len),
+    .voice3_velocity          (voice3_velocity),
+    .voice3_loop_len          (voice3_loop_len),
+    .voice_loop_gain          (voice_loop_gain),
+    .voice_damp_mix           (voice_damp_mix),
+    .voice_disp_coeff         (voice_disp_coeff),
+    .voice_body_mix           (voice_body_mix),
+    .uart1_tx                 (uart1_tx)
 );
 
-assign fabric_status = {
-    codec_status[7:0],
-    audio_status[7:0],
-    uart_status[7:0],
-    soc_status[7:0]
-};
-
-phase0_control_regs phase0_control_regs_inst (
-    .sys_clk       (sys_clk_50m),
-    .sys_rst_n     (core_rst_n),
-    .reg_wr_en     (reg_wr_en),
-    .reg_rd_en     (reg_rd_en),
-    .reg_addr      (reg_addr),
-    .reg_wdata     (reg_wdata),
-    .status_word   (fabric_status),
-    .voice_status_word(voice_status_word),
-    .voice_sample_count(voice_sample_count),
-    .voice_trigger_count(voice_trigger_count),
-    .voice_active_count(voice_active_count),
-    .voice_valid_count(voice_valid_count),
-    .voice1_status_word(voice1_status_word),
-    .voice1_trigger_count(voice1_trigger_count),
-    .voice1_active_count(voice1_active_count),
-    .voice1_valid_count(voice1_valid_count),
-    .voice2_status_word(voice2_status_word),
-    .voice3_status_word(voice3_status_word),
-    .voice3_trigger_count(voice3_trigger_count),
-    .voice3_active_count(voice3_active_count),
-    .voice3_valid_count(voice3_valid_count),
-    .voice2_trigger_count(voice2_trigger_count),
-    .voice2_active_count(voice2_active_count),
-    .voice2_valid_count(voice2_valid_count),
-    .voice_mix_status_word(voice_mix_status_word),
-    .voice_mix_clip_count(voice_mix_clip_count),
-    .reg_rdata     (reg_rdata),
-    .audio_enable  (audio_enable),
-    .tone_enable   (tone_enable),
-    .wave_sel      (wave_sel),
-    .trigger_strobe(trigger_strobe),
-    .codec_cfg_valid(codec_cfg_valid),
-    .phase_step    (phase_step),
-    .gain          (gain),
-    .decay_step    (decay_step),
-    .codec_cfg_word(codec_cfg_word),
-    .voice_enable  (voice_enable),
-    .voice_trigger_strobe(voice_trigger_strobe),
-    .voice_reset_strobe(voice_reset_strobe),
-    .voice_clip_clear_strobe(voice_clip_clear_strobe),
-    .voice_diag_clear_strobe(voice_diag_clear_strobe),
-    .voice_body_bypass(voice_body_bypass),
-    .voice_disp_bypass(voice_disp_bypass),
-    .voice1_enable (voice1_enable),
-    .voice1_trigger_strobe(voice1_trigger_strobe),
-    .voice1_reset_strobe(voice1_reset_strobe),
-    .voice1_clip_clear_strobe(voice1_clip_clear_strobe),
-    .voice2_enable (voice2_enable),
-    .voice2_trigger_strobe(voice2_trigger_strobe),
-    .voice2_reset_strobe(voice2_reset_strobe),
-    .voice2_clip_clear_strobe(voice2_clip_clear_strobe),
-    .voice3_enable(voice3_enable),
-    .voice3_trigger_strobe(voice3_trigger_strobe),
-    .voice3_reset_strobe(voice3_reset_strobe),
-    .voice3_clip_clear_strobe(voice3_clip_clear_strobe),
-
-    .voice_velocity(voice_velocity),
-    .voice0_velocity(voice0_velocity),
-    .voice0_loop_len(voice0_loop_len),
-    .voice1_velocity(voice1_velocity),
-    .voice1_loop_len(voice1_loop_len),
-    .voice2_velocity(voice2_velocity),
-    .voice2_loop_len(voice2_loop_len),
-    .voice3_velocity(voice3_velocity),
-    .voice3_loop_len(voice3_loop_len),
-    .voice_loop_len(voice_loop_len),
-    .voice_loop_gain(voice_loop_gain),
-    .voice_damp_mix(voice_damp_mix),
-    .voice_disp_coeff(voice_disp_coeff),
-    .voice_body_mix(voice_body_mix)
-);
+// uart1_rx is intentionally unconsumed in M0. Sink it into an unloaded
+// reduction so synthesis does not warn about an unused input pin.
+wire _unused_uart1_rx;
+assign _unused_uart1_rx = uart1_rx;
 
 phase0_audio_path phase0_audio_path_inst (
     .sys_clk       (sys_clk_50m),
@@ -229,7 +191,6 @@ phase0_audio_path phase0_audio_path_inst (
     .voice2_loop_len(voice2_loop_len),
     .voice3_velocity(voice3_velocity),
     .voice3_loop_len(voice3_loop_len),
-
     .voice_velocity(voice_velocity),
     .voice_loop_len(voice_loop_len),
     .voice_loop_gain(voice_loop_gain),
@@ -259,6 +220,37 @@ phase0_audio_path phase0_audio_path_inst (
     .voice_mix_status_word(voice_mix_status_word),
     .voice_mix_clip_count(voice_mix_clip_count)
 );
+
+// audio_path status outputs are not currently consumed at the top level
+// because the firmware/MMIO readback path was removed. Sink them into a
+// single unloaded reduction so synthesis treats them as intentionally
+// unused; downstream verifier work or a later RTL telemetry block can
+// consume them.
+wire _unused_audio_path_status;
+assign _unused_audio_path_status = ^{
+    audio_status,
+    voice_status_word,
+    voice_sample_count,
+    voice_trigger_count,
+    voice_active_count,
+    voice_valid_count,
+    voice1_status_word,
+    voice1_trigger_count,
+    voice1_active_count,
+    voice1_valid_count,
+    voice2_status_word,
+    voice2_trigger_count,
+    voice2_active_count,
+    voice2_valid_count,
+    voice3_status_word,
+    voice3_trigger_count,
+    voice3_active_count,
+    voice3_valid_count,
+    voice_mix_status_word,
+    voice_mix_clip_count,
+    codec_status,
+    codec_cfg_busy
+};
 
 wm8978_codec_stub wm8978_codec_stub_inst (
     .sys_clk       (sys_clk_50m),

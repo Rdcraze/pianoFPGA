@@ -10,6 +10,7 @@ Manuals_Examples/
 
 # Generated firmware/build products
 fw/phase0/build/
+obsolete/riscv_control/fw/phase0/build/
 phase0_fw.hex
 phase0_fw.mem
 phase0_fw.mif

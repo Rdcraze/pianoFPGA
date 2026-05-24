@@ -43,10 +43,11 @@ function Invoke-QuartusTool {
 
 Push-Location $PSScriptRoot
 try {
-    & (Join-Path $PSScriptRoot "..\\..\\fw\\phase0\\build.ps1")
-    if ($LASTEXITCODE -ne 0) {
-        throw "Firmware build failed with exit code $LASTEXITCODE."
-    }
+    # Phase 5 M0: firmware no longer drives the control plane. The
+    # phase0_fixed_control RTL block replaces the RV32I + firmware MMIO
+    # path. The legacy fw/phase0 firmware build is preserved under
+    # obsolete/riscv_control/fw/phase0/ for reference and is not part
+    # of the live synthesis flow.
 
     switch ($Stage) {
         "map" {

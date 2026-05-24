@@ -323,6 +323,23 @@ Update for Phase 4 M2 (`task-0692867c`, commit `5db0378`):
 - All earlier update sections in this document that mention `rtl/control/phase0_soc_stub.v` describe historical Phase 0 milestones (`task-8ee45684`, `task-4ad912d3`, `task-09810cec`, `task-e5e0096b`, etc.). They are kept as accurate records of how the design got here, but the file itself no longer exists in the live tree, and any behavior they attribute to the stub is now provided by the RV32I subsystem and firmware.
 - Source/script references repaired for this rename: `fw/phase0/phase0_hw.h` no longer claims the RTL "still uses" the stub. Verifier-side report `reports/phase4_m2_reclamation_validation.md` is preserved as historical evidence; `reports/phase4_m2_stale_reference_repair.md` records this follow-up cleanup explicitly.
 
+## Update for Phase 5 M0 (2026-05-24)
+
+Architecture pivot: the RISC-V SoC + firmware C + MMIO bus + register-file control stack has been retired. A new single-file RTL controller `rtl/control/phase0_fixed_control.v` replaces the entire prior control plane. Live top-level (`rtl/top/piano_phase0_top.v`) now instantiates only `phase0_reset_sync`, `phase0_fixed_control`, `phase0_audio_path`, and `wm8978_codec_stub`.
+
+All legacy CPU/firmware/MMIO code is preserved (not deleted) under `obsolete/riscv_control/`:
+- `obsolete/riscv_control/rtl/control/phase0_boot_rom.v`
+- `obsolete/riscv_control/rtl/control/phase0_data_ram.v`
+- `obsolete/riscv_control/rtl/control/phase0_rv32i_core.v`
+- `obsolete/riscv_control/rtl/control/phase0_rv32i_soc.v`
+- `obsolete/riscv_control/rtl/control/phase0_control_regs.v`
+- `obsolete/riscv_control/rtl/peripherals/phase0_uart_mmio.v`
+- `obsolete/riscv_control/fw/phase0/`
+
+Resource impact: LE 10,099 -> 3,614 (-6,485, ~64% reduction); setup slow-85C `sys_clk_50m` +2.846 ns -> +5.539 ns; all TNS 0; M9K bits 86,016 -> 20,480; ROM gate retired (firmware archived). Quartus full compile passes with 0 errors and 20 warnings.
+
+Sections of this document above this update describe the obsolete architecture (RV32I core, MMIO map, firmware boot, UART command/telemetry contract, ROM/data RAM sizing) and remain useful as historical context for the archived files. They no longer describe the live design. See `reports/phase5_m0_fixed_control_flattening.md` for the new live architecture, the deferred UART functionality, and the recommended Phase 5 M1+ milestones.
+
 ## File Map
 
 - `rtl/top/piano_phase0_top.v`

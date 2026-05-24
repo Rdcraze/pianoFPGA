@@ -22,14 +22,9 @@ set_global_assignment -name VERILOG_FILE ../../rtl/audio/phase0_body_filter.v
 set_global_assignment -name VERILOG_FILE ../../rtl/audio/phase0_audio_path.v
 set_global_assignment -name VERILOG_FILE ../../rtl/audio/phase0_sample_gen.v
 set_global_assignment -name VERILOG_FILE ../../rtl/audio/phase1_reduced_voice.v
-set_global_assignment -name VERILOG_FILE ../../rtl/control/phase0_boot_rom.v
-set_global_assignment -name VERILOG_FILE ../../rtl/control/phase0_control_regs.v
-set_global_assignment -name VERILOG_FILE ../../rtl/control/phase0_data_ram.v
-set_global_assignment -name VERILOG_FILE ../../rtl/control/phase0_rv32i_core.v
-set_global_assignment -name VERILOG_FILE ../../rtl/control/phase0_rv32i_soc.v
+set_global_assignment -name VERILOG_FILE ../../rtl/control/phase0_fixed_control.v
 set_global_assignment -name VERILOG_FILE ../../rtl/peripherals/phase0_reset_sync.v
 set_global_assignment -name VERILOG_FILE ../../rtl/peripherals/phase0_audio_mclk_pll.v
-set_global_assignment -name VERILOG_FILE ../../rtl/peripherals/phase0_uart_mmio.v
 set_global_assignment -name VERILOG_FILE ../../rtl/peripherals/uart_tx.v
 set_global_assignment -name VERILOG_FILE ../../rtl/peripherals/wm8978_boot_seq.v
 set_global_assignment -name VERILOG_FILE ../../rtl/peripherals/wm8978_codec_stub.v

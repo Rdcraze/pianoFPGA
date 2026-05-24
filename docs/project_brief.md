@@ -6,10 +6,12 @@ Status: draft baseline on 2026-04-20
 
 Build a realistic first physics-based piano prototype on the EP4CE10 board, prioritizing a path that is actually implementable on this hardware over a maximally complete piano simulation.
 
-The intended architecture is a split system:
+The original intended architecture was a split system with a small RISC-V soft core for control-plane duties and custom RTL/DSP for the audio path. As of Phase 5 M0 (2026-05-24), the RISC-V SoC + firmware MMIO + register-file control stack has been retired and replaced with a fixed-function RTL controller (`rtl/control/phase0_fixed_control.v`). The legacy CPU/firmware code is archived under `obsolete/riscv_control/` for reference. The live architecture is now:
 
-- a small RISC-V soft core for control-plane duties,
+- a small fixed-function RTL controller for control-plane duties,
 - custom RTL/DSP blocks for the hard real-time sound-generation path.
+
+UART command/telemetry support is intentionally deferred in M0 (`uart1_tx` idle, `uart1_rx` unconsumed). A later Phase 5 milestone may reintroduce a tiny RTL UART telemetry transmitter and command parser without re-introducing a CPU. See `reports/phase5_m0_fixed_control_flattening.md` for the architecture details and resource impact.
 
 ## Candidate Implementation Families
 
