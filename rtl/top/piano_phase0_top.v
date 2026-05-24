@@ -1,11 +1,13 @@
 `timescale 1ns / 1ps
 
-// Phase 5 M1 top-level. The Phase 5 M0 fixed-function controller drives
-// audio defaults and the four-voice round-robin trigger sequencer; the
-// new phase0_uart_status_tx block owns uart1_tx and emits a periodic
-// ASCII status frame at 115200 8N1. uart1_rx remains unconsumed; UART
-// RX command parsing is deferred to Phase 5 M2. Obsolete RV32I + MMIO +
-// firmware sources are archived under obsolete/riscv_control/.
+// Phase 5 M2 top-level. The fixed-function controller drives audio
+// defaults and the four-voice round-robin trigger sequencer. The
+// phase0_uart_command block parses CRLF-terminated host commands on
+// uart1_rx and emits note/release strobes plus parameter wires that
+// the controller latches. The phase0_uart_status_tx block owns
+// uart1_tx and emits the periodic P5M2 status frame at 115200 8N1.
+// Obsolete RV32I + MMIO + firmware sources remain archived under
+// obsolete/riscv_control/.
 
 module piano_phase0_top (
     input  wire       sys_clk_50m,
@@ -91,16 +93,45 @@ wire [31:0] voice_mix_status_word;
 wire [31:0] voice_mix_clip_count;
 wire [1:0]  voice_index_status;
 
+// Phase 5 M2 UART command bus
+wire        cmd_note_strobe;
+wire        cmd_release_strobe;
+wire [6:0]  cmd_loop_len;
+wire [15:0] cmd_velocity;
+wire [31:0] cmd_command_count;
+wire [15:0] cmd_error_count;
+wire [15:0] cmd_last_error;
+
 phase0_reset_sync phase0_reset_sync_inst (
     .clk   (sys_clk_50m),
     .arst_n(sys_rst_n),
     .srst_n(core_rst_n)
 );
 
+phase0_uart_command #(
+    .CLK_FREQ_HZ(50_000_000),
+    .BAUD_RATE  (115_200)
+) phase0_uart_command_inst (
+    .sys_clk      (sys_clk_50m),
+    .sys_rst_n    (core_rst_n),
+    .uart_rx_pin  (uart1_rx),
+    .note_strobe  (cmd_note_strobe),
+    .release_strobe(cmd_release_strobe),
+    .cmd_loop_len (cmd_loop_len),
+    .cmd_velocity (cmd_velocity),
+    .command_count(cmd_command_count),
+    .error_count  (cmd_error_count),
+    .last_error   (cmd_last_error)
+);
+
 phase0_fixed_control phase0_fixed_control_inst (
     .sys_clk                  (sys_clk_50m),
     .sys_rst_n                (core_rst_n),
     .sample_tick              (sample_tick),
+    .note_strobe              (cmd_note_strobe),
+    .release_strobe           (cmd_release_strobe),
+    .cmd_loop_len             (cmd_loop_len),
+    .cmd_velocity             (cmd_velocity),
     .audio_enable             (audio_enable),
     .tone_enable              (tone_enable),
     .wave_sel                 (wave_sel),
@@ -151,17 +182,15 @@ phase0_uart_status_tx #(
     .BAUD_RATE     (115_200),
     .CADENCE_CYCLES(25_000_000)
 ) phase0_uart_status_tx_inst (
-    .sys_clk     (sys_clk_50m),
-    .sys_rst_n   (core_rst_n),
-    .sample_tick (sample_tick),
-    .voice_index (voice_index_status),
-    .uart_tx     (uart1_tx)
+    .sys_clk       (sys_clk_50m),
+    .sys_rst_n     (core_rst_n),
+    .sample_tick   (sample_tick),
+    .voice_index   (voice_index_status),
+    .command_count (cmd_command_count),
+    .error_count   (cmd_error_count),
+    .last_error    (cmd_last_error),
+    .uart_tx       (uart1_tx)
 );
-
-// uart1_rx is intentionally unconsumed in M0. Sink it into an unloaded
-// reduction so synthesis does not warn about an unused input pin.
-wire _unused_uart1_rx;
-assign _unused_uart1_rx = uart1_rx;
 
 phase0_audio_path phase0_audio_path_inst (
     .sys_clk       (sys_clk_50m),

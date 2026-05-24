@@ -1,29 +1,31 @@
 `timescale 1ns / 1ps
 
-// Phase 5 M1 status-frame transmitter.
+// Phase 5 M2 status-frame transmitter.
 //
 // Emits a periodic ASCII status frame on UART1 TX at 115200 8N1. Format
-// is fixed-length, exactly 40 bytes:
+// is fixed-length, exactly 62 bytes:
 //
-//   P5M1 BOOT=XXXXXXXX TICK=XXXXXXXX VC=XX\r\n
+//   P5M2 BOOT=XXXXXXXX TICK=XXXXXXXX VC=XX Q=XXXXXXXX X=XXXXXXXX\r\n
 //
 // Field semantics:
-//   P5M1            milestone tag (5 bytes including trailing space)
+//   P5M2            milestone tag (5 bytes including trailing space)
 //   BOOT=XXXXXXXX   32-bit hex frame counter, increments once per frame
 //   TICK=XXXXXXXX   32-bit hex sample_tick counter snapshot at frame
 //                   start (mirrors the firmware-era R= tag's role)
 //   VC=XX           voice index 00..03 from the fixed-control round
 //                   robin sequencer at frame start
+//   Q=XXXXXXXX      command_count (32-bit) snapshot at frame start
+//   X=XXXXXXXX      {last_error[15:0], error_count[15:0]} snapshot at
+//                   frame start (mirrors firmware X= tag semantics)
 //   \r\n            CRLF terminator
 //
 // Cadence is one frame every CADENCE_CYCLES sys_clk cycles. Default at
-// 50 MHz is 25,000,000 cycles, ~500 ms. The cadence is intentionally
-// loose: every frame carries its own freshness counters, so jitter in
-// the cadence is harmless for verification.
+// 50 MHz is 25,000,000 cycles, ~500 ms. Cadence is intentionally loose:
+// every frame carries its own freshness counters, so jitter is harmless.
 //
 // If a cadence pulse fires while the previous frame is still draining
 // over the UART, that pulse is dropped silently. The skipped count is
-// kept locally as a saturating 8-bit counter for future M2 inclusion.
+// kept locally as a saturating 8-bit counter for future inclusion.
 //
 // Pure sys_clk-domain design. No CDC, no audio path interaction.
 
@@ -36,6 +38,9 @@ module phase0_uart_status_tx #(
     input  wire        sys_rst_n,
     input  wire        sample_tick,
     input  wire [1:0]  voice_index,
+    input  wire [31:0] command_count,
+    input  wire [15:0] error_count,
+    input  wire [15:0] last_error,
     output wire        uart_tx
 );
 
@@ -71,17 +76,19 @@ end
 // -------------------------------------------------------------------------
 // Frame state machine
 // -------------------------------------------------------------------------
-localparam integer FRAME_LEN = 40;
+localparam integer FRAME_LEN = 62;
 
 localparam [1:0] STATE_IDLE  = 2'd0;
 localparam [1:0] STATE_SEND  = 2'd1;
 localparam [1:0] STATE_WAIT  = 2'd2;
 
 reg [1:0]  state;
-reg [5:0]  byte_index; // 0..39
+reg [6:0]  byte_index; // 0..61
 reg [31:0] boot_counter;
 reg [31:0] tick_snapshot;
 reg [1:0]  vc_snapshot;
+reg [31:0] q_snapshot;
+reg [31:0] x_snapshot;
 reg [7:0]  skipped_count;
 
 reg        tx_valid;
@@ -124,52 +131,76 @@ endfunction
 reg [7:0] frame_byte;
 always @(*) begin
     case (byte_index)
-        // "P5M1 "
-        6'd0:  frame_byte = "P";
-        6'd1:  frame_byte = "5";
-        6'd2:  frame_byte = "M";
-        6'd3:  frame_byte = "1";
-        6'd4:  frame_byte = " ";
+        // "P5M2 "
+        7'd0:  frame_byte = "P";
+        7'd1:  frame_byte = "5";
+        7'd2:  frame_byte = "M";
+        7'd3:  frame_byte = "2";
+        7'd4:  frame_byte = " ";
         // "BOOT="
-        6'd5:  frame_byte = "B";
-        6'd6:  frame_byte = "O";
-        6'd7:  frame_byte = "O";
-        6'd8:  frame_byte = "T";
-        6'd9:  frame_byte = "=";
+        7'd5:  frame_byte = "B";
+        7'd6:  frame_byte = "O";
+        7'd7:  frame_byte = "O";
+        7'd8:  frame_byte = "T";
+        7'd9:  frame_byte = "=";
         // BOOT hex (8 chars MSB first)
-        6'd10: frame_byte = hex_to_ascii(hex_nibble32(boot_counter, 0));
-        6'd11: frame_byte = hex_to_ascii(hex_nibble32(boot_counter, 1));
-        6'd12: frame_byte = hex_to_ascii(hex_nibble32(boot_counter, 2));
-        6'd13: frame_byte = hex_to_ascii(hex_nibble32(boot_counter, 3));
-        6'd14: frame_byte = hex_to_ascii(hex_nibble32(boot_counter, 4));
-        6'd15: frame_byte = hex_to_ascii(hex_nibble32(boot_counter, 5));
-        6'd16: frame_byte = hex_to_ascii(hex_nibble32(boot_counter, 6));
-        6'd17: frame_byte = hex_to_ascii(hex_nibble32(boot_counter, 7));
-        6'd18: frame_byte = " ";
+        7'd10: frame_byte = hex_to_ascii(hex_nibble32(boot_counter, 0));
+        7'd11: frame_byte = hex_to_ascii(hex_nibble32(boot_counter, 1));
+        7'd12: frame_byte = hex_to_ascii(hex_nibble32(boot_counter, 2));
+        7'd13: frame_byte = hex_to_ascii(hex_nibble32(boot_counter, 3));
+        7'd14: frame_byte = hex_to_ascii(hex_nibble32(boot_counter, 4));
+        7'd15: frame_byte = hex_to_ascii(hex_nibble32(boot_counter, 5));
+        7'd16: frame_byte = hex_to_ascii(hex_nibble32(boot_counter, 6));
+        7'd17: frame_byte = hex_to_ascii(hex_nibble32(boot_counter, 7));
+        7'd18: frame_byte = " ";
         // "TICK="
-        6'd19: frame_byte = "T";
-        6'd20: frame_byte = "I";
-        6'd21: frame_byte = "C";
-        6'd22: frame_byte = "K";
-        6'd23: frame_byte = "=";
-        6'd24: frame_byte = hex_to_ascii(hex_nibble32(tick_snapshot, 0));
-        6'd25: frame_byte = hex_to_ascii(hex_nibble32(tick_snapshot, 1));
-        6'd26: frame_byte = hex_to_ascii(hex_nibble32(tick_snapshot, 2));
-        6'd27: frame_byte = hex_to_ascii(hex_nibble32(tick_snapshot, 3));
-        6'd28: frame_byte = hex_to_ascii(hex_nibble32(tick_snapshot, 4));
-        6'd29: frame_byte = hex_to_ascii(hex_nibble32(tick_snapshot, 5));
-        6'd30: frame_byte = hex_to_ascii(hex_nibble32(tick_snapshot, 6));
-        6'd31: frame_byte = hex_to_ascii(hex_nibble32(tick_snapshot, 7));
-        6'd32: frame_byte = " ";
+        7'd19: frame_byte = "T";
+        7'd20: frame_byte = "I";
+        7'd21: frame_byte = "C";
+        7'd22: frame_byte = "K";
+        7'd23: frame_byte = "=";
+        7'd24: frame_byte = hex_to_ascii(hex_nibble32(tick_snapshot, 0));
+        7'd25: frame_byte = hex_to_ascii(hex_nibble32(tick_snapshot, 1));
+        7'd26: frame_byte = hex_to_ascii(hex_nibble32(tick_snapshot, 2));
+        7'd27: frame_byte = hex_to_ascii(hex_nibble32(tick_snapshot, 3));
+        7'd28: frame_byte = hex_to_ascii(hex_nibble32(tick_snapshot, 4));
+        7'd29: frame_byte = hex_to_ascii(hex_nibble32(tick_snapshot, 5));
+        7'd30: frame_byte = hex_to_ascii(hex_nibble32(tick_snapshot, 6));
+        7'd31: frame_byte = hex_to_ascii(hex_nibble32(tick_snapshot, 7));
+        7'd32: frame_byte = " ";
         // "VC=" + 2 hex digits
-        6'd33: frame_byte = "V";
-        6'd34: frame_byte = "C";
-        6'd35: frame_byte = "=";
-        6'd36: frame_byte = "0"; // upper nibble of 2-bit voice_index is always 0
-        6'd37: frame_byte = hex_to_ascii({2'b00, vc_snapshot});
+        7'd33: frame_byte = "V";
+        7'd34: frame_byte = "C";
+        7'd35: frame_byte = "=";
+        7'd36: frame_byte = "0"; // upper nibble of 2-bit voice_index is 0
+        7'd37: frame_byte = hex_to_ascii({2'b00, vc_snapshot});
+        7'd38: frame_byte = " ";
+        // "Q=" + 8 hex digits
+        7'd39: frame_byte = "Q";
+        7'd40: frame_byte = "=";
+        7'd41: frame_byte = hex_to_ascii(hex_nibble32(q_snapshot, 0));
+        7'd42: frame_byte = hex_to_ascii(hex_nibble32(q_snapshot, 1));
+        7'd43: frame_byte = hex_to_ascii(hex_nibble32(q_snapshot, 2));
+        7'd44: frame_byte = hex_to_ascii(hex_nibble32(q_snapshot, 3));
+        7'd45: frame_byte = hex_to_ascii(hex_nibble32(q_snapshot, 4));
+        7'd46: frame_byte = hex_to_ascii(hex_nibble32(q_snapshot, 5));
+        7'd47: frame_byte = hex_to_ascii(hex_nibble32(q_snapshot, 6));
+        7'd48: frame_byte = hex_to_ascii(hex_nibble32(q_snapshot, 7));
+        7'd49: frame_byte = " ";
+        // "X=" + 8 hex digits
+        7'd50: frame_byte = "X";
+        7'd51: frame_byte = "=";
+        7'd52: frame_byte = hex_to_ascii(hex_nibble32(x_snapshot, 0));
+        7'd53: frame_byte = hex_to_ascii(hex_nibble32(x_snapshot, 1));
+        7'd54: frame_byte = hex_to_ascii(hex_nibble32(x_snapshot, 2));
+        7'd55: frame_byte = hex_to_ascii(hex_nibble32(x_snapshot, 3));
+        7'd56: frame_byte = hex_to_ascii(hex_nibble32(x_snapshot, 4));
+        7'd57: frame_byte = hex_to_ascii(hex_nibble32(x_snapshot, 5));
+        7'd58: frame_byte = hex_to_ascii(hex_nibble32(x_snapshot, 6));
+        7'd59: frame_byte = hex_to_ascii(hex_nibble32(x_snapshot, 7));
         // CRLF
-        6'd38: frame_byte = 8'h0D;
-        6'd39: frame_byte = 8'h0A;
+        7'd60: frame_byte = 8'h0D;
+        7'd61: frame_byte = 8'h0A;
         default: frame_byte = " ";
     endcase
 end
@@ -178,10 +209,12 @@ end
 always @(posedge sys_clk or negedge sys_rst_n) begin
     if (!sys_rst_n) begin
         state         <= STATE_IDLE;
-        byte_index    <= 6'd0;
+        byte_index    <= 7'd0;
         boot_counter  <= 32'd0;
         tick_snapshot <= 32'd0;
         vc_snapshot   <= 2'd0;
+        q_snapshot    <= 32'd0;
+        x_snapshot    <= 32'd0;
         skipped_count <= 8'd0;
         tx_valid      <= 1'b0;
         tx_data       <= 8'd0;
@@ -196,13 +229,15 @@ always @(posedge sys_clk or negedge sys_rst_n) begin
                         boot_counter  <= boot_counter + 32'd1;
                         tick_snapshot <= tick_counter_free;
                         vc_snapshot   <= voice_index;
-                        byte_index    <= 6'd0;
+                        q_snapshot    <= command_count;
+                        x_snapshot    <= {last_error, error_count};
+                        byte_index    <= 7'd0;
                         state         <= STATE_SEND;
                     end else begin
                         // uart_tx still draining a previous byte. The
                         // frame state machine should normally be idle
                         // when cadence fires because cadence_cycles is
-                        // far longer than 40 bytes at 115200, but if
+                        // far longer than 62 bytes at 115200, but if
                         // it does happen we simply skip the frame.
                         if (skipped_count != 8'hFF) begin
                             skipped_count <= skipped_count + 8'd1;
@@ -223,10 +258,10 @@ always @(posedge sys_clk or negedge sys_rst_n) begin
                 // Wait for uart_tx to accept the byte and finish it,
                 // then advance index or finish the frame.
                 if (!tx_valid && tx_ready) begin
-                    if (byte_index == FRAME_LEN[5:0] - 6'd1) begin
+                    if (byte_index == FRAME_LEN[6:0] - 7'd1) begin
                         state <= STATE_IDLE;
                     end else begin
-                        byte_index <= byte_index + 6'd1;
+                        byte_index <= byte_index + 7'd1;
                         state      <= STATE_SEND;
                     end
                 end

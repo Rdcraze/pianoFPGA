@@ -348,6 +348,30 @@ UART RX command parsing is still deferred to Phase 5 M2. `uart1_rx` remains unco
 
 Quartus impact vs accepted M0 baseline: LE 3,614 -> 3,976 (+362), setup slack slow-85C `sys_clk_50m` +5.539 ns -> +5.885 ns, hold/TNS clean, M9K and DSP9 unchanged, warnings 20 -> 18 (idle uart1_tx and unused-signal sinks consumed). See `reports/phase5_m1_uart_status_tx_impl.md`.
 
+## Update for Phase 5 M2 (2026-05-24)
+
+UART RX command parser restored. Three new files land alongside the M1 status TX block:
+
+- `rtl/peripherals/uart_rx.v`: standalone 8N1 115200 receiver lifted (semantics unchanged) from the obsolete `phase0_uart_mmio.v` archive. Double-flop synchronizer, mid-bit sample, frame-error pulse. sys_clk-domain only.
+- `rtl/control/phase0_uart_command.v`: small parser FSM that consumes `rx_valid`/`rx_data`/`frame_error`, accumulates bytes into a 16-byte line buffer, and dispatches CRLF-terminated commands. Recognizes `!N\r\n` (bare note: loop_len=106, velocity=0x7FFF), `!NLLLLVVVV\r\n` (parameterized hex, case-insensitive, loop_len clamp 32..127, velocity clamp 0..0x7FFF), and `!F\r\n` (release). Emits single-cycle `note_strobe`/`release_strobe` with stable `cmd_loop_len[6:0]`/`cmd_velocity[15:0]` parameter wires. Records `command_count[31:0]` (32-bit), `error_count[15:0]` (saturating), and `last_error[15:0]` with codes 0=none, 1=malformed, 2=unknown opcode, 3=overlong, 4=frame error, 7=unsupported argument.
+- `rtl/control/phase0_uart_command_tb.v`: focused testbench that drives bytes through the full `uart_rx` primitive (no bypass) and validates each command path.
+
+`rtl/control/phase0_fixed_control.v` is extended:
+- Adds `note_strobe`, `release_strobe`, `cmd_loop_len[6:0]`, `cmd_velocity[15:0]` inputs.
+- Per-voice `loop_len`/`velocity` are now registers initialized to the M1 baseline 7'd106/16'h4000, written only on the cycle a note_strobe lands for the next voice in the round-robin order.
+- A new `command_mode` flag latches on the first valid command and suppresses the autonomous round-robin sequencer so host control is exclusive after the first command.
+- `voice_damp_mix` is now a register: default 16'd16384, raised to 16'd32767 on `release_strobe`, and reset to default on the next `note_strobe`. Static voice parameters `loop_gain` (16'd32640), `disp_coeff` (16'sd9952), `body_mix` (16'd8192) are unchanged.
+
+`rtl/peripherals/phase0_uart_status_tx.v` extends the status frame from 40 bytes to 62 bytes. New tag `P5M2` and two new fields: `Q=XXXXXXXX` (32-bit `command_count` snapshot at frame start) and `X=XXXXXXXX` ({last_error[15:0], error_count[15:0]} snapshot). Frame format is now `P5M2 BOOT=XXXXXXXX TICK=XXXXXXXX VC=XX Q=XXXXXXXX X=XXXXXXXX\r\n`. Cadence remains ~500 ms.
+
+`rtl/top/piano_phase0_top.v` removes the `_unused_uart1_rx` sink and instantiates `phase0_uart_command` driving the controller and feeding command_count/error_count/last_error to the status TX.
+
+`quartus/phase0/piano_phase0_top.qsf` adds `uart_rx.v` and `phase0_uart_command.v` to the source list.
+
+Quartus impact vs accepted M1 baseline: LE 3,976 -> 4,729 (+753, between +600 paper target and +800 hard limit), combinational 3,754 -> 4,492 (+738), registers 1,908 -> 2,349 (+441), setup slack slow-85C `sys_clk_50m` +5.885 ns -> +5.928 ns, hold +0.444 ns -> +0.432 ns, all TNS 0, M9K 5 (unchanged), DSP9 26 (unchanged), PLL 1 (unchanged), warnings 18 -> 16. See `reports/phase5_m2_uart_rx_command_impl.md`.
+
+ModelSim: `phase0_uart_command_tb` PASS (4 notes, 1 release, 2 errors). `phase0_uart_status_tx_tb` PASS (2 frames decoded with Q=12345678 and X=00030007). `phase1_reduced_voice_tb` PASS golden bit-exact (`peak=3952`).
+
 ## File Map
 
 - `rtl/top/piano_phase0_top.v`
