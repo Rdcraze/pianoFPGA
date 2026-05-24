@@ -1,9 +1,46 @@
-# Local Codex/session files
+# Local agent/session files
+.codex/
 .codex
+.kiro/
 .cnxerr
 transcript
 vish_stacktrace.vstf
 qmegawiz_errors_log.txt
+
+# Local environment, credentials, and private keys
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+*.p12
+*.pfx
+*.ppk
+*.kdbx
+id_rsa
+id_dsa
+id_ecdsa
+id_ed25519
+*_token*
+*_secret*
+credentials.json
+secrets.json
+service-account*.json
+.npmrc
+.pypirc
+.netrc
+.aws/
+.azure/
+.gcloud/
+
+# Editor and OS noise
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+Thumbs.db
 
 # Large local reference bundles
 Manuals_Examples/
@@ -21,6 +58,17 @@ quartus/phase0/db/
 quartus/phase0/incremental_db/
 quartus/phase0/output_files/
 quartus/phase0/simulation/modelsim/
+quartus/phase0/*.bak
+quartus/phase0/*.smsg
+*.sof
+*.pof
+*.jic
+*.cdf
+*.rpt
+*.summary
+*.pin
+*.smsg
+*.done
 
 # ModelSim/generated simulation libraries
 work/
@@ -30,11 +78,39 @@ tmp/
 *_work/*.qdb
 *_work/*.qpg
 *_work/*.qtl
+*_work/*.wlf
+*.wlf
+transcript
 
 # Python cache files
 __pycache__/
 *.pyc
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
 
-# Captured/generated media
+# Captured/generated media and local hardware traces
 *.wav
 *.pkf
+*.vcd
+*.fst
+reports/*_capture.log
+reports/*_capture.err.log
+reports/*_capture.out.log
+reports/*_capture.wav
+reports/*_bench.wav
+reports/*_p5m2_log.txt
+reports/phase3_m3b_debug_uart.txt
+reports/phase3_m3b_single_uart.txt
+reports/phase3_m5_hardware_uart.txt
+reports/phase3_m6_hardware_uart.txt
+reports/phase4_m7_command_uart.txt
+reports/phase4_m7_command_uart_with_audio.txt
+reports/phase4_m7_no_command_uart.txt
+reports/phase5_m1_uart.txt
+reports/phase5_m2_uart.txt
+reports/phase5_m3_wrapper_uart.txt
+scripts/phase4_m7_attack_analyze.py
+scripts/phase4_m7_audio_analyze.py
+scripts/phase4_m7_layer_compare.py
+scripts/phase4_m7_send_capture.py
