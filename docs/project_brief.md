@@ -9,9 +9,10 @@ Build a realistic first physics-based piano prototype on the EP4CE10 board, prio
 The original intended architecture was a split system with a small RISC-V soft core for control-plane duties and custom RTL/DSP for the audio path. As of Phase 5 M0 (2026-05-24), the RISC-V SoC + firmware MMIO + register-file control stack has been retired and replaced with a fixed-function RTL controller (`rtl/control/phase0_fixed_control.v`). The legacy CPU/firmware code is archived under `obsolete/riscv_control/` for reference. The live architecture is now:
 
 - a small fixed-function RTL controller for control-plane duties,
+- two tiny RTL UART blocks (`rtl/peripherals/phase0_uart_status_tx.v` for telemetry and `rtl/peripherals/uart_rx.v` + `rtl/control/phase0_uart_command.v` for host commands),
 - custom RTL/DSP blocks for the hard real-time sound-generation path.
 
-UART command/telemetry support is intentionally deferred in M0 (`uart1_tx` idle, `uart1_rx` unconsumed). A later Phase 5 milestone may reintroduce a tiny RTL UART telemetry transmitter and command parser without re-introducing a CPU. See `reports/phase5_m0_fixed_control_flattening.md` for the architecture details and resource impact.
+UART support has been progressively restored under the fixed-function architecture without re-introducing a CPU. Phase 5 M1 added a periodic `P5M1` ASCII status frame on `uart1_tx`. Phase 5 M2 extended the status frame to `P5M2` with command-count and error fields and added a CRLF-terminated command parser on `uart1_rx` that recognizes `!N\r\n`, `!NLLLLVVVV\r\n`, and `!F\r\n`. Phase 5 M3 validated the existing Phase 3 host wrappers (`scripts/phase3_m{5,6,7,9}*.py`) unchanged against the live M2 board on hardware. See `reports/phase5_fixed_function_control_closeout.md` for the consolidated current-state summary; `reports/phase5_m0_fixed_control_flattening.md`, `reports/phase5_m1_uart_status_tx_impl.md`, `reports/phase5_m2_uart_rx_command_impl.md`, and `reports/phase5_m3_host_wrapper_validation.md` document the individual milestones and resource impact.
 
 ## Candidate Implementation Families
 

@@ -372,6 +372,47 @@ Quartus impact vs accepted M1 baseline: LE 3,976 -> 4,729 (+753, between +600 pa
 
 ModelSim: `phase0_uart_command_tb` PASS (4 notes, 1 release, 2 errors). `phase0_uart_status_tx_tb` PASS (2 frames decoded with Q=12345678 and X=00030007). `phase1_reduced_voice_tb` PASS golden bit-exact (`peak=3952`).
 
+## Update for Phase 5 M3 / closeout (2026-05-24)
+
+Phase 5 M3 validated the existing Phase 3 host wrappers
+(`scripts/phase3_m{5,6,7,9}*.py`) unchanged against the live M2
+board on hardware. New helper `scripts/phase5_m3_p5m2_decode.py`
+parses 62-byte `P5M2` frames in raw bytestream and pre-parsed
+text-row formats (--self-check PASS 6 vectors). All four wrapper
+self-checks PASS, and the verifier confirmed live serial sessions
+on COM5 (SOF `0x0037620B`) with deterministic `Q` increments and
+stable `X` for every wrapper: M5 sent 3 commands, M6 sent 6, M7a
+sent 3 (with the inner `up:A4` correctly suppressed during overlap),
+M9 sent 5; cross-session `Q` advanced 0 -> 3 -> 9 -> 12 -> 17.
+Audio capture: peak -24.13 dBFS, RMS -35.87 dBFS, no clipping, no
+regression vs M0/M1/M2 baselines.
+
+The architectural pivot the user requested at Phase 5 M0 is
+complete. The RISC-V CPU + firmware C + MMIO bus + register-file
+control stack is retired. Live control plane: `phase0_fixed_control`
+plus `phase0_uart_command` (RX) plus `phase0_uart_status_tx` (TX),
+sys_clk-domain only, no CDC. The four physical voice instances and
+audio path internals are bit-exact to the Phase 4 M7 baseline.
+
+Live resource and timing point at HEAD `a749c64`: LE 4,729 / 10,320
+(46%), M9K 5, DSP9 26, PLL 1, slow-85C `sys_clk_50m` setup +5.928
+ns, hold +0.432 ns, all TNS 0, 0 errors, 16 cosmetic warnings. Free
+LE budget 5,591 (54%); setup margin above the +4.0 ns hard target
++1.928 ns.
+
+Items deferred for a future phase (none required for closeout):
+LRU/voice-stealing voice assignment, per-voice independent release,
+expanded telemetry, sustained-chord stress test, LE micro-cleanup
+(line buffer 16->12 bytes, counter narrowing), body-filter
+coloration knob, external SDRAM, Phase 6 display/touch UI.
+
+Branch `codex/phase1c-uart-boundary-fix` is in a shippable state;
+the consolidated current-state summary is in
+`reports/phase5_fixed_function_control_closeout.md`. Older sections
+above this update describe the obsolete RV32I/MMIO/firmware
+architecture and remain useful only as historical context for the
+archived files under `obsolete/riscv_control/`.
+
 ## File Map
 
 - `rtl/top/piano_phase0_top.v`
