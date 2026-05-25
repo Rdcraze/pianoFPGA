@@ -102,6 +102,7 @@ wire [31:0] cmd_command_count;
 wire [15:0] cmd_error_count;
 wire [15:0] cmd_last_error;
 wire        cmd_isolation_mode;
+wire [15:0] cmd_body_mix_runtime;
 
 phase0_reset_sync phase0_reset_sync_inst (
     .clk   (sys_clk_50m),
@@ -121,6 +122,7 @@ phase0_uart_command #(
     .cmd_loop_len (cmd_loop_len),
     .cmd_velocity (cmd_velocity),
     .isolation_mode(cmd_isolation_mode),
+    .body_mix_runtime(cmd_body_mix_runtime),
     .command_count(cmd_command_count),
     .error_count  (cmd_error_count),
     .last_error   (cmd_last_error)
@@ -135,6 +137,7 @@ phase0_fixed_control phase0_fixed_control_inst (
     .cmd_loop_len             (cmd_loop_len),
     .cmd_velocity             (cmd_velocity),
     .isolation_mode           (cmd_isolation_mode),
+    .body_mix_runtime         (cmd_body_mix_runtime),
     .audio_enable             (audio_enable),
     .tone_enable              (tone_enable),
     .wave_sel                 (wave_sel),

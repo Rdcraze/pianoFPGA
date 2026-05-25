@@ -20,6 +20,11 @@
 //   "!I1\r\n"           enable single-voice isolation mode (Phase 6 M1.1).
 //                       Persistent until explicitly disabled.
 //   "!I0\r\n"           disable single-voice isolation mode.
+//   "!Bvvvv\r\n"        Phase 6 M5: set body_mix_q15 runtime register.
+//                       vvvv is exactly 4 hex digits, case-insensitive,
+//                       interpreted as a 16-bit unsigned value passed
+//                       directly to the audio path. Reset/default value
+//                       is 0x3000 (12288 = M3 accepted body warmth).
 //
 // Commands are accumulated into a 16-byte line buffer. A complete line
 // is the bytes since the last CRLF, ending in CR LF. Anything longer
@@ -52,6 +57,11 @@ module phase0_uart_command #(
     output reg  [6:0]  cmd_loop_len,
     output reg  [15:0] cmd_velocity,
     output reg         isolation_mode,
+    // Phase 6 M5: runtime body_mix_q15 control. Default at reset is
+    // M3's accepted body warmth value 16'd12288 (0x3000). The host
+    // can update at runtime via "!Bvvvv\r\n" where vvvv is exactly
+    // four hex digits.
+    output reg  [15:0] body_mix_runtime,
 
     output reg  [31:0] command_count,
     output reg  [15:0] error_count,
@@ -153,6 +163,25 @@ assign parsed_vel_clamped  = (parsed_vel_full > 16'h7FFF) ? 16'h7FFF :
                              parsed_vel_full;
 
 // -------------------------------------------------------------------------
+// Phase 6 M5: combinational pre-computation for the !Bvvvv body-mix path
+// (8-byte commands: '!', 'B', 4 hex digits, CR, LF). The 16-bit value is
+// taken verbatim from the four hex digits and clamped to the audio
+// path's saturating range. body_mix_q15 is unsigned 16 bits in the
+// existing audio path; we therefore allow the full 0x0000..0xFFFF
+// range and let the downstream multiplier do the right thing.
+// -------------------------------------------------------------------------
+wire        bm_hex_valid;
+wire [15:0] parsed_body_mix;
+
+assign bm_hex_valid = is_hex(line_buf[2]) && is_hex(line_buf[3]) &&
+                      is_hex(line_buf[4]) && is_hex(line_buf[5]);
+
+assign parsed_body_mix = {decode_hex(line_buf[2]),
+                          decode_hex(line_buf[3]),
+                          decode_hex(line_buf[4]),
+                          decode_hex(line_buf[5])};
+
+// -------------------------------------------------------------------------
 // Main parser FSM
 //
 // line_buf is intentionally not reset: line_len = 0 on reset means no
@@ -170,6 +199,7 @@ always @(posedge sys_clk or negedge sys_rst_n) begin
         cmd_loop_len    <= 7'd106;
         cmd_velocity    <= 16'h7FFF;
         isolation_mode  <= 1'b0;
+        body_mix_runtime <= 16'd12288;
 
         command_count   <= 32'd0;
         error_count     <= 16'd0;
@@ -302,6 +332,41 @@ always @(posedge sys_clk or negedge sys_rst_n) begin
                                 line_len <= 5'd0;
                             end
 
+                            5'd8: begin
+                                // 8-byte commands: !Bvvvv\r\n
+                                // (Phase 6 M5 runtime body_mix knob)
+                                if ((line_buf[0] == 8'h21) &&
+                                    (line_buf[1] == 8'h42) &&
+                                    (line_buf[6] == 8'h0D)) begin
+                                    if (!bm_hex_valid) begin
+                                        last_error <= ERR_UNSUPPORTED_ARG;
+                                        if (error_count != 16'hFFFF) begin
+                                            error_count <= error_count + 16'd1;
+                                        end
+                                    end else begin
+                                        body_mix_runtime <= parsed_body_mix;
+                                        command_count <= command_count + 32'd1;
+                                    end
+                                end else if ((line_buf[0] == 8'h21) &&
+                                             (line_buf[1] == 8'h42)) begin
+                                    last_error <= ERR_UNSUPPORTED_ARG;
+                                    if (error_count != 16'hFFFF) begin
+                                        error_count <= error_count + 16'd1;
+                                    end
+                                end else if (line_buf[0] == 8'h21) begin
+                                    last_error <= ERR_UNKNOWN_OPCODE;
+                                    if (error_count != 16'hFFFF) begin
+                                        error_count <= error_count + 16'd1;
+                                    end
+                                end else begin
+                                    last_error <= ERR_MALFORMED;
+                                    if (error_count != 16'hFFFF) begin
+                                        error_count <= error_count + 16'd1;
+                                    end
+                                end
+                                line_len <= 5'd0;
+                            end
+
                             5'd12: begin
                                 // !NLLLLVVVV\r\n
                                 if ((line_buf[0] == 8'h21) &&
@@ -342,7 +407,8 @@ always @(posedge sys_clk or negedge sys_rst_n) begin
                                 // Some other length terminated by CRLF.
                                 if (line_buf[0] == 8'h21) begin
                                     if ((line_buf[1] == 8'h4E) ||
-                                        (line_buf[1] == 8'h46)) begin
+                                        (line_buf[1] == 8'h46) ||
+                                        (line_buf[1] == 8'h42)) begin
                                         last_error <= ERR_UNSUPPORTED_ARG;
                                     end else begin
                                         last_error <= ERR_UNKNOWN_OPCODE;

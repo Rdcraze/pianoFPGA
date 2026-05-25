@@ -70,6 +70,7 @@ phase0_fixed_control dut (
     .cmd_loop_len             (cmd_loop_len),
     .cmd_velocity             (cmd_velocity),
     .isolation_mode           (isolation_mode),
+    .body_mix_runtime         (16'd12288),
     .audio_enable             (audio_enable),
     .tone_enable              (tone_enable),
     .wave_sel                 (wave_sel),

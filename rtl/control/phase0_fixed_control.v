@@ -47,7 +47,6 @@ module phase0_fixed_control (
     input  wire               release_strobe,
     input  wire [6:0]         cmd_loop_len,
     input  wire [15:0]        cmd_velocity,
-
     // Phase 6 M1.1 single-voice isolation mode. When high, every
     // command-driven note_strobe routes to voice0 only; voices 1/2/3
     // see no command trigger from this controller. The top-level
@@ -55,6 +54,14 @@ module phase0_fixed_control (
     // isolation_mode is high so prior ringing cannot contaminate the
     // captured strike. The four physical voices remain instantiated.
     input  wire               isolation_mode,
+
+    // Phase 6 M5 runtime body_mix. The parser exposes
+    // body_mix_runtime as a 16-bit register that defaults to
+    // 16'd12288 (M3 accepted body warmth) at reset and is updated
+    // by !Bvvvv\r\n commands. The controller forwards this value
+    // verbatim to voice_body_mix; the audio path's body filter
+    // structure and saturation behaviour are unchanged.
+    input  wire [15:0]        body_mix_runtime,
 
     // Sample-generator / global control
     output wire               audio_enable,
@@ -155,10 +162,13 @@ assign voice_diag_clear_strobe  = 1'b0;
 // -------------------------------------------------------------------------
 assign voice_loop_gain  = 16'd32640;
 assign voice_disp_coeff = 16'sd9952;
-// Phase 6 M3: body_mix preset raised from 16'd8192 to 16'd12288
-// (+50% body content) to add piano-like warmth, paired with the
-// mid-range body-filter retune in rtl/audio/phase0_body_filter.v.
-assign voice_body_mix   = 16'd12288;
+// Phase 6 M3/M5: body_mix is now driven by body_mix_runtime out of
+// phase0_uart_command. M3 raised the static preset from 16'd8192
+// to 16'd12288 (+50% body content) for piano-like warmth; M5
+// makes that value runtime-adjustable via !Bvvvv\r\n. The reset
+// default in the parser is 16'd12288 so the audio path comes up at
+// the M3-accepted preset before any host command arrives.
+assign voice_body_mix   = body_mix_runtime;
 
 // -------------------------------------------------------------------------
 // Per-voice loop_len / velocity registers

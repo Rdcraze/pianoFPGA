@@ -36,6 +36,7 @@ wire        release_strobe;
 wire [6:0]  cmd_loop_len;
 wire [15:0] cmd_velocity;
 wire        isolation_mode;
+wire [15:0] body_mix_runtime;
 wire [31:0] command_count;
 wire [15:0] error_count;
 wire [15:0] last_error;
@@ -52,6 +53,7 @@ phase0_uart_command #(
     .cmd_loop_len   (cmd_loop_len),
     .cmd_velocity   (cmd_velocity),
     .isolation_mode (isolation_mode),
+    .body_mix_runtime(body_mix_runtime),
     .command_count  (command_count),
     .error_count    (error_count),
     .last_error     (last_error)
@@ -319,9 +321,78 @@ initial begin
         fails = fails + 1;
     end
 
+    // Phase 6 M5: !Bvvvv runtime body_mix knob.
+    // 13. Default body_mix_runtime should be 0x3000 after reset.
+    //     (Already true since reset; verified now after a series of
+    //     unrelated commands above to confirm no command above
+    //     accidentally moved it.)
+    if (body_mix_runtime !== 16'h3000) begin
+        $display("UART_CMD_TB_FAIL body_mix_default got=%04x want=3000",
+                 body_mix_runtime);
+        fails = fails + 1;
+    end else begin
+        $display("UART_CMD_TB_INFO body_mix_default=0x3000");
+    end
+
+    // 14. !B0000\r\n -> body_mix_runtime = 0x0000, command_count++.
+    send_byte("!"); send_byte("B");
+    send_byte("0"); send_byte("0"); send_byte("0"); send_byte("0");
+    send_crlf();
+    repeat (32) @(posedge sys_clk);
+    expect_eq32("command_count_after_14", command_count, 32'd10);
+    expect_eq16("body_mix_after_B0000", body_mix_runtime, 16'h0000);
+
+    // 15. !B7FFF\r\n -> body_mix_runtime = 0x7FFF.
+    send_byte("!"); send_byte("B");
+    send_byte("7"); send_byte("F"); send_byte("F"); send_byte("F");
+    send_crlf();
+    repeat (32) @(posedge sys_clk);
+    expect_eq32("command_count_after_15", command_count, 32'd11);
+    expect_eq16("body_mix_after_B7FFF", body_mix_runtime, 16'h7FFF);
+
+    // 16. !BFFFF\r\n -> body_mix_runtime = 0xFFFF.
+    send_byte("!"); send_byte("B");
+    send_byte("F"); send_byte("F"); send_byte("F"); send_byte("F");
+    send_crlf();
+    repeat (32) @(posedge sys_clk);
+    expect_eq32("command_count_after_16", command_count, 32'd12);
+    expect_eq16("body_mix_after_BFFFF", body_mix_runtime, 16'hFFFF);
+
+    // 17. !B3000\r\n -> body_mix_runtime = 0x3000 (M3 default).
+    send_byte("!"); send_byte("B");
+    send_byte("3"); send_byte("0"); send_byte("0"); send_byte("0");
+    send_crlf();
+    repeat (32) @(posedge sys_clk);
+    expect_eq32("command_count_after_17", command_count, 32'd13);
+    expect_eq16("body_mix_after_B3000", body_mix_runtime, 16'h3000);
+
+    // 18. !BG000\r\n malformed -> ERR_UNSUPPORTED_ARG (7), no body_mix
+    //     update, command_count stable.
+    send_byte("!"); send_byte("B");
+    send_byte("G"); send_byte("0"); send_byte("0"); send_byte("0");
+    send_crlf();
+    repeat (32) @(posedge sys_clk);
+    expect_eq32("command_count_after_18", command_count, 32'd13);
+    expect_eq16("body_mix_after_BG000", body_mix_runtime, 16'h3000);
+    expect_eq16("last_error_after_BG000", last_error, 16'd7);
+
+    // 19. After all !B activity, !N should still work (regression
+    //     check that the new dispatch case did not break the bare-N
+    //     path).
+    send_byte("!"); send_byte("N");
+    send_crlf();
+    repeat (32) @(posedge sys_clk);
+    expect_eq32("command_count_after_19", command_count, 32'd14);
+    if (notes_seen !== 6) begin
+        $display("UART_CMD_TB_FAIL notes_seen_after_19 got=%0d want=6",
+                 notes_seen);
+        fails = fails + 1;
+    end
+
     if (fails == 0) begin
-        $display("UART_CMD_TB_PASS notes=%0d releases=%0d errors=%0d isolation=%b",
-                 notes_seen, releases_seen, error_count, isolation_mode);
+        $display("UART_CMD_TB_PASS notes=%0d releases=%0d errors=%0d isolation=%b body_mix=%04x",
+                 notes_seen, releases_seen, error_count, isolation_mode,
+                 body_mix_runtime);
     end else begin
         $display("UART_CMD_TB_FAIL fails=%0d", fails);
     end
