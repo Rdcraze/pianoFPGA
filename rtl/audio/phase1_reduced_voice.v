@@ -15,6 +15,13 @@ module phase1_reduced_voice (
     input  wire [15:0]        loop_gain_q15,
     input  wire [15:0]        damp_mix_q15,
     input  wire signed [15:0] disp_coeff_q15,
+    // Phase 6 M6.2: body_mix_q15 is unsigned at the port. The body
+    // multiplier (state STATE_BODY_TAP30) treats it as unsigned with
+    // an MSB-saturating mapping: bit 15 forces the multiplier
+    // coefficient to +32767, otherwise the low 15 bits pass through
+    // as a non-negative signed value. This guarantees the body
+    // contribution never phase-flips relative to the displaced
+    // waveguide sample, regardless of the !B value the host writes.
     input  wire [15:0]        body_mix_q15,
     output reg  signed [15:0] sample_data,
     output reg                sample_valid,
@@ -443,7 +450,18 @@ always @(posedge sys_clk or negedge sys_rst_n) begin
                     mult_sample <= sat_q18((q18_ext(body_tap6) >>> 2) -
                                            (q18_ext(body_tap16) >>> 3) +
                                            (q18_ext(body_read_data) >>> 4));
-                    mult_coeff  <= $signed(body_mix_q15[15:0]);
+                    // Phase 6 M6.2: MSB-saturating unsigned mapping.
+                    // body_mix_q15 is declared unsigned at the port;
+                    // the prior $signed(body_mix_q15) cast folded
+                    // 0x8000..0xFFFF to negative coefficients and
+                    // phase-flipped the body contribution. Now: if
+                    // bit 15 is set, saturate to +32767; otherwise
+                    // pass the low 15 bits through as a non-negative
+                    // signed value. See reports/phase6_m6_1_body_path_audit.md
+                    // section 5 and reports/phase6_m6_1_body_path_audit_validation.md
+                    // section 5.
+                    mult_coeff  <= body_mix_q15[15] ? 16'sd32767 :
+                                   $signed({1'b0, body_mix_q15[14:0]});
                     state       <= STATE_BODY_FINISH;
                 end
                 STATE_BODY_FINISH: begin

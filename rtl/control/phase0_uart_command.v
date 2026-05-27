@@ -165,10 +165,15 @@ assign parsed_vel_clamped  = (parsed_vel_full > 16'h7FFF) ? 16'h7FFF :
 // -------------------------------------------------------------------------
 // Phase 6 M5: combinational pre-computation for the !Bvvvv body-mix path
 // (8-byte commands: '!', 'B', 4 hex digits, CR, LF). The 16-bit value is
-// taken verbatim from the four hex digits and clamped to the audio
-// path's saturating range. body_mix_q15 is unsigned 16 bits in the
-// existing audio path; we therefore allow the full 0x0000..0xFFFF
-// range and let the downstream multiplier do the right thing.
+// taken verbatim from the four hex digits. body_mix_q15 is unsigned 16
+// bits at the parser port and is stored verbatim in body_mix_runtime.
+// Phase 6 M6.2: the audio path (rtl/audio/phase1_reduced_voice.v body
+// multiplier) treats this value as unsigned with MSB-saturating mapping:
+// 0x0000..0x7FFF map to +0..+32767, and 0x8000..0xFFFF saturate to
+// +32767. This guarantees larger !B values produce monotonically
+// larger body contribution and never phase-flip the body component.
+// See reports/phase6_m6_1_body_path_audit.md and
+// reports/phase6_m6_2_body_signed_cast_fix_impl.md for the rationale.
 // -------------------------------------------------------------------------
 wire        bm_hex_valid;
 wire [15:0] parsed_body_mix;
