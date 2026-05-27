@@ -1,0 +1,15 @@
+PHASE6_M4_NOISE_FLOOR_REPORT
+  duration_s             31.997
+  sr_hz                  48000
+  rms_dbfs               -51.316
+  median_floor_dbfs      -117.839
+  gaussian_chi2          3965.504
+  hum_ 50 Hz             -101.268 dBFS  (+16.57 dB above floor)
+  hum_ 60 Hz             -100.296 dBFS  (+17.54 dB above floor)
+  hum_100 Hz             -106.488 dBFS  (+11.35 dB above floor)
+  hum_120 Hz             -95.599 dBFS  (+22.24 dB above floor)
+  hum_180 Hz             -116.948 dBFS  (+0.89 dB above floor)
+  hum_240 Hz             -98.459 dBFS  (+19.38 dB above floor)
+  worst_hum_freq_hz      120.0
+  worst_hum_to_floor_db  +22.240
+  classification         HUM_60HZ_DOMINATED
