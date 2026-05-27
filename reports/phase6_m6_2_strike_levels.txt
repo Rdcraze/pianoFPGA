@@ -1,0 +1,16 @@
+# Default grid (post-fix) per-cell post-strike RMS/peak
+# cell body  pitch  pre-strike(-100..0)  strike(0..50ms)  post(50..200)  decay(200..500)
+  0 0x1000    A4 | pre rms=-47.6/peak=-40.3  strike rms=-54.9/peak=-43.8  post rms=-58.2  decay rms=-56.1
+  1 0x1000    C5 | pre rms=-55.8/peak=-46.0  strike rms=-58.6/peak=-47.6  post rms=-54.1  decay rms=-55.4
+  2 0x2000    A4 | pre rms=-59.4/peak=-47.3  strike rms=-52.3/peak=-45.3  post rms=-52.9  decay rms=-48.4
+  3 0x2000    C5 | pre rms=-55.9/peak=-46.0  strike rms=-60.7/peak=-47.9  post rms=-52.7  decay rms=-51.2
+  4 0x3000    A4 | pre rms=-51.2/peak=-42.9  strike rms=-54.3/peak=-45.4  post rms=-52.7  decay rms=-55.3
+  5 0x3000    C5 | pre rms=-53.3/peak=-44.5  strike rms=-54.2/peak=-44.9  post rms=-54.0  decay rms=-56.8
+  6 0x4000    A4 | pre rms=-56.5/peak=-46.8  strike rms=-54.3/peak=-44.8  post rms=-54.9  decay rms=-52.4
+  7 0x4000    C5 | pre rms=-53.2/peak=-43.7  strike rms=-58.5/peak=-47.9  post rms=-59.0  decay rms=-55.8
+  8 0x6000    A4 | pre rms=-55.0/peak=-45.5  strike rms=-58.3/peak=-46.7  post rms=-57.2  decay rms=-52.7
+  9 0x6000    C5 | pre rms=-53.8/peak=-45.4  strike rms=-58.0/peak=-45.9  post rms=-54.0  decay rms=-52.8
+ 10 0x8000    A4 | pre rms=-51.4/peak=-44.5  strike rms=-54.9/peak=-44.8  post rms=-54.3  decay rms=-51.8
+ 11 0x8000    C5 | pre rms=-55.8/peak=-46.7  strike rms=-56.9/peak=-46.2  post rms=-55.7  decay rms=-55.6
+ 12 0xC000    A4 | pre rms=-55.5/peak=-45.8  strike rms=-53.3/peak=-46.1  post rms=-56.8  decay rms=-52.5
+ 13 0xC000    C5 | pre rms=-49.6/peak=-42.6  strike rms=-55.2/peak=-46.2  post rms=-50.5  decay rms=-57.4
