@@ -1,0 +1,32 @@
+Phase 6 M6 body_mix sweep: 7 body_mix x 2 pitch = 14 cells, total ~84.9 s (isolation_mode=ON)
+  pacing: body_mix_settle 0.10s, per-cell settle 1.0s, capture 4.0s, pause 1.0s
+  expected device command counts: !I1=1 !B=7 !F=15 !N=14 !I0=1 (total 38 valid; X expected 0)
+
+pre:  !I1\r\n  (enable single-voice isolation mode)
+
+idx  body_mix  pitch    loop_len  velocity  byte_sequence
+---  --------  -------  --------  --------  -------------------
+        0x1000                                !B1000\r\n
+  0  0x1000    A4            106  0x7fff    !F\r\n then !N006A7FFF\r\n
+  1  0x1000    C5             89  0x7fff    !F\r\n then !N00597FFF\r\n
+        0x2000                                !B2000\r\n
+  2  0x2000    A4            106  0x7fff    !F\r\n then !N006A7FFF\r\n
+  3  0x2000    C5             89  0x7fff    !F\r\n then !N00597FFF\r\n
+        0x3000                                !B3000\r\n
+  4  0x3000    A4            106  0x7fff    !F\r\n then !N006A7FFF\r\n
+  5  0x3000    C5             89  0x7fff    !F\r\n then !N00597FFF\r\n
+        0x4000                                !B4000\r\n
+  6  0x4000    A4            106  0x7fff    !F\r\n then !N006A7FFF\r\n
+  7  0x4000    C5             89  0x7fff    !F\r\n then !N00597FFF\r\n
+        0x6000                                !B6000\r\n
+  8  0x6000    A4            106  0x7fff    !F\r\n then !N006A7FFF\r\n
+  9  0x6000    C5             89  0x7fff    !F\r\n then !N00597FFF\r\n
+        0x8000                                !B8000\r\n
+ 10  0x8000    A4            106  0x7fff    !F\r\n then !N006A7FFF\r\n
+ 11  0x8000    C5             89  0x7fff    !F\r\n then !N00597FFF\r\n
+        0xC000                                !BC000\r\n
+ 12  0xC000    A4            106  0x7fff    !F\r\n then !N006A7FFF\r\n
+ 13  0xC000    C5             89  0x7fff    !F\r\n then !N00597FFF\r\n
+
+post: !F\r\n  (final release)
+post: !I0\r\n  (disable isolation mode)

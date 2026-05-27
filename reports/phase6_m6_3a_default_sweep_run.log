@@ -1,0 +1,32 @@
+python : Phase 6 M6 body_mix sweep: 7 body_mix x 2 
+pitch = 14 cells, total 84.9 s + setup
+At line:1 char:1
++ python scripts/phase6_m6_body_mix_sweep.py --run 
+--port COM5 --sideca ...
++ ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~
+    + CategoryInfo          : NotSpecified: (Phase 6 M 
+   6 body... 84.9 s + setup:String) [], RemoteExcepti  
+  on
+    + FullyQualifiedErrorId : NativeCommandError
+ 
+Expected device command counts: !I1=1 !B=7 !F=15 !N=14 
+!I0=1 (total 38 valid commands; X expected 0)
+Start audio capture now and record the audio start 
+unix time. Sidecar session_start_unix=1779875498.492
+[00] t=  4.234s body_mix=0x1000 A4 !N006A7FFF
+[01] t= 10.250s body_mix=0x1000 C5 !N00597FFF
+[02] t= 16.406s body_mix=0x2000 A4 !N006A7FFF
+[03] t= 22.437s body_mix=0x2000 C5 !N00597FFF
+[04] t= 28.547s body_mix=0x3000 A4 !N006A7FFF
+[05] t= 34.578s body_mix=0x3000 C5 !N00597FFF
+[06] t= 40.719s body_mix=0x4000 A4 !N006A7FFF
+[07] t= 46.750s body_mix=0x4000 C5 !N00597FFF
+[08] t= 52.890s body_mix=0x6000 A4 !N006A7FFF
+[09] t= 58.922s body_mix=0x6000 C5 !N00597FFF
+[10] t= 65.062s body_mix=0x8000 A4 !N006A7FFF
+[11] t= 71.109s body_mix=0x8000 C5 !N00597FFF
+[12] t= 77.234s body_mix=0xC000 A4 !N006A7FFF
+[13] t= 83.265s body_mix=0xC000 C5 !N00597FFF
+Sidecar written: 
+reports/phase6_m6_3a_default_sweep_session.json
