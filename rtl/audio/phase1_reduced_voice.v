@@ -447,9 +447,25 @@ always @(posedge sys_clk or negedge sys_rst_n) begin
                     state <= STATE_BODY_TAP30;
                 end
                 STATE_BODY_TAP30: begin
-                    mult_sample <= sat_q18((q18_ext(body_tap6) >>> 2) -
-                                           (q18_ext(body_tap16) >>> 3) +
-                                           (q18_ext(body_read_data) >>> 4));
+                    // Phase 6 M6.3a: scale the weighted 3-tap body
+                    // sum up by 1 bit (multiply by 2) before the
+                    // body multiplier so body_mix_q15 has a
+                    // measurable/audible swing on the in-range
+                    // sweep. The shift stays inside the existing
+                    // sat_q18 wrapper, which bounds the result to
+                    // Q18 +/-131071, and STATE_BODY_FINISH already
+                    // saturates the disp+body sum and reports any
+                    // overflow via clip_seen. Resource cost ~+43
+                    // LE (orchestrator-approved exception under
+                    // the M6.3a +50 LE cap; M5 task-3beccc57 is
+                    // the precedent for this kind of intrinsic
+                    // voice-quality cost). See
+                    // reports/phase6_m6_3_body_magnitude_scope.md
+                    // and reports/phase6_m6_3a_body_gain_impl.md.
+                    mult_sample <= sat_q18(((q18_ext(body_tap6) >>> 2) -
+                                            (q18_ext(body_tap16) >>> 3) +
+                                            (q18_ext(body_read_data) >>> 4))
+                                           <<< 1);
                     // Phase 6 M6.2: MSB-saturating unsigned mapping.
                     // body_mix_q15 is declared unsigned at the port;
                     // the prior $signed(body_mix_q15) cast folded

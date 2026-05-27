@@ -1,0 +1,776 @@
+Info: *******************************************************************
+Info: Running Quartus II 64-Bit Shell
+    Info: Version 13.0.1 Build 232 06/12/2013 Service Pack 1 SJ Full Version
+    Info: Copyright (C) 1991-2013 Altera Corporation. All rights reserved.
+    Info: Your use of Altera Corporation's design tools, logic functions 
+    Info: and other software and tools, and its AMPP partner logic 
+    Info: functions, and any output files from any of the foregoing 
+    Info: (including device programming or simulation files), and any 
+    Info: associated documentation or information are expressly subject 
+    Info: to the terms and conditions of the Altera Program License 
+    Info: Subscription Agreement, Altera MegaCore Function License 
+    Info: Agreement, or other applicable license agreement, including, 
+    Info: without limitation, that your use is for the sole purpose of 
+    Info: programming logic devices manufactured by Altera and sold by 
+    Info: Altera or its authorized distributors.  Please refer to the 
+    Info: applicable agreement for further details.
+    Info: Processing started: Wed May 27 17:06:22 2026
+Info: Command: quartus_sh --flow compile piano_phase0_top
+Info: Quartus(args): compile piano_phase0_top
+Info: Project Name = E:/projects/piano-agents/quartus/phase0/piano_phase0_top
+Info: Revision Name = piano_phase0_top
+Info: *******************************************************************
+Info: Running Quartus II 64-Bit Analysis & Synthesis
+    Info: Version 13.0.1 Build 232 06/12/2013 Service Pack 1 SJ Full Version
+    Info: Processing started: Wed May 27 17:06:23 2026
+Info: Command: quartus_map --read_settings_files=on --write_settings_files=off piano_phase0_top -c piano_phase0_top
+Info (20030): Parallel compilation is enabled and will use 16 of the 16 processors detected
+Info (12021): Found 1 design units, including 1 entities, in source file /projects/piano-agents/rtl/audio/phase0_body_filter.v
+    Info (12023): Found entity 1: phase0_body_filter
+Info (12021): Found 1 design units, including 1 entities, in source file /projects/piano-agents/rtl/audio/phase0_audio_path.v
+    Info (12023): Found entity 1: phase0_audio_path
+Info (12021): Found 1 design units, including 1 entities, in source file /projects/piano-agents/rtl/audio/phase0_sample_gen.v
+    Info (12023): Found entity 1: phase0_sample_gen
+Info (12021): Found 1 design units, including 1 entities, in source file /projects/piano-agents/rtl/audio/phase1_reduced_voice.v
+    Info (12023): Found entity 1: phase1_reduced_voice
+Info (12021): Found 1 design units, including 1 entities, in source file /projects/piano-agents/rtl/control/phase0_fixed_control.v
+    Info (12023): Found entity 1: phase0_fixed_control
+Info (12021): Found 1 design units, including 1 entities, in source file /projects/piano-agents/rtl/control/phase0_uart_command.v
+    Info (12023): Found entity 1: phase0_uart_command
+Info (12021): Found 1 design units, including 1 entities, in source file /projects/piano-agents/rtl/peripherals/phase0_reset_sync.v
+    Info (12023): Found entity 1: phase0_reset_sync
+Info (12021): Found 1 design units, including 1 entities, in source file /projects/piano-agents/rtl/peripherals/phase0_audio_mclk_pll.v
+    Info (12023): Found entity 1: phase0_audio_mclk_pll
+Info (12021): Found 1 design units, including 1 entities, in source file /projects/piano-agents/rtl/peripherals/phase0_uart_status_tx.v
+    Info (12023): Found entity 1: phase0_uart_status_tx
+Info (12021): Found 1 design units, including 1 entities, in source file /projects/piano-agents/rtl/peripherals/uart_tx.v
+    Info (12023): Found entity 1: uart_tx
+Info (12021): Found 1 design units, including 1 entities, in source file /projects/piano-agents/rtl/peripherals/uart_rx.v
+    Info (12023): Found entity 1: uart_rx
+Info (12021): Found 1 design units, including 1 entities, in source file /projects/piano-agents/rtl/peripherals/wm8978_boot_seq.v
+    Info (12023): Found entity 1: wm8978_boot_seq
+Info (12021): Found 1 design units, including 1 entities, in source file /projects/piano-agents/rtl/peripherals/wm8978_codec_stub.v
+    Info (12023): Found entity 1: wm8978_codec_stub
+Info (12021): Found 1 design units, including 1 entities, in source file /projects/piano-agents/rtl/peripherals/wm8978_dac_tx.v
+    Info (12023): Found entity 1: wm8978_dac_tx
+Info (12021): Found 1 design units, including 1 entities, in source file /projects/piano-agents/rtl/peripherals/wm8978_i2c_ctrl.v
+    Info (12023): Found entity 1: wm8978_i2c_ctrl
+Info (12021): Found 1 design units, including 1 entities, in source file /projects/piano-agents/rtl/top/piano_phase0_top.v
+    Info (12023): Found entity 1: piano_phase0_top
+Info (12127): Elaborating entity "piano_phase0_top" for the top level hierarchy
+Warning (10036): Verilog HDL or VHDL warning at piano_phase0_top.v(275): object "_unused_audio_path_status" assigned a value but never read
+Info (12128): Elaborating entity "phase0_reset_sync" for hierarchy "phase0_reset_sync:phase0_reset_sync_inst"
+Info (12128): Elaborating entity "phase0_uart_command" for hierarchy "phase0_uart_command:phase0_uart_command_inst"
+Info (12128): Elaborating entity "uart_rx" for hierarchy "phase0_uart_command:phase0_uart_command_inst|uart_rx:uart_rx_inst"
+Info (12128): Elaborating entity "phase0_fixed_control" for hierarchy "phase0_fixed_control:phase0_fixed_control_inst"
+Info (12128): Elaborating entity "phase0_uart_status_tx" for hierarchy "phase0_uart_status_tx:phase0_uart_status_tx_inst"
+Info (12128): Elaborating entity "uart_tx" for hierarchy "phase0_uart_status_tx:phase0_uart_status_tx_inst|uart_tx:uart_tx_inst"
+Info (12128): Elaborating entity "phase0_audio_path" for hierarchy "phase0_audio_path:phase0_audio_path_inst"
+Info (12128): Elaborating entity "phase1_reduced_voice" for hierarchy "phase0_audio_path:phase0_audio_path_inst|phase1_reduced_voice:phase1_reduced_voice_inst"
+Info (12128): Elaborating entity "phase0_body_filter" for hierarchy "phase0_audio_path:phase0_audio_path_inst|phase0_body_filter:phase0_body_filter_inst"
+Info (12128): Elaborating entity "phase0_sample_gen" for hierarchy "phase0_audio_path:phase0_audio_path_inst|phase0_sample_gen:phase0_sample_gen_inst"
+Info (12128): Elaborating entity "wm8978_codec_stub" for hierarchy "wm8978_codec_stub:wm8978_codec_stub_inst"
+Info (12128): Elaborating entity "phase0_audio_mclk_pll" for hierarchy "wm8978_codec_stub:wm8978_codec_stub_inst|phase0_audio_mclk_pll:phase0_audio_mclk_pll_inst"
+Info (12128): Elaborating entity "altpll" for hierarchy "wm8978_codec_stub:wm8978_codec_stub_inst|phase0_audio_mclk_pll:phase0_audio_mclk_pll_inst|altpll:altpll_component"
+Warning (287013): Variable or input pin "clkena" is defined but never used.
+Warning (287013): Variable or input pin "extclkena" is defined but never used.
+Info (12130): Elaborated megafunction instantiation "wm8978_codec_stub:wm8978_codec_stub_inst|phase0_audio_mclk_pll:phase0_audio_mclk_pll_inst|altpll:altpll_component"
+Info (12133): Instantiated megafunction "wm8978_codec_stub:wm8978_codec_stub_inst|phase0_audio_mclk_pll:phase0_audio_mclk_pll_inst|altpll:altpll_component" with the following parameter:
+    Info (12134): Parameter "bandwidth_type" = "AUTO"
+    Info (12134): Parameter "clk0_divide_by" = "100"
+    Info (12134): Parameter "clk0_duty_cycle" = "50"
+    Info (12134): Parameter "clk0_multiply_by" = "24"
+    Info (12134): Parameter "clk0_phase_shift" = "0"
+    Info (12134): Parameter "compensate_clock" = "CLK0"
+    Info (12134): Parameter "inclk0_input_frequency" = "20000"
+    Info (12134): Parameter "intended_device_family" = "Cyclone IV E"
+    Info (12134): Parameter "lpm_type" = "altpll"
+    Info (12134): Parameter "operation_mode" = "NORMAL"
+    Info (12134): Parameter "pll_type" = "AUTO"
+Info (12021): Found 1 design units, including 1 entities, in source file db/altpll_qf31.tdf
+    Info (12023): Found entity 1: altpll_qf31
+Info (12128): Elaborating entity "altpll_qf31" for hierarchy "wm8978_codec_stub:wm8978_codec_stub_inst|phase0_audio_mclk_pll:phase0_audio_mclk_pll_inst|altpll:altpll_component|altpll_qf31:auto_generated"
+Info (12128): Elaborating entity "wm8978_boot_seq" for hierarchy "wm8978_codec_stub:wm8978_codec_stub_inst|wm8978_boot_seq:wm8978_boot_seq_inst"
+Info (12128): Elaborating entity "wm8978_i2c_ctrl" for hierarchy "wm8978_codec_stub:wm8978_codec_stub_inst|wm8978_i2c_ctrl:wm8978_i2c_ctrl_inst"
+Info (10264): Verilog HDL Case Statement information at wm8978_i2c_ctrl.v(190): all case item expressions in this case statement are onehot
+Info (10264): Verilog HDL Case Statement information at wm8978_i2c_ctrl.v(224): all case item expressions in this case statement are onehot
+Info (12128): Elaborating entity "wm8978_dac_tx" for hierarchy "wm8978_codec_stub:wm8978_codec_stub_inst|wm8978_dac_tx:wm8978_dac_tx_inst"
+Warning (276020): Inferred RAM node "phase0_audio_path:phase0_audio_path_inst|phase1_reduced_voice:phase1_reduced_voice3_inst|delay_line_rtl_0" from synchronous design logic.  Pass-through logic has been added to match the read-during-write behavior of the original design.
+Warning (276020): Inferred RAM node "phase0_audio_path:phase0_audio_path_inst|phase1_reduced_voice:phase1_reduced_voice3_inst|delay_line_rtl_1" from synchronous design logic.  Pass-through logic has been added to match the read-during-write behavior of the original design.
+Warning (276020): Inferred RAM node "phase0_audio_path:phase0_audio_path_inst|phase1_reduced_voice:phase1_reduced_voice2_inst|delay_line_rtl_0" from synchronous design logic.  Pass-through logic has been added to match the read-during-write behavior of the original design.
+Warning (276020): Inferred RAM node "phase0_audio_path:phase0_audio_path_inst|phase1_reduced_voice:phase1_reduced_voice2_inst|delay_line_rtl_1" from synchronous design logic.  Pass-through logic has been added to match the read-during-write behavior of the original design.
+Warning (276020): Inferred RAM node "phase0_audio_path:phase0_audio_path_inst|phase1_reduced_voice:phase1_reduced_voice1_inst|delay_line_rtl_0" from synchronous design logic.  Pass-through logic has been added to match the read-during-write behavior of the original design.
+Warning (276020): Inferred RAM node "phase0_audio_path:phase0_audio_path_inst|phase1_reduced_voice:phase1_reduced_voice1_inst|delay_line_rtl_1" from synchronous design logic.  Pass-through logic has been added to match the read-during-write behavior of the original design.
+Warning (276020): Inferred RAM node "phase0_audio_path:phase0_audio_path_inst|phase1_reduced_voice:phase1_reduced_voice_inst|delay_line_rtl_0" from synchronous design logic.  Pass-through logic has been added to match the read-during-write behavior of the original design.
+Warning (276020): Inferred RAM node "phase0_audio_path:phase0_audio_path_inst|phase1_reduced_voice:phase1_reduced_voice_inst|delay_line_rtl_1" from synchronous design logic.  Pass-through logic has been added to match the read-during-write behavior of the original design.
+Info (276014): Found 4 instances of uninferred RAM logic
+    Info (276007): RAM logic "phase0_audio_path:phase0_audio_path_inst|phase1_reduced_voice:phase1_reduced_voice3_inst|Ram0" is uninferred due to asynchronous read logic
+    Info (276007): RAM logic "phase0_audio_path:phase0_audio_path_inst|phase1_reduced_voice:phase1_reduced_voice2_inst|Ram0" is uninferred due to asynchronous read logic
+    Info (276007): RAM logic "phase0_audio_path:phase0_audio_path_inst|phase1_reduced_voice:phase1_reduced_voice1_inst|Ram0" is uninferred due to asynchronous read logic
+    Info (276007): RAM logic "phase0_audio_path:phase0_audio_path_inst|phase1_reduced_voice:phase1_reduced_voice_inst|Ram0" is uninferred due to asynchronous read logic
+Info (19000): Inferred 12 megafunctions from design logic
+    Info (276029): Inferred altsyncram megafunction from the following design logic: "phase0_audio_path:phase0_audio_path_inst|phase1_reduced_voice:phase1_reduced_voice3_inst|delay_line_rtl_0" 
+        Info (286033): Parameter OPERATION_MODE set to DUAL_PORT
+        Info (286033): Parameter WIDTH_A set to 18
+        Info (286033): Parameter WIDTHAD_A set to 7
+        Info (286033): Parameter NUMWORDS_A set to 128
+        Info (286033): Parameter WIDTH_B set to 18
+        Info (286033): Parameter WIDTHAD_B set to 7
+        Info (286033): Parameter NUMWORDS_B set to 128
+        Info (286033): Parameter ADDRESS_ACLR_A set to NONE
+        Info (286033): Parameter OUTDATA_REG_B set to UNREGISTERED
+        Info (286033): Parameter ADDRESS_ACLR_B set to NONE
+        Info (286033): Parameter OUTDATA_ACLR_B set to NONE
+        Info (286033): Parameter ADDRESS_REG_B set to CLOCK0
+        Info (286033): Parameter INDATA_ACLR_A set to NONE
+        Info (286033): Parameter WRCONTROL_ACLR_A set to NONE
+        Info (286033): Parameter RAM_BLOCK_TYPE set to M9K
+        Info (286033): Parameter READ_DURING_WRITE_MODE_MIXED_PORTS set to OLD_DATA
+    Info (276029): Inferred altsyncram megafunction from the following design logic: "phase0_audio_path:phase0_audio_path_inst|phase1_reduced_voice:phase1_reduced_voice3_inst|delay_line_rtl_1" 
+        Info (286033): Parameter OPERATION_MODE set to DUAL_PORT
+        Info (286033): Parameter WIDTH_A set to 18
+        Info (286033): Parameter WIDTHAD_A set to 7
+        Info (286033): Parameter NUMWORDS_A set to 128
+        Info (286033): Parameter WIDTH_B set to 18
+        Info (286033): Parameter WIDTHAD_B set to 7
+        Info (286033): Parameter NUMWORDS_B set to 128
+        Info (286033): Parameter ADDRESS_ACLR_A set to NONE
+        Info (286033): Parameter OUTDATA_REG_B set to UNREGISTERED
+        Info (286033): Parameter ADDRESS_ACLR_B set to NONE
+        Info (286033): Parameter OUTDATA_ACLR_B set to NONE
+        Info (286033): Parameter ADDRESS_REG_B set to CLOCK0
+        Info (286033): Parameter INDATA_ACLR_A set to NONE
+        Info (286033): Parameter WRCONTROL_ACLR_A set to NONE
+        Info (286033): Parameter RAM_BLOCK_TYPE set to M9K
+        Info (286033): Parameter READ_DURING_WRITE_MODE_MIXED_PORTS set to OLD_DATA
+    Info (276029): Inferred altsyncram megafunction from the following design logic: "phase0_audio_path:phase0_audio_path_inst|phase1_reduced_voice:phase1_reduced_voice2_inst|delay_line_rtl_0" 
+        Info (286033): Parameter OPERATION_MODE set to DUAL_PORT
+        Info (286033): Parameter WIDTH_A set to 18
+        Info (286033): Parameter WIDTHAD_A set to 7
+        Info (286033): Parameter NUMWORDS_A set to 128
+        Info (286033): Parameter WIDTH_B set to 18
+        Info (286033): Parameter WIDTHAD_B set to 7
+        Info (286033): Parameter NUMWORDS_B set to 128
+        Info (286033): Parameter ADDRESS_ACLR_A set to NONE
+        Info (286033): Parameter OUTDATA_REG_B set to UNREGISTERED
+        Info (286033): Parameter ADDRESS_ACLR_B set to NONE
+        Info (286033): Parameter OUTDATA_ACLR_B set to NONE
+        Info (286033): Parameter ADDRESS_REG_B set to CLOCK0
+        Info (286033): Parameter INDATA_ACLR_A set to NONE
+        Info (286033): Parameter WRCONTROL_ACLR_A set to NONE
+        Info (286033): Parameter RAM_BLOCK_TYPE set to M9K
+        Info (286033): Parameter READ_DURING_WRITE_MODE_MIXED_PORTS set to OLD_DATA
+    Info (276029): Inferred altsyncram megafunction from the following design logic: "phase0_audio_path:phase0_audio_path_inst|phase1_reduced_voice:phase1_reduced_voice2_inst|delay_line_rtl_1" 
+        Info (286033): Parameter OPERATION_MODE set to DUAL_PORT
+        Info (286033): Parameter WIDTH_A set to 18
+        Info (286033): Parameter WIDTHAD_A set to 7
+        Info (286033): Parameter NUMWORDS_A set to 128
+        Info (286033): Parameter WIDTH_B set to 18
+        Info (286033): Parameter WIDTHAD_B set to 7
+        Info (286033): Parameter NUMWORDS_B set to 128
+        Info (286033): Parameter ADDRESS_ACLR_A set to NONE
+        Info (286033): Parameter OUTDATA_REG_B set to UNREGISTERED
+        Info (286033): Parameter ADDRESS_ACLR_B set to NONE
+        Info (286033): Parameter OUTDATA_ACLR_B set to NONE
+        Info (286033): Parameter ADDRESS_REG_B set to CLOCK0
+        Info (286033): Parameter INDATA_ACLR_A set to NONE
+        Info (286033): Parameter WRCONTROL_ACLR_A set to NONE
+        Info (286033): Parameter RAM_BLOCK_TYPE set to M9K
+        Info (286033): Parameter READ_DURING_WRITE_MODE_MIXED_PORTS set to OLD_DATA
+    Info (276029): Inferred altsyncram megafunction from the following design logic: "phase0_audio_path:phase0_audio_path_inst|phase1_reduced_voice:phase1_reduced_voice1_inst|delay_line_rtl_0" 
+        Info (286033): Parameter OPERATION_MODE set to DUAL_PORT
+        Info (286033): Parameter WIDTH_A set to 18
+        Info (286033): Parameter WIDTHAD_A set to 7
+        Info (286033): Parameter NUMWORDS_A set to 128
+        Info (286033): Parameter WIDTH_B set to 18
+        Info (286033): Parameter WIDTHAD_B set to 7
+        Info (286033): Parameter NUMWORDS_B set to 128
+        Info (286033): Parameter ADDRESS_ACLR_A set to NONE
+        Info (286033): Parameter OUTDATA_REG_B set to UNREGISTERED
+        Info (286033): Parameter ADDRESS_ACLR_B set to NONE
+        Info (286033): Parameter OUTDATA_ACLR_B set to NONE
+        Info (286033): Parameter ADDRESS_REG_B set to CLOCK0
+        Info (286033): Parameter INDATA_ACLR_A set to NONE
+        Info (286033): Parameter WRCONTROL_ACLR_A set to NONE
+        Info (286033): Parameter RAM_BLOCK_TYPE set to M9K
+        Info (286033): Parameter READ_DURING_WRITE_MODE_MIXED_PORTS set to OLD_DATA
+    Info (276029): Inferred altsyncram megafunction from the following design logic: "phase0_audio_path:phase0_audio_path_inst|phase1_reduced_voice:phase1_reduced_voice1_inst|delay_line_rtl_1" 
+        Info (286033): Parameter OPERATION_MODE set to DUAL_PORT
+        Info (286033): Parameter WIDTH_A set to 18
+        Info (286033): Parameter WIDTHAD_A set to 7
+        Info (286033): Parameter NUMWORDS_A set to 128
+        Info (286033): Parameter WIDTH_B set to 18
+        Info (286033): Parameter WIDTHAD_B set to 7
+        Info (286033): Parameter NUMWORDS_B set to 128
+        Info (286033): Parameter ADDRESS_ACLR_A set to NONE
+        Info (286033): Parameter OUTDATA_REG_B set to UNREGISTERED
+        Info (286033): Parameter ADDRESS_ACLR_B set to NONE
+        Info (286033): Parameter OUTDATA_ACLR_B set to NONE
+        Info (286033): Parameter ADDRESS_REG_B set to CLOCK0
+        Info (286033): Parameter INDATA_ACLR_A set to NONE
+        Info (286033): Parameter WRCONTROL_ACLR_A set to NONE
+        Info (286033): Parameter RAM_BLOCK_TYPE set to M9K
+        Info (286033): Parameter READ_DURING_WRITE_MODE_MIXED_PORTS set to OLD_DATA
+    Info (276029): Inferred altsyncram megafunction from the following design logic: "phase0_audio_path:phase0_audio_path_inst|phase1_reduced_voice:phase1_reduced_voice_inst|delay_line_rtl_0" 
+        Info (286033): Parameter OPERATION_MODE set to DUAL_PORT
+        Info (286033): Parameter WIDTH_A set to 18
+        Info (286033): Parameter WIDTHAD_A set to 7
+        Info (286033): Parameter NUMWORDS_A set to 128
+        Info (286033): Parameter WIDTH_B set to 18
+        Info (286033): Parameter WIDTHAD_B set to 7
+        Info (286033): Parameter NUMWORDS_B set to 128
+        Info (286033): Parameter ADDRESS_ACLR_A set to NONE
+        Info (286033): Parameter OUTDATA_REG_B set to UNREGISTERED
+        Info (286033): Parameter ADDRESS_ACLR_B set to NONE
+        Info (286033): Parameter OUTDATA_ACLR_B set to NONE
+        Info (286033): Parameter ADDRESS_REG_B set to CLOCK0
+        Info (286033): Parameter INDATA_ACLR_A set to NONE
+        Info (286033): Parameter WRCONTROL_ACLR_A set to NONE
+        Info (286033): Parameter RAM_BLOCK_TYPE set to M9K
+        Info (286033): Parameter READ_DURING_WRITE_MODE_MIXED_PORTS set to OLD_DATA
+    Info (276029): Inferred altsyncram megafunction from the following design logic: "phase0_audio_path:phase0_audio_path_inst|phase1_reduced_voice:phase1_reduced_voice_inst|delay_line_rtl_1" 
+        Info (286033): Parameter OPERATION_MODE set to DUAL_PORT
+        Info (286033): Parameter WIDTH_A set to 18
+        Info (286033): Parameter WIDTHAD_A set to 7
+        Info (286033): Parameter NUMWORDS_A set to 128
+        Info (286033): Parameter WIDTH_B set to 18
+        Info (286033): Parameter WIDTHAD_B set to 7
+        Info (286033): Parameter NUMWORDS_B set to 128
+        Info (286033): Parameter ADDRESS_ACLR_A set to NONE
+        Info (286033): Parameter OUTDATA_REG_B set to UNREGISTERED
+        Info (286033): Parameter ADDRESS_ACLR_B set to NONE
+        Info (286033): Parameter OUTDATA_ACLR_B set to NONE
+        Info (286033): Parameter ADDRESS_REG_B set to CLOCK0
+        Info (286033): Parameter INDATA_ACLR_A set to NONE
+        Info (286033): Parameter WRCONTROL_ACLR_A set to NONE
+        Info (286033): Parameter RAM_BLOCK_TYPE set to M9K
+        Info (286033): Parameter READ_DURING_WRITE_MODE_MIXED_PORTS set to OLD_DATA
+    Info (276029): Inferred altsyncram megafunction from the following design logic: "phase0_audio_path:phase0_audio_path_inst|phase1_reduced_voice:phase1_reduced_voice3_inst|body_history_rtl_0" 
+        Info (286033): Parameter OPERATION_MODE set to DUAL_PORT
+        Info (286033): Parameter WIDTH_A set to 16
+        Info (286033): Parameter WIDTHAD_A set to 5
+        Info (286033): Parameter NUMWORDS_A set to 32
+        Info (286033): Parameter WIDTH_B set to 16
+        Info (286033): Parameter WIDTHAD_B set to 5
+        Info (286033): Parameter NUMWORDS_B set to 32
+        Info (286033): Parameter ADDRESS_ACLR_A set to NONE
+        Info (286033): Parameter OUTDATA_REG_B set to UNREGISTERED
+        Info (286033): Parameter ADDRESS_ACLR_B set to NONE
+        Info (286033): Parameter OUTDATA_ACLR_B set to NONE
+        Info (286033): Parameter ADDRESS_REG_B set to CLOCK0
+        Info (286033): Parameter INDATA_ACLR_A set to NONE
+        Info (286033): Parameter WRCONTROL_ACLR_A set to NONE
+        Info (286033): Parameter RAM_BLOCK_TYPE set to M9K
+        Info (286033): Parameter READ_DURING_WRITE_MODE_MIXED_PORTS set to OLD_DATA
+    Info (276029): Inferred altsyncram megafunction from the following design logic: "phase0_audio_path:phase0_audio_path_inst|phase1_reduced_voice:phase1_reduced_voice2_inst|body_history_rtl_0" 
+        Info (286033): Parameter OPERATION_MODE set to DUAL_PORT
+        Info (286033): Parameter WIDTH_A set to 16
+        Info (286033): Parameter WIDTHAD_A set to 5
+        Info (286033): Parameter NUMWORDS_A set to 32
+        Info (286033): Parameter WIDTH_B set to 16
+        Info (286033): Parameter WIDTHAD_B set to 5
+        Info (286033): Parameter NUMWORDS_B set to 32
+        Info (286033): Parameter ADDRESS_ACLR_A set to NONE
+        Info (286033): Parameter OUTDATA_REG_B set to UNREGISTERED
+        Info (286033): Parameter ADDRESS_ACLR_B set to NONE
+        Info (286033): Parameter OUTDATA_ACLR_B set to NONE
+        Info (286033): Parameter ADDRESS_REG_B set to CLOCK0
+        Info (286033): Parameter INDATA_ACLR_A set to NONE
+        Info (286033): Parameter WRCONTROL_ACLR_A set to NONE
+        Info (286033): Parameter RAM_BLOCK_TYPE set to M9K
+        Info (286033): Parameter READ_DURING_WRITE_MODE_MIXED_PORTS set to OLD_DATA
+    Info (276029): Inferred altsyncram megafunction from the following design logic: "phase0_audio_path:phase0_audio_path_inst|phase1_reduced_voice:phase1_reduced_voice1_inst|body_history_rtl_0" 
+        Info (286033): Parameter OPERATION_MODE set to DUAL_PORT
+        Info (286033): Parameter WIDTH_A set to 16
+        Info (286033): Parameter WIDTHAD_A set to 5
+        Info (286033): Parameter NUMWORDS_A set to 32
+        Info (286033): Parameter WIDTH_B set to 16
+        Info (286033): Parameter WIDTHAD_B set to 5
+        Info (286033): Parameter NUMWORDS_B set to 32
+        Info (286033): Parameter ADDRESS_ACLR_A set to NONE
+        Info (286033): Parameter OUTDATA_REG_B set to UNREGISTERED
+        Info (286033): Parameter ADDRESS_ACLR_B set to NONE
+        Info (286033): Parameter OUTDATA_ACLR_B set to NONE
+        Info (286033): Parameter ADDRESS_REG_B set to CLOCK0
+        Info (286033): Parameter INDATA_ACLR_A set to NONE
+        Info (286033): Parameter WRCONTROL_ACLR_A set to NONE
+        Info (286033): Parameter RAM_BLOCK_TYPE set to M9K
+        Info (286033): Parameter READ_DURING_WRITE_MODE_MIXED_PORTS set to OLD_DATA
+    Info (276029): Inferred altsyncram megafunction from the following design logic: "phase0_audio_path:phase0_audio_path_inst|phase1_reduced_voice:phase1_reduced_voice_inst|body_history_rtl_0" 
+        Info (286033): Parameter OPERATION_MODE set to DUAL_PORT
+        Info (286033): Parameter WIDTH_A set to 16
+        Info (286033): Parameter WIDTHAD_A set to 5
+        Info (286033): Parameter NUMWORDS_A set to 32
+        Info (286033): Parameter WIDTH_B set to 16
+        Info (286033): Parameter WIDTHAD_B set to 5
+        Info (286033): Parameter NUMWORDS_B set to 32
+        Info (286033): Parameter ADDRESS_ACLR_A set to NONE
+        Info (286033): Parameter OUTDATA_REG_B set to UNREGISTERED
+        Info (286033): Parameter ADDRESS_ACLR_B set to NONE
+        Info (286033): Parameter OUTDATA_ACLR_B set to NONE
+        Info (286033): Parameter ADDRESS_REG_B set to CLOCK0
+        Info (286033): Parameter INDATA_ACLR_A set to NONE
+        Info (286033): Parameter WRCONTROL_ACLR_A set to NONE
+        Info (286033): Parameter RAM_BLOCK_TYPE set to M9K
+        Info (286033): Parameter READ_DURING_WRITE_MODE_MIXED_PORTS set to OLD_DATA
+Info (278001): Inferred 14 megafunctions from design logic
+    Info (278003): Inferred multiplier megafunction ("lpm_mult") from the following logic: "phase0_audio_path:phase0_audio_path_inst|phase1_reduced_voice:phase1_reduced_voice3_inst|Mult0"
+    Info (278003): Inferred multiplier megafunction ("lpm_mult") from the following logic: "phase0_audio_path:phase0_audio_path_inst|phase1_reduced_voice:phase1_reduced_voice2_inst|Mult0"
+    Info (278003): Inferred multiplier megafunction ("lpm_mult") from the following logic: "phase0_audio_path:phase0_audio_path_inst|phase1_reduced_voice:phase1_reduced_voice1_inst|Mult0"
+    Info (278003): Inferred multiplier megafunction ("lpm_mult") from the following logic: "phase0_audio_path:phase0_audio_path_inst|phase1_reduced_voice:phase1_reduced_voice_inst|Mult0"
+    Info (278003): Inferred multiplier megafunction ("lpm_mult") from the following logic: "phase0_audio_path:phase0_audio_path_inst|phase0_body_filter:phase0_body_filter_inst|Mult9"
+    Info (278003): Inferred multiplier megafunction ("lpm_mult") from the following logic: "phase0_audio_path:phase0_audio_path_inst|phase0_body_filter:phase0_body_filter_inst|Mult8"
+    Info (278003): Inferred multiplier megafunction ("lpm_mult") from the following logic: "phase0_audio_path:phase0_audio_path_inst|phase0_body_filter:phase0_body_filter_inst|Mult7"
+    Info (278003): Inferred multiplier megafunction ("lpm_mult") from the following logic: "phase0_audio_path:phase0_audio_path_inst|phase0_body_filter:phase0_body_filter_inst|Mult6"
+    Info (278003): Inferred multiplier megafunction ("lpm_mult") from the following logic: "phase0_audio_path:phase0_audio_path_inst|phase0_body_filter:phase0_body_filter_inst|Mult5"
+    Info (278003): Inferred multiplier megafunction ("lpm_mult") from the following logic: "phase0_audio_path:phase0_audio_path_inst|phase0_body_filter:phase0_body_filter_inst|Mult4"
+    Info (278003): Inferred multiplier megafunction ("lpm_mult") from the following logic: "phase0_audio_path:phase0_audio_path_inst|phase0_body_filter:phase0_body_filter_inst|Mult2"
+    Info (278003): Inferred multiplier megafunction ("lpm_mult") from the following logic: "phase0_audio_path:phase0_audio_path_inst|phase0_body_filter:phase0_body_filter_inst|Mult3"
+    Info (278003): Inferred multiplier megafunction ("lpm_mult") from the following logic: "phase0_audio_path:phase0_audio_path_inst|phase0_body_filter:phase0_body_filter_inst|Mult0"
+    Info (278003): Inferred multiplier megafunction ("lpm_mult") from the following logic: "phase0_audio_path:phase0_audio_path_inst|phase0_body_filter:phase0_body_filter_inst|Mult1"
+Info (12130): Elaborated megafunction instantiation "phase0_audio_path:phase0_audio_path_inst|phase1_reduced_voice:phase1_reduced_voice3_inst|altsyncram:delay_line_rtl_0"
+Info (12133): Instantiated megafunction "phase0_audio_path:phase0_audio_path_inst|phase1_reduced_voice:phase1_reduced_voice3_inst|altsyncram:delay_line_rtl_0" with the following parameter:
+    Info (12134): Parameter "OPERATION_MODE" = "DUAL_PORT"
+    Info (12134): Parameter "WIDTH_A" = "18"
+    Info (12134): Parameter "WIDTHAD_A" = "7"
+    Info (12134): Parameter "NUMWORDS_A" = "128"
+    Info (12134): Parameter "WIDTH_B" = "18"
+    Info (12134): Parameter "WIDTHAD_B" = "7"
+    Info (12134): Parameter "NUMWORDS_B" = "128"
+    Info (12134): Parameter "ADDRESS_ACLR_A" = "NONE"
+    Info (12134): Parameter "OUTDATA_REG_B" = "UNREGISTERED"
+    Info (12134): Parameter "ADDRESS_ACLR_B" = "NONE"
+    Info (12134): Parameter "OUTDATA_ACLR_B" = "NONE"
+    Info (12134): Parameter "ADDRESS_REG_B" = "CLOCK0"
+    Info (12134): Parameter "INDATA_ACLR_A" = "NONE"
+    Info (12134): Parameter "WRCONTROL_ACLR_A" = "NONE"
+    Info (12134): Parameter "RAM_BLOCK_TYPE" = "M9K"
+    Info (12134): Parameter "READ_DURING_WRITE_MODE_MIXED_PORTS" = "OLD_DATA"
+Info (12021): Found 1 design units, including 1 entities, in source file db/altsyncram_3si1.tdf
+    Info (12023): Found entity 1: altsyncram_3si1
+Info (12130): Elaborated megafunction instantiation "phase0_audio_path:phase0_audio_path_inst|phase1_reduced_voice:phase1_reduced_voice3_inst|altsyncram:body_history_rtl_0"
+Info (12133): Instantiated megafunction "phase0_audio_path:phase0_audio_path_inst|phase1_reduced_voice:phase1_reduced_voice3_inst|altsyncram:body_history_rtl_0" with the following parameter:
+    Info (12134): Parameter "OPERATION_MODE" = "DUAL_PORT"
+    Info (12134): Parameter "WIDTH_A" = "16"
+    Info (12134): Parameter "WIDTHAD_A" = "5"
+    Info (12134): Parameter "NUMWORDS_A" = "32"
+    Info (12134): Parameter "WIDTH_B" = "16"
+    Info (12134): Parameter "WIDTHAD_B" = "5"
+    Info (12134): Parameter "NUMWORDS_B" = "32"
+    Info (12134): Parameter "ADDRESS_ACLR_A" = "NONE"
+    Info (12134): Parameter "OUTDATA_REG_B" = "UNREGISTERED"
+    Info (12134): Parameter "ADDRESS_ACLR_B" = "NONE"
+    Info (12134): Parameter "OUTDATA_ACLR_B" = "NONE"
+    Info (12134): Parameter "ADDRESS_REG_B" = "CLOCK0"
+    Info (12134): Parameter "INDATA_ACLR_A" = "NONE"
+    Info (12134): Parameter "WRCONTROL_ACLR_A" = "NONE"
+    Info (12134): Parameter "RAM_BLOCK_TYPE" = "M9K"
+    Info (12134): Parameter "READ_DURING_WRITE_MODE_MIXED_PORTS" = "OLD_DATA"
+Info (12021): Found 1 design units, including 1 entities, in source file db/altsyncram_foi1.tdf
+    Info (12023): Found entity 1: altsyncram_foi1
+Info (12130): Elaborated megafunction instantiation "phase0_audio_path:phase0_audio_path_inst|phase1_reduced_voice:phase1_reduced_voice3_inst|lpm_mult:Mult0"
+Info (12133): Instantiated megafunction "phase0_audio_path:phase0_audio_path_inst|phase1_reduced_voice:phase1_reduced_voice3_inst|lpm_mult:Mult0" with the following parameter:
+    Info (12134): Parameter "LPM_WIDTHA" = "18"
+    Info (12134): Parameter "LPM_WIDTHB" = "16"
+    Info (12134): Parameter "LPM_WIDTHP" = "34"
+    Info (12134): Parameter "LPM_WIDTHR" = "34"
+    Info (12134): Parameter "LPM_WIDTHS" = "1"
+    Info (12134): Parameter "LPM_REPRESENTATION" = "SIGNED"
+    Info (12134): Parameter "INPUT_A_IS_CONSTANT" = "NO"
+    Info (12134): Parameter "INPUT_B_IS_CONSTANT" = "NO"
+    Info (12134): Parameter "MAXIMIZE_SPEED" = "6"
+Info (12021): Found 1 design units, including 1 entities, in source file db/mult_86t.tdf
+    Info (12023): Found entity 1: mult_86t
+Info (12130): Elaborated megafunction instantiation "phase0_audio_path:phase0_audio_path_inst|phase0_body_filter:phase0_body_filter_inst|lpm_mult:Mult9"
+Info (12133): Instantiated megafunction "phase0_audio_path:phase0_audio_path_inst|phase0_body_filter:phase0_body_filter_inst|lpm_mult:Mult9" with the following parameter:
+    Info (12134): Parameter "LPM_WIDTHA" = "18"
+    Info (12134): Parameter "LPM_WIDTHB" = "15"
+    Info (12134): Parameter "LPM_WIDTHP" = "33"
+    Info (12134): Parameter "LPM_WIDTHR" = "33"
+    Info (12134): Parameter "LPM_WIDTHS" = "1"
+    Info (12134): Parameter "LPM_REPRESENTATION" = "SIGNED"
+    Info (12134): Parameter "INPUT_A_IS_CONSTANT" = "NO"
+    Info (12134): Parameter "INPUT_B_IS_CONSTANT" = "YES"
+    Info (12134): Parameter "MAXIMIZE_SPEED" = "6"
+Info (12021): Found 1 design units, including 1 entities, in source file db/mult_q9t.tdf
+    Info (12023): Found entity 1: mult_q9t
+Info (12130): Elaborated megafunction instantiation "phase0_audio_path:phase0_audio_path_inst|phase0_body_filter:phase0_body_filter_inst|lpm_mult:Mult8"
+Info (12133): Instantiated megafunction "phase0_audio_path:phase0_audio_path_inst|phase0_body_filter:phase0_body_filter_inst|lpm_mult:Mult8" with the following parameter:
+    Info (12134): Parameter "LPM_WIDTHA" = "18"
+    Info (12134): Parameter "LPM_WIDTHB" = "16"
+    Info (12134): Parameter "LPM_WIDTHP" = "34"
+    Info (12134): Parameter "LPM_WIDTHR" = "34"
+    Info (12134): Parameter "LPM_WIDTHS" = "1"
+    Info (12134): Parameter "LPM_REPRESENTATION" = "SIGNED"
+    Info (12134): Parameter "INPUT_A_IS_CONSTANT" = "NO"
+    Info (12134): Parameter "INPUT_B_IS_CONSTANT" = "YES"
+    Info (12134): Parameter "MAXIMIZE_SPEED" = "6"
+Info (12021): Found 1 design units, including 1 entities, in source file db/mult_s9t.tdf
+    Info (12023): Found entity 1: mult_s9t
+Info (12130): Elaborated megafunction instantiation "phase0_audio_path:phase0_audio_path_inst|phase0_body_filter:phase0_body_filter_inst|lpm_mult:Mult7"
+Info (12133): Instantiated megafunction "phase0_audio_path:phase0_audio_path_inst|phase0_body_filter:phase0_body_filter_inst|lpm_mult:Mult7" with the following parameter:
+    Info (12134): Parameter "LPM_WIDTHA" = "18"
+    Info (12134): Parameter "LPM_WIDTHB" = "15"
+    Info (12134): Parameter "LPM_WIDTHP" = "33"
+    Info (12134): Parameter "LPM_WIDTHR" = "33"
+    Info (12134): Parameter "LPM_WIDTHS" = "1"
+    Info (12134): Parameter "LPM_REPRESENTATION" = "SIGNED"
+    Info (12134): Parameter "INPUT_A_IS_CONSTANT" = "NO"
+    Info (12134): Parameter "INPUT_B_IS_CONSTANT" = "YES"
+    Info (12134): Parameter "MAXIMIZE_SPEED" = "6"
+Info (12130): Elaborated megafunction instantiation "phase0_audio_path:phase0_audio_path_inst|phase0_body_filter:phase0_body_filter_inst|lpm_mult:Mult6"
+Info (12133): Instantiated megafunction "phase0_audio_path:phase0_audio_path_inst|phase0_body_filter:phase0_body_filter_inst|lpm_mult:Mult6" with the following parameter:
+    Info (12134): Parameter "LPM_WIDTHA" = "18"
+    Info (12134): Parameter "LPM_WIDTHB" = "16"
+    Info (12134): Parameter "LPM_WIDTHP" = "34"
+    Info (12134): Parameter "LPM_WIDTHR" = "34"
+    Info (12134): Parameter "LPM_WIDTHS" = "1"
+    Info (12134): Parameter "LPM_REPRESENTATION" = "SIGNED"
+    Info (12134): Parameter "INPUT_A_IS_CONSTANT" = "NO"
+    Info (12134): Parameter "INPUT_B_IS_CONSTANT" = "YES"
+    Info (12134): Parameter "MAXIMIZE_SPEED" = "6"
+Info (12130): Elaborated megafunction instantiation "phase0_audio_path:phase0_audio_path_inst|phase0_body_filter:phase0_body_filter_inst|lpm_mult:Mult5"
+Info (12133): Instantiated megafunction "phase0_audio_path:phase0_audio_path_inst|phase0_body_filter:phase0_body_filter_inst|lpm_mult:Mult5" with the following parameter:
+    Info (12134): Parameter "LPM_WIDTHA" = "18"
+    Info (12134): Parameter "LPM_WIDTHB" = "16"
+    Info (12134): Parameter "LPM_WIDTHP" = "34"
+    Info (12134): Parameter "LPM_WIDTHR" = "34"
+    Info (12134): Parameter "LPM_WIDTHS" = "1"
+    Info (12134): Parameter "LPM_REPRESENTATION" = "SIGNED"
+    Info (12134): Parameter "INPUT_A_IS_CONSTANT" = "NO"
+    Info (12134): Parameter "INPUT_B_IS_CONSTANT" = "YES"
+    Info (12134): Parameter "MAXIMIZE_SPEED" = "6"
+Info (12130): Elaborated megafunction instantiation "phase0_audio_path:phase0_audio_path_inst|phase0_body_filter:phase0_body_filter_inst|lpm_mult:Mult4"
+Info (12133): Instantiated megafunction "phase0_audio_path:phase0_audio_path_inst|phase0_body_filter:phase0_body_filter_inst|lpm_mult:Mult4" with the following parameter:
+    Info (12134): Parameter "LPM_WIDTHA" = "18"
+    Info (12134): Parameter "LPM_WIDTHB" = "15"
+    Info (12134): Parameter "LPM_WIDTHP" = "33"
+    Info (12134): Parameter "LPM_WIDTHR" = "33"
+    Info (12134): Parameter "LPM_WIDTHS" = "1"
+    Info (12134): Parameter "LPM_REPRESENTATION" = "SIGNED"
+    Info (12134): Parameter "INPUT_A_IS_CONSTANT" = "NO"
+    Info (12134): Parameter "INPUT_B_IS_CONSTANT" = "YES"
+    Info (12134): Parameter "MAXIMIZE_SPEED" = "6"
+Info (12130): Elaborated megafunction instantiation "phase0_audio_path:phase0_audio_path_inst|phase0_body_filter:phase0_body_filter_inst|lpm_mult:Mult2"
+Info (12133): Instantiated megafunction "phase0_audio_path:phase0_audio_path_inst|phase0_body_filter:phase0_body_filter_inst|lpm_mult:Mult2" with the following parameter:
+    Info (12134): Parameter "LPM_WIDTHA" = "18"
+    Info (12134): Parameter "LPM_WIDTHB" = "15"
+    Info (12134): Parameter "LPM_WIDTHP" = "33"
+    Info (12134): Parameter "LPM_WIDTHR" = "33"
+    Info (12134): Parameter "LPM_WIDTHS" = "1"
+    Info (12134): Parameter "LPM_REPRESENTATION" = "SIGNED"
+    Info (12134): Parameter "INPUT_A_IS_CONSTANT" = "NO"
+    Info (12134): Parameter "INPUT_B_IS_CONSTANT" = "YES"
+    Info (12134): Parameter "MAXIMIZE_SPEED" = "6"
+Info (12130): Elaborated megafunction instantiation "phase0_audio_path:phase0_audio_path_inst|phase0_body_filter:phase0_body_filter_inst|lpm_mult:Mult3"
+Info (12133): Instantiated megafunction "phase0_audio_path:phase0_audio_path_inst|phase0_body_filter:phase0_body_filter_inst|lpm_mult:Mult3" with the following parameter:
+    Info (12134): Parameter "LPM_WIDTHA" = "18"
+    Info (12134): Parameter "LPM_WIDTHB" = "16"
+    Info (12134): Parameter "LPM_WIDTHP" = "34"
+    Info (12134): Parameter "LPM_WIDTHR" = "34"
+    Info (12134): Parameter "LPM_WIDTHS" = "1"
+    Info (12134): Parameter "LPM_REPRESENTATION" = "SIGNED"
+    Info (12134): Parameter "INPUT_A_IS_CONSTANT" = "NO"
+    Info (12134): Parameter "INPUT_B_IS_CONSTANT" = "YES"
+    Info (12134): Parameter "MAXIMIZE_SPEED" = "6"
+Info (12130): Elaborated megafunction instantiation "phase0_audio_path:phase0_audio_path_inst|phase0_body_filter:phase0_body_filter_inst|lpm_mult:Mult0"
+Info (12133): Instantiated megafunction "phase0_audio_path:phase0_audio_path_inst|phase0_body_filter:phase0_body_filter_inst|lpm_mult:Mult0" with the following parameter:
+    Info (12134): Parameter "LPM_WIDTHA" = "16"
+    Info (12134): Parameter "LPM_WIDTHB" = "16"
+    Info (12134): Parameter "LPM_WIDTHP" = "32"
+    Info (12134): Parameter "LPM_WIDTHR" = "32"
+    Info (12134): Parameter "LPM_WIDTHS" = "1"
+    Info (12134): Parameter "LPM_REPRESENTATION" = "SIGNED"
+    Info (12134): Parameter "INPUT_A_IS_CONSTANT" = "NO"
+    Info (12134): Parameter "INPUT_B_IS_CONSTANT" = "YES"
+    Info (12134): Parameter "MAXIMIZE_SPEED" = "5"
+Info (12131): Elaborated megafunction instantiation "phase0_audio_path:phase0_audio_path_inst|phase0_body_filter:phase0_body_filter_inst|lpm_mult:Mult0|multcore:mult_core", which is child of megafunction instantiation "phase0_audio_path:phase0_audio_path_inst|phase0_body_filter:phase0_body_filter_inst|lpm_mult:Mult0"
+Info (12131): Elaborated megafunction instantiation "phase0_audio_path:phase0_audio_path_inst|phase0_body_filter:phase0_body_filter_inst|lpm_mult:Mult0|multcore:mult_core|mpar_add:padder", which is child of megafunction instantiation "phase0_audio_path:phase0_audio_path_inst|phase0_body_filter:phase0_body_filter_inst|lpm_mult:Mult0"
+Info (12131): Elaborated megafunction instantiation "phase0_audio_path:phase0_audio_path_inst|phase0_body_filter:phase0_body_filter_inst|lpm_mult:Mult0|multcore:mult_core|mpar_add:padder|lpm_add_sub:adder[1]", which is child of megafunction instantiation "phase0_audio_path:phase0_audio_path_inst|phase0_body_filter:phase0_body_filter_inst|lpm_mult:Mult0"
+Info (12021): Found 1 design units, including 1 entities, in source file db/add_sub_bkh.tdf
+    Info (12023): Found entity 1: add_sub_bkh
+Info (12131): Elaborated megafunction instantiation "phase0_audio_path:phase0_audio_path_inst|phase0_body_filter:phase0_body_filter_inst|lpm_mult:Mult0|multcore:mult_core|mpar_add:padder|lpm_add_sub:adder[0]", which is child of megafunction instantiation "phase0_audio_path:phase0_audio_path_inst|phase0_body_filter:phase0_body_filter_inst|lpm_mult:Mult0"
+Info (12021): Found 1 design units, including 1 entities, in source file db/add_sub_h9h.tdf
+    Info (12023): Found entity 1: add_sub_h9h
+Info (12131): Elaborated megafunction instantiation "phase0_audio_path:phase0_audio_path_inst|phase0_body_filter:phase0_body_filter_inst|lpm_mult:Mult0|multcore:mult_core|mpar_add:padder|mpar_add:sub_par_add", which is child of megafunction instantiation "phase0_audio_path:phase0_audio_path_inst|phase0_body_filter:phase0_body_filter_inst|lpm_mult:Mult0"
+Info (12131): Elaborated megafunction instantiation "phase0_audio_path:phase0_audio_path_inst|phase0_body_filter:phase0_body_filter_inst|lpm_mult:Mult0|multcore:mult_core|mpar_add:padder|mpar_add:sub_par_add|lpm_add_sub:adder[0]", which is child of megafunction instantiation "phase0_audio_path:phase0_audio_path_inst|phase0_body_filter:phase0_body_filter_inst|lpm_mult:Mult0"
+Info (12021): Found 1 design units, including 1 entities, in source file db/add_sub_fkh.tdf
+    Info (12023): Found entity 1: add_sub_fkh
+Info (12131): Elaborated megafunction instantiation "phase0_audio_path:phase0_audio_path_inst|phase0_body_filter:phase0_body_filter_inst|lpm_mult:Mult0|altshift:external_latency_ffs", which is child of megafunction instantiation "phase0_audio_path:phase0_audio_path_inst|phase0_body_filter:phase0_body_filter_inst|lpm_mult:Mult0"
+Info (12130): Elaborated megafunction instantiation "phase0_audio_path:phase0_audio_path_inst|phase0_body_filter:phase0_body_filter_inst|lpm_mult:Mult1"
+Info (12133): Instantiated megafunction "phase0_audio_path:phase0_audio_path_inst|phase0_body_filter:phase0_body_filter_inst|lpm_mult:Mult1" with the following parameter:
+    Info (12134): Parameter "LPM_WIDTHA" = "18"
+    Info (12134): Parameter "LPM_WIDTHB" = "16"
+    Info (12134): Parameter "LPM_WIDTHP" = "34"
+    Info (12134): Parameter "LPM_WIDTHR" = "34"
+    Info (12134): Parameter "LPM_WIDTHS" = "1"
+    Info (12134): Parameter "LPM_REPRESENTATION" = "SIGNED"
+    Info (12134): Parameter "INPUT_A_IS_CONSTANT" = "NO"
+    Info (12134): Parameter "INPUT_B_IS_CONSTANT" = "YES"
+    Info (12134): Parameter "MAXIMIZE_SPEED" = "6"
+Info (13000): Registers with preset signals will power-up high
+Info (13003): DEV_CLRn pin will set, and not reset, register with preset signal due to NOT Gate Push-Back
+Info (286030): Timing-Driven Synthesis is running
+Info (17049): 96 registers lost all their fanouts during netlist optimizations.
+Info (144001): Generated suppressed messages file E:/projects/piano-agents/quartus/phase0/output_files/piano_phase0_top.map.smsg
+Info (16010): Generating hard_block partition "hard_block:auto_generated_inst"
+    Info (16011): Adding 1 node(s), including 0 DDIO, 1 PLL, 0 transceiver and 0 LCELL
+Warning (21074): Design contains 1 input pin(s) that do not drive logic
+    Warning (15610): No output dependent on input pin "audio_adcdat"
+Info (21057): Implemented 6297 device resources after synthesis - the final resource count might be different
+    Info (21058): Implemented 6 input pins
+    Info (21059): Implemented 4 output pins
+    Info (21060): Implemented 1 bidirectional pins
+    Info (21061): Implemented 6051 logic cells
+    Info (21064): Implemented 208 RAM segments
+    Info (21065): Implemented 1 PLLs
+    Info (21062): Implemented 26 DSP elements
+Info: Quartus II 64-Bit Analysis & Synthesis was successful. 0 errors, 13 warnings
+    Info: Peak virtual memory: 4751 megabytes
+    Info: Processing ended: Wed May 27 17:06:38 2026
+    Info: Elapsed time: 00:00:15
+    Info: Total CPU time (on all processors): 00:00:15
+Info: *******************************************************************
+Info: Running Quartus II 64-Bit Fitter
+    Info: Version 13.0.1 Build 232 06/12/2013 Service Pack 1 SJ Full Version
+    Info: Processing started: Wed May 27 17:06:39 2026
+Info: Command: quartus_fit --read_settings_files=off --write_settings_files=off piano_phase0_top -c piano_phase0_top
+Info: qfit2_default_script.tcl version: #1
+Info: Project  = piano_phase0_top
+Info: Revision = piano_phase0_top
+Info (20030): Parallel compilation is enabled and will use 16 of the 16 processors detected
+Info (119006): Selected device EP4CE10F17C8 for design "piano_phase0_top"
+Info (21077): Core supply voltage is 1.2V
+Info (21077): Low junction temperature is 0 degrees C
+Info (21077): High junction temperature is 85 degrees C
+Info (15535): Implemented PLL "wm8978_codec_stub:wm8978_codec_stub_inst|phase0_audio_mclk_pll:phase0_audio_mclk_pll_inst|altpll:altpll_component|altpll_qf31:auto_generated|pll1" as Cyclone IV E PLL type
+    Info (15099): Implementing clock multiplication of 6, clock division of 25, and phase shift of 0 degrees (0 ps) for wm8978_codec_stub:wm8978_codec_stub_inst|phase0_audio_mclk_pll:phase0_audio_mclk_pll_inst|altpll:altpll_component|altpll_qf31:auto_generated|clk[0] port
+Info (171003): Fitter is performing an Auto Fit compilation, which may decrease Fitter effort to reduce compilation time
+Info (176444): Device migration not selected. If you intend to use device migration later, you may need to change the pin assignments as they may be incompatible with other devices
+    Info (176445): Device EP4CE6F17C8 is compatible
+    Info (176445): Device EP4CE15F17C8 is compatible
+    Info (176445): Device EP4CE22F17C8 is compatible
+Info (169124): Fitter converted 5 user pins into dedicated programming pins
+    Info (169125): Pin ~ALTERA_ASDO_DATA1~ is reserved at location C1
+    Info (169125): Pin ~ALTERA_FLASH_nCE_nCSO~ is reserved at location D2
+    Info (169125): Pin ~ALTERA_DCLK~ is reserved at location H1
+    Info (169125): Pin ~ALTERA_DATA0~ is reserved at location H2
+    Info (169125): Pin ~ALTERA_nCEO~ is reserved at location F16
+Warning (15714): Some pins have incomplete I/O assignments. Refer to the I/O Assignment Warnings report for details
+Info (176045): Design uses memory blocks. Violating setup or hold times of memory block address registers for either read or write operations could cause memory contents to be corrupted. Make sure that all memory block address registers meet the setup and hold time requirements.
+Info (332104): Reading SDC File: 'piano_phase0_top.sdc'
+Info (332110): Deriving PLL clocks
+    Info (332110): create_generated_clock -source {wm8978_codec_stub_inst|phase0_audio_mclk_pll_inst|altpll_component|auto_generated|pll1|inclk[0]} -divide_by 25 -multiply_by 6 -duty_cycle 50.00 -name {wm8978_codec_stub_inst|phase0_audio_mclk_pll_inst|altpll_component|auto_generated|pll1|clk[0]} {wm8978_codec_stub_inst|phase0_audio_mclk_pll_inst|altpll_component|auto_generated|pll1|clk[0]}
+Info (332151): Clock uncertainty is not calculated until you update the timing netlist.
+Info (332154): The derive_clock_uncertainty command did not apply clock uncertainty to any clock-to-clock transfers.
+Info (332129): Detected timing requirements -- optimizing circuit to achieve only the specified requirements
+Info (332111): Found 4 clocks
+    Info (332111):   Period   Clock Name
+    Info (332111): ======== ============
+    Info (332111):  666.667   audio_bclk
+    Info (332111): 1000.000      i2c_clk
+    Info (332111):   20.000  sys_clk_50m
+    Info (332111):   83.333 wm8978_codec_stub_inst|phase0_audio_mclk_pll_inst|altpll_component|auto_generated|pll1|clk[0]
+Info (176353): Automatically promoted node sys_clk_50m~input (placed in PIN E1 (CLK1, DIFFCLK_0n))
+    Info (176355): Automatically promoted destinations to use location or clock signal Global Clock CLKCTRL_G2
+Info (176353): Automatically promoted node wm8978_codec_stub:wm8978_codec_stub_inst|phase0_audio_mclk_pll:phase0_audio_mclk_pll_inst|altpll:altpll_component|altpll_qf31:auto_generated|clk[0] (placed in counter C0 of PLL_1)
+    Info (176355): Automatically promoted destinations to use location or clock signal Global Clock CLKCTRL_G3
+Info (176353): Automatically promoted node audio_bclk~input (placed in PIN D12 (DIFFIO_T20p, DQS0T/CQ1T,DPCLK6))
+    Info (176355): Automatically promoted destinations to use location or clock signal Global Clock CLKCTRL_G7
+Info (176353): Automatically promoted node wm8978_codec_stub:wm8978_codec_stub_inst|wm8978_i2c_ctrl:wm8978_i2c_ctrl_inst|i2c_clk 
+    Info (176355): Automatically promoted destinations to use location or clock signal Global Clock
+    Info (176356): Following destination nodes may be non-global or may not use global or regional clocks
+        Info (176357): Destination node wm8978_codec_stub:wm8978_codec_stub_inst|wm8978_i2c_ctrl:wm8978_i2c_ctrl_inst|i2c_clk~0
+Info (176353): Automatically promoted node sys_rst_n~input (placed in PIN M15 (CLK6, DIFFCLK_3p))
+    Info (176355): Automatically promoted destinations to use location or clock signal Global Clock CLKCTRL_G9
+Info (176353): Automatically promoted node phase0_reset_sync:phase0_reset_sync_inst|reset_pipe[1] 
+    Info (176355): Automatically promoted destinations to use location or clock signal Global Clock
+    Info (176356): Following destination nodes may be non-global or may not use global or regional clocks
+        Info (176357): Destination node phase0_uart_command:phase0_uart_command_inst|Decoder0~9
+        Info (176357): Destination node phase0_audio_path:phase0_audio_path_inst|phase1_reduced_voice:phase1_reduced_voice1_inst|comb~0
+        Info (176357): Destination node phase0_audio_path:phase0_audio_path_inst|phase1_reduced_voice:phase1_reduced_voice_inst|comb~0
+        Info (176357): Destination node phase0_audio_path:phase0_audio_path_inst|phase1_reduced_voice:phase1_reduced_voice3_inst|comb~0
+        Info (176357): Destination node phase0_audio_path:phase0_audio_path_inst|phase1_reduced_voice:phase1_reduced_voice2_inst|comb~0
+Info (176233): Starting register packing
+Info (176235): Finished register packing
+    Extra Info (176218): Packed 204 registers into blocks of type Embedded multiplier block
+    Extra Info (176220): Created 84 register duplicates
+Warning (15058): PLL "wm8978_codec_stub:wm8978_codec_stub_inst|phase0_audio_mclk_pll:phase0_audio_mclk_pll_inst|altpll:altpll_component|altpll_qf31:auto_generated|pll1" is in normal or source synchronous mode with output clock "compensate_clock" set to clk[0] that is not fully compensated because it feeds an output pin -- only PLLs in zero delay buffer mode can fully compensate output pins
+Warning (15064): PLL "wm8978_codec_stub:wm8978_codec_stub_inst|phase0_audio_mclk_pll:phase0_audio_mclk_pll_inst|altpll:altpll_component|altpll_qf31:auto_generated|pll1" output port clk[0] feeds output pin "audio_mclk~output" via non-dedicated routing -- jitter performance depends on switching rate of other design elements. Use PLL dedicated clock outputs to ensure jitter performance
+Info (171121): Fitter preparation operations ending: elapsed time is 00:00:03
+Info (170189): Fitter placement preparation operations beginning
+Info (170190): Fitter placement preparation operations ending: elapsed time is 00:00:01
+Info (170191): Fitter placement operations beginning
+Info (170137): Fitter placement was successful
+Info (170192): Fitter placement operations ending: elapsed time is 00:00:02
+Info (170193): Fitter routing operations beginning
+Info (170195): Router estimated average interconnect usage is 13% of the available device resources
+    Info (170196): Router estimated peak interconnect usage is 28% of the available device resources in the region that extends from location X11_Y0 to location X22_Y11
+Info (170194): Fitter routing operations ending: elapsed time is 00:00:03
+Info (170199): The Fitter performed an Auto Fit compilation.  Optimizations were skipped to reduce compilation time.
+    Info (170201): Optimizations that may affect the design's routability were skipped
+    Info (170200): Optimizations that may affect the design's timing were skipped
+Info (11888): Total time spent on timing analysis during the Fitter is 3.38 seconds.
+Info (334003): Started post-fitting delay annotation
+Info (334004): Delay annotation completed successfully
+Info (334003): Started post-fitting delay annotation
+Info (334004): Delay annotation completed successfully
+Info (11218): Fitter post-fit operations ending: elapsed time is 00:00:02
+Info (144001): Generated suppressed messages file E:/projects/piano-agents/quartus/phase0/output_files/piano_phase0_top.fit.smsg
+Info: Quartus II 64-Bit Fitter was successful. 0 errors, 3 warnings
+    Info: Peak virtual memory: 6048 megabytes
+    Info: Processing ended: Wed May 27 17:06:53 2026
+    Info: Elapsed time: 00:00:14
+    Info: Total CPU time (on all processors): 00:00:21
+Info: *******************************************************************
+Info: Running Quartus II 64-Bit Assembler
+    Info: Version 13.0.1 Build 232 06/12/2013 Service Pack 1 SJ Full Version
+    Info: Processing started: Wed May 27 17:06:53 2026
+Info: Command: quartus_asm --read_settings_files=off --write_settings_files=off piano_phase0_top -c piano_phase0_top
+Info (115031): Writing out detailed assembly data for power analysis
+Info (115030): Assembler is generating device programming files
+Info: Quartus II 64-Bit Assembler was successful. 0 errors, 0 warnings
+    Info: Peak virtual memory: 4595 megabytes
+    Info: Processing ended: Wed May 27 17:06:54 2026
+    Info: Elapsed time: 00:00:01
+    Info: Total CPU time (on all processors): 00:00:01
+Info (293026): Skipped module PowerPlay Power Analyzer due to the assignment FLOW_ENABLE_POWER_ANALYZER
+Info: *******************************************************************
+Info: Running Quartus II 64-Bit TimeQuest Timing Analyzer
+    Info: Version 13.0.1 Build 232 06/12/2013 Service Pack 1 SJ Full Version
+    Info: Processing started: Wed May 27 17:06:55 2026
+Info: Command: quartus_sta piano_phase0_top -c piano_phase0_top
+Info: qsta_default_script.tcl version: #1
+Info (20030): Parallel compilation is enabled and will use 16 of the 16 processors detected
+Info (21077): Core supply voltage is 1.2V
+Info (21077): Low junction temperature is 0 degrees C
+Info (21077): High junction temperature is 85 degrees C
+Info (332104): Reading SDC File: 'piano_phase0_top.sdc'
+Info (332110): Deriving PLL clocks
+    Info (332110): create_generated_clock -source {wm8978_codec_stub_inst|phase0_audio_mclk_pll_inst|altpll_component|auto_generated|pll1|inclk[0]} -divide_by 25 -multiply_by 6 -duty_cycle 50.00 -name {wm8978_codec_stub_inst|phase0_audio_mclk_pll_inst|altpll_component|auto_generated|pll1|clk[0]} {wm8978_codec_stub_inst|phase0_audio_mclk_pll_inst|altpll_component|auto_generated|pll1|clk[0]}
+Info (332151): Clock uncertainty is not calculated until you update the timing netlist.
+Info (332123): Deriving Clock Uncertainty. Please refer to report_sdc in TimeQuest to see clock uncertainties.
+Info: Found TIMEQUEST_REPORT_SCRIPT_INCLUDE_DEFAULT_ANALYSIS = ON
+Info: Analyzing Slow 1200mV 85C Model
+Info (332146): Worst-case setup slack is 5.707
+    Info (332119):     Slack End Point TNS Clock 
+    Info (332119): ========= ============= =====================
+    Info (332119):     5.707         0.000 sys_clk_50m 
+    Info (332119):   315.778         0.000 audio_bclk 
+    Info (332119):   994.837         0.000 i2c_clk 
+Info (332146): Worst-case hold slack is 0.409
+    Info (332119):     Slack End Point TNS Clock 
+    Info (332119): ========= ============= =====================
+    Info (332119):     0.409         0.000 sys_clk_50m 
+    Info (332119):     0.452         0.000 audio_bclk 
+    Info (332119):     0.453         0.000 i2c_clk 
+Info (332146): Worst-case recovery slack is 14.622
+    Info (332119):     Slack End Point TNS Clock 
+    Info (332119): ========= ============= =====================
+    Info (332119):    14.622         0.000 sys_clk_50m 
+    Info (332119):    17.681         0.000 i2c_clk 
+Info (332146): Worst-case removal slack is 1.485
+    Info (332119):     Slack End Point TNS Clock 
+    Info (332119): ========= ============= =====================
+    Info (332119):     1.485         0.000 i2c_clk 
+    Info (332119):     4.199         0.000 sys_clk_50m 
+Info (332146): Worst-case minimum pulse width slack is 9.466
+    Info (332119):     Slack End Point TNS Clock 
+    Info (332119): ========= ============= =====================
+    Info (332119):     9.466         0.000 sys_clk_50m 
+    Info (332119):   333.064         0.000 audio_bclk 
+    Info (332119):   499.751         0.000 i2c_clk 
+Info: Analyzing Slow 1200mV 0C Model
+Info (334003): Started post-fitting delay annotation
+Info (334004): Delay annotation completed successfully
+Info (332123): Deriving Clock Uncertainty. Please refer to report_sdc in TimeQuest to see clock uncertainties.
+Info (332146): Worst-case setup slack is 6.841
+    Info (332119):     Slack End Point TNS Clock 
+    Info (332119): ========= ============= =====================
+    Info (332119):     6.841         0.000 sys_clk_50m 
+    Info (332119):   316.450         0.000 audio_bclk 
+    Info (332119):   995.226         0.000 i2c_clk 
+Info (332146): Worst-case hold slack is 0.381
+    Info (332119):     Slack End Point TNS Clock 
+    Info (332119): ========= ============= =====================
+    Info (332119):     0.381         0.000 sys_clk_50m 
+    Info (332119):     0.401         0.000 audio_bclk 
+    Info (332119):     0.404         0.000 i2c_clk 
+Info (332146): Worst-case recovery slack is 15.004
+    Info (332119):     Slack End Point TNS Clock 
+    Info (332119): ========= ============= =====================
+    Info (332119):    15.004         0.000 sys_clk_50m 
+    Info (332119):    17.778         0.000 i2c_clk 
+Info (332146): Worst-case removal slack is 1.323
+    Info (332119):     Slack End Point TNS Clock 
+    Info (332119): ========= ============= =====================
+    Info (332119):     1.323         0.000 i2c_clk 
+    Info (332119):     3.772         0.000 sys_clk_50m 
+Info (332146): Worst-case minimum pulse width slack is 9.495
+    Info (332119):     Slack End Point TNS Clock 
+    Info (332119): ========= ============= =====================
+    Info (332119):     9.495         0.000 sys_clk_50m 
+    Info (332119):   333.100         0.000 audio_bclk 
+    Info (332119):   499.784         0.000 i2c_clk 
+Info: Analyzing Fast 1200mV 0C Model
+Info (332123): Deriving Clock Uncertainty. Please refer to report_sdc in TimeQuest to see clock uncertainties.
+Info (332146): Worst-case setup slack is 13.730
+    Info (332119):     Slack End Point TNS Clock 
+    Info (332119): ========= ============= =====================
+    Info (332119):    13.730         0.000 sys_clk_50m 
+    Info (332119):   319.392         0.000 audio_bclk 
+    Info (332119):   997.722         0.000 i2c_clk 
+Info (332146): Worst-case hold slack is 0.137
+    Info (332119):     Slack End Point TNS Clock 
+    Info (332119): ========= ============= =====================
+    Info (332119):     0.137         0.000 sys_clk_50m 
+    Info (332119):     0.184         0.000 i2c_clk 
+    Info (332119):     0.185         0.000 audio_bclk 
+Info (332146): Worst-case recovery slack is 17.466
+    Info (332119):     Slack End Point TNS Clock 
+    Info (332119): ========= ============= =====================
+    Info (332119):    17.466         0.000 sys_clk_50m 
+    Info (332119):    18.855         0.000 i2c_clk 
+Info (332146): Worst-case removal slack is 0.624
+    Info (332119):     Slack End Point TNS Clock 
+    Info (332119): ========= ============= =====================
+    Info (332119):     0.624         0.000 i2c_clk 
+    Info (332119):     1.890         0.000 sys_clk_50m 
+Info (332146): Worst-case minimum pulse width slack is 9.370
+    Info (332119):     Slack End Point TNS Clock 
+    Info (332119): ========= ============= =====================
+    Info (332119):     9.370         0.000 sys_clk_50m 
+    Info (332119):   332.727         0.000 audio_bclk 
+    Info (332119):   499.725         0.000 i2c_clk 
+Info (332101): Design is fully constrained for setup requirements
+Info (332101): Design is fully constrained for hold requirements
+Info: Quartus II 64-Bit TimeQuest Timing Analyzer was successful. 0 errors, 0 warnings
+    Info: Peak virtual memory: 4832 megabytes
+    Info: Processing ended: Wed May 27 17:06:59 2026
+    Info: Elapsed time: 00:00:04
+    Info: Total CPU time (on all processors): 00:00:04
+Info: *******************************************************************
+Info: Running Quartus II 64-Bit EDA Netlist Writer
+    Info: Version 13.0.1 Build 232 06/12/2013 Service Pack 1 SJ Full Version
+    Info: Processing started: Wed May 27 17:06:59 2026
+Info: Command: quartus_eda --read_settings_files=off --write_settings_files=off piano_phase0_top -c piano_phase0_top
+Info (204019): Generated file piano_phase0_top_8_1200mv_85c_slow.vo in folder "E:/projects/piano-agents/quartus/phase0/simulation/modelsim/" for EDA simulation tool
+Info (204019): Generated file piano_phase0_top_8_1200mv_0c_slow.vo in folder "E:/projects/piano-agents/quartus/phase0/simulation/modelsim/" for EDA simulation tool
+Info (204019): Generated file piano_phase0_top_min_1200mv_0c_fast.vo in folder "E:/projects/piano-agents/quartus/phase0/simulation/modelsim/" for EDA simulation tool
+Info (204019): Generated file piano_phase0_top.vo in folder "E:/projects/piano-agents/quartus/phase0/simulation/modelsim/" for EDA simulation tool
+Info (204019): Generated file piano_phase0_top_8_1200mv_85c_v_slow.sdo in folder "E:/projects/piano-agents/quartus/phase0/simulation/modelsim/" for EDA simulation tool
+Info (204019): Generated file piano_phase0_top_8_1200mv_0c_v_slow.sdo in folder "E:/projects/piano-agents/quartus/phase0/simulation/modelsim/" for EDA simulation tool
+Info (204019): Generated file piano_phase0_top_min_1200mv_0c_v_fast.sdo in folder "E:/projects/piano-agents/quartus/phase0/simulation/modelsim/" for EDA simulation tool
+Info (204019): Generated file piano_phase0_top_v.sdo in folder "E:/projects/piano-agents/quartus/phase0/simulation/modelsim/" for EDA simulation tool
+Info: Quartus II 64-Bit EDA Netlist Writer was successful. 0 errors, 0 warnings
+    Info: Peak virtual memory: 4634 megabytes
+    Info: Processing ended: Wed May 27 17:07:03 2026
+    Info: Elapsed time: 00:00:04
+    Info: Total CPU time (on all processors): 00:00:04
+Info (293000): Quartus II Full Compilation was successful. 0 errors, 16 warnings
+Info (23030): Evaluation of Tcl script d:/quartus/quartus/common/tcl/internal/qsh_flow.tcl was successful
+Info: Quartus II 64-Bit Shell was successful. 0 errors, 16 warnings
+    Info: Peak virtual memory: 4396 megabytes
+    Info: Processing ended: Wed May 27 17:07:04 2026
+    Info: Elapsed time: 00:00:42
+    Info: Total CPU time (on all processors): 00:00:44
