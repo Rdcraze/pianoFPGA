@@ -101,9 +101,17 @@ wire signed [33:0] mult_product = mult_sample * mult_coeff;
 wire [6:0] rd_addr = wr_ptr - loop_len;
 wire [15:0] damp_inv_q15 = 16'd32767 - damp_mix_q15;
 
-wire [4:0] body_tap6_addr = body_wr_ptr - 5'd7;
-wire [4:0] body_tap16_addr = body_wr_ptr - 5'd17;
-wire [4:0] body_tap30_addr = body_wr_ptr - 5'd31;
+// Phase 6 M6.4-INT Cand E: body FIR tap address constants set to
+// 5'd4/12/24 to give effective FIR delays of 4/12/24 samples.
+// Reduces 2-3 kHz phase cancellation against disp_sample so the
+// body_mix swing reinforces rather than cancels in that band.
+// Weights (>>>2, >>>3, >>>4) and the M6.3a doubling shift
+// (<<<1 in STATE_BODY_TAP30) are unchanged. See
+// reports/phase6_m6_4_int_fir_scope.md and
+// reports/phase6_m6_4_int_fir_scope_validation.md.
+wire [4:0] body_tap6_addr  = body_wr_ptr - 5'd4;
+wire [4:0] body_tap16_addr = body_wr_ptr - 5'd12;
+wire [4:0] body_tap30_addr = body_wr_ptr - 5'd24;
 wire       body_clear_we = clear_active && (clear_index < 7'd32);
 wire       body_sample_we = (state == STATE_WRITE_SAMPLE);
 wire       body_write_en = body_clear_we || body_sample_we;
