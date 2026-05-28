@@ -37,6 +37,7 @@ wire [6:0]  cmd_loop_len;
 wire [15:0] cmd_velocity;
 wire        isolation_mode;
 wire [15:0] body_mix_runtime;
+wire [15:0] damp_mix_runtime;
 wire [31:0] command_count;
 wire [15:0] error_count;
 wire [15:0] last_error;
@@ -54,6 +55,7 @@ phase0_uart_command #(
     .cmd_velocity   (cmd_velocity),
     .isolation_mode (isolation_mode),
     .body_mix_runtime(body_mix_runtime),
+    .damp_mix_runtime(damp_mix_runtime),
     .command_count  (command_count),
     .error_count    (error_count),
     .last_error     (last_error)
@@ -389,10 +391,62 @@ initial begin
         fails = fails + 1;
     end
 
+    // ---- Phase 6 M6.5-DAMP: !D command tests ----
+
+    // 20. Default damp_mix_runtime should be 0x4000 after reset.
+    if (damp_mix_runtime !== 16'h4000) begin
+        $display("UART_CMD_TB_FAIL damp_mix_default got=%04x want=4000",
+                 damp_mix_runtime);
+        fails = fails + 1;
+    end else begin
+        $display("UART_CMD_TB_INFO damp_mix_default=0x4000");
+    end
+
+    // 21. !D0000\r\n -> damp_mix_runtime = 0x0000, command_count++.
+    send_byte("!"); send_byte("D");
+    send_byte("0"); send_byte("0"); send_byte("0"); send_byte("0");
+    send_crlf();
+    repeat (32) @(posedge sys_clk);
+    expect_eq32("command_count_after_21", command_count, 32'd15);
+    expect_eq16("damp_mix_after_D0000", damp_mix_runtime, 16'h0000);
+
+    // 22. !D7FFF\r\n -> damp_mix_runtime = 0x7FFF.
+    send_byte("!"); send_byte("D");
+    send_byte("7"); send_byte("F"); send_byte("F"); send_byte("F");
+    send_crlf();
+    repeat (32) @(posedge sys_clk);
+    expect_eq32("command_count_after_22", command_count, 32'd16);
+    expect_eq16("damp_mix_after_D7FFF", damp_mix_runtime, 16'h7FFF);
+
+    // 23. !DFFFF\r\n -> clamped to 0x7FFF (values > 0x7FFF saturate).
+    send_byte("!"); send_byte("D");
+    send_byte("F"); send_byte("F"); send_byte("F"); send_byte("F");
+    send_crlf();
+    repeat (32) @(posedge sys_clk);
+    expect_eq32("command_count_after_23", command_count, 32'd17);
+    expect_eq16("damp_mix_after_DFFFF_clamped", damp_mix_runtime, 16'h7FFF);
+
+    // 24. !D4000\r\n -> damp_mix_runtime = 0x4000 (restore default).
+    send_byte("!"); send_byte("D");
+    send_byte("4"); send_byte("0"); send_byte("0"); send_byte("0");
+    send_crlf();
+    repeat (32) @(posedge sys_clk);
+    expect_eq32("command_count_after_24", command_count, 32'd18);
+    expect_eq16("damp_mix_after_D4000", damp_mix_runtime, 16'h4000);
+
+    // 25. !DG000\r\n malformed -> ERR_UNSUPPORTED_ARG (7), no update.
+    send_byte("!"); send_byte("D");
+    send_byte("G"); send_byte("0"); send_byte("0"); send_byte("0");
+    send_crlf();
+    repeat (32) @(posedge sys_clk);
+    expect_eq32("command_count_after_25", command_count, 32'd18);
+    expect_eq16("damp_mix_after_DG000", damp_mix_runtime, 16'h4000);
+    expect_eq16("last_error_after_DG000", last_error, 16'd7);
+
     if (fails == 0) begin
-        $display("UART_CMD_TB_PASS notes=%0d releases=%0d errors=%0d isolation=%b body_mix=%04x",
+        $display("UART_CMD_TB_PASS notes=%0d releases=%0d errors=%0d isolation=%b body_mix=%04x damp_mix=%04x",
                  notes_seen, releases_seen, error_count, isolation_mode,
-                 body_mix_runtime);
+                 body_mix_runtime, damp_mix_runtime);
     end else begin
         $display("UART_CMD_TB_FAIL fails=%0d", fails);
     end

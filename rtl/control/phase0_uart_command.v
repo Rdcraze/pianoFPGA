@@ -63,6 +63,14 @@ module phase0_uart_command #(
     // four hex digits.
     output reg  [15:0] body_mix_runtime,
 
+    // Phase 6 M6.5-DAMP: runtime damp_mix control. Default at reset
+    // is 16'd16384 (0x4000), matching the accepted M3/M5 static
+    // damp setting. The host can update at runtime via "!Dvvvv\r\n"
+    // where vvvv is exactly four hex digits. Values above 0x7FFF are
+    // clamped to 0x7FFF before storing because the voice multiplier
+    // path interprets damp_mix_q15 through a signed coefficient cast.
+    output reg  [15:0] damp_mix_runtime,
+
     output reg  [31:0] command_count,
     output reg  [15:0] error_count,
     output reg  [15:0] last_error
@@ -205,6 +213,7 @@ always @(posedge sys_clk or negedge sys_rst_n) begin
         cmd_velocity    <= 16'h7FFF;
         isolation_mode  <= 1'b0;
         body_mix_runtime <= 16'd12288;
+        damp_mix_runtime <= 16'd16384;
 
         command_count   <= 32'd0;
         error_count     <= 16'd0;
@@ -354,6 +363,31 @@ always @(posedge sys_clk or negedge sys_rst_n) begin
                                     end
                                 end else if ((line_buf[0] == 8'h21) &&
                                              (line_buf[1] == 8'h42)) begin
+                                    last_error <= ERR_UNSUPPORTED_ARG;
+                                    if (error_count != 16'hFFFF) begin
+                                        error_count <= error_count + 16'd1;
+                                    end
+                                // Phase 6 M6.5-DAMP: !Dvvvv\r\n runtime
+                                // damp_mix knob. Same 8-byte structure as
+                                // !B. Values above 0x7FFF are clamped
+                                // because the voice multiplier path
+                                // interprets damp_mix through a signed
+                                // coefficient cast.
+                                end else if ((line_buf[0] == 8'h21) &&
+                                             (line_buf[1] == 8'h44) &&
+                                             (line_buf[6] == 8'h0D)) begin
+                                    if (!bm_hex_valid) begin
+                                        last_error <= ERR_UNSUPPORTED_ARG;
+                                        if (error_count != 16'hFFFF) begin
+                                            error_count <= error_count + 16'd1;
+                                        end
+                                    end else begin
+                                        damp_mix_runtime <= (parsed_body_mix > 16'h7FFF) ?
+                                                            16'h7FFF : parsed_body_mix;
+                                        command_count <= command_count + 32'd1;
+                                    end
+                                end else if ((line_buf[0] == 8'h21) &&
+                                             (line_buf[1] == 8'h44)) begin
                                     last_error <= ERR_UNSUPPORTED_ARG;
                                     if (error_count != 16'hFFFF) begin
                                         error_count <= error_count + 16'd1;

@@ -63,6 +63,14 @@ module phase0_fixed_control (
     // structure and saturation behaviour are unchanged.
     input  wire [15:0]        body_mix_runtime,
 
+    // Phase 6 M6.5-DAMP runtime damp_mix. The parser exposes
+    // damp_mix_runtime as a 16-bit register (clamped to 0..0x7FFF)
+    // that defaults to 16'd16384 (0x4000) at reset and is updated
+    // by !Dvvvv\r\n commands. The controller latches this value
+    // into voice_damp_mix_reg on reset and on each note_strobe;
+    // release_strobe still forces 16'd32767 for release damping.
+    input  wire [15:0]        damp_mix_runtime,
+
     // Sample-generator / global control
     output wire               audio_enable,
     output wire               tone_enable,
@@ -228,7 +236,10 @@ always @(posedge sys_clk or negedge sys_rst_n) begin
         trigger_pulse       <= 1'b0;
         command_mode        <= 1'b0;
         voice0_reset_pulse  <= 1'b0;
-        voice_damp_mix_reg  <= 16'd16384;
+        // Phase 6 M6.5-DAMP: latch runtime damp_mix on reset so the
+        // audio path comes up at the parser's default (0x4000) before
+        // any host command arrives.
+        voice_damp_mix_reg  <= damp_mix_runtime;
 
         voice0_loop_len_reg <= 7'd106;
         voice1_loop_len_reg <= 7'd106;
@@ -260,8 +271,10 @@ always @(posedge sys_clk or negedge sys_rst_n) begin
         // never fire on the same cycle once command_mode is set).
         if (note_strobe) begin
             command_mode       <= 1'b1;
-            // First note after a release should clear release damping.
-            voice_damp_mix_reg <= 16'd16384;
+            // Phase 6 M6.5-DAMP: latch runtime damp_mix on each new
+            // note so the sustain setting tracks the host's !D value.
+            // Release_strobe still overrides to 16'd32767 below.
+            voice_damp_mix_reg <= damp_mix_runtime;
 
             if (isolation_mode) begin
                 // Phase 6 M1.1: in isolation mode, every command note
