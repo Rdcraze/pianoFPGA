@@ -71,6 +71,12 @@ module phase0_uart_command #(
     // path interprets damp_mix_q15 through a signed coefficient cast.
     output reg  [15:0] damp_mix_runtime,
 
+    // Phase 6 M6.6-DISP: runtime dispersion coefficient. Default at
+    // reset is 16'sd9952 (0x26E0). The host can update at runtime via
+    // "!Svvvv\r\n" where vvvv is exactly four hex digits. The full
+    // signed 16-bit range is valid for the allpass (no clamping).
+    output reg signed [15:0] disp_coeff_runtime,
+
     output reg  [31:0] command_count,
     output reg  [15:0] error_count,
     output reg  [15:0] last_error
@@ -182,6 +188,8 @@ assign parsed_vel_clamped  = (parsed_vel_full > 16'h7FFF) ? 16'h7FFF :
 // larger body contribution and never phase-flip the body component.
 // See reports/phase6_m6_1_body_path_audit.md and
 // reports/phase6_m6_2_body_signed_cast_fix_impl.md for the rationale.
+// NOTE: !D (damp_mix) and !S (disp_coeff) also use the same
+// parsed_body_mix / bm_hex_valid precompute wires below.
 // -------------------------------------------------------------------------
 wire        bm_hex_valid;
 wire [15:0] parsed_body_mix;
@@ -214,6 +222,7 @@ always @(posedge sys_clk or negedge sys_rst_n) begin
         isolation_mode  <= 1'b0;
         body_mix_runtime <= 16'd12288;
         damp_mix_runtime <= 16'd16384;
+        disp_coeff_runtime <= 16'sd9952;
 
         command_count   <= 32'd0;
         error_count     <= 16'd0;
@@ -388,6 +397,29 @@ always @(posedge sys_clk or negedge sys_rst_n) begin
                                     end
                                 end else if ((line_buf[0] == 8'h21) &&
                                              (line_buf[1] == 8'h44)) begin
+                                    last_error <= ERR_UNSUPPORTED_ARG;
+                                    if (error_count != 16'hFFFF) begin
+                                        error_count <= error_count + 16'd1;
+                                    end
+                                // Phase 6 M6.6-DISP: !Svvvv\r\n runtime
+                                // dispersion coefficient. Same 8-byte
+                                // structure as !B/!D. Full signed 16-bit
+                                // range is valid (no clamping needed for
+                                // the allpass coefficient).
+                                end else if ((line_buf[0] == 8'h21) &&
+                                             (line_buf[1] == 8'h53) &&
+                                             (line_buf[6] == 8'h0D)) begin
+                                    if (!bm_hex_valid) begin
+                                        last_error <= ERR_UNSUPPORTED_ARG;
+                                        if (error_count != 16'hFFFF) begin
+                                            error_count <= error_count + 16'd1;
+                                        end
+                                    end else begin
+                                        disp_coeff_runtime <= parsed_body_mix;
+                                        command_count <= command_count + 32'd1;
+                                    end
+                                end else if ((line_buf[0] == 8'h21) &&
+                                             (line_buf[1] == 8'h53)) begin
                                     last_error <= ERR_UNSUPPORTED_ARG;
                                     if (error_count != 16'hFFFF) begin
                                         error_count <= error_count + 16'd1;

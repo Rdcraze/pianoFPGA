@@ -71,6 +71,10 @@ module phase0_fixed_control (
     // release_strobe still forces 16'd32767 for release damping.
     input  wire [15:0]        damp_mix_runtime,
 
+    // Phase 6 M6.6-DISP: runtime dispersion coefficient from !Svvvv.
+    // Default 16'sd9952 (0x26E0) set by parser reset.
+    input  wire signed [15:0] disp_coeff_runtime,
+
     // Sample-generator / global control
     output wire               audio_enable,
     output wire               tone_enable,
@@ -169,7 +173,9 @@ assign voice_diag_clear_strobe  = 1'b0;
 // Static voice parameters (unchanged from M1)
 // -------------------------------------------------------------------------
 assign voice_loop_gain  = 16'd32640;
-assign voice_disp_coeff = 16'sd9952;
+// Phase 6 M6.6-DISP: runtime dispersion coefficient from !Svvvv.
+// Default 16'sd9952 (0x26E0) set by parser reset.
+assign voice_disp_coeff = disp_coeff_runtime;
 // Phase 6 M3/M5: body_mix is now driven by body_mix_runtime out of
 // phase0_uart_command. M3 raised the static preset from 16'd8192
 // to 16'd12288 (+50% body content) for piano-like warmth; M5

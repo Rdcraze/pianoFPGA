@@ -72,6 +72,7 @@ phase0_fixed_control dut (
     .isolation_mode           (isolation_mode),
     .body_mix_runtime         (16'd12288),
     .damp_mix_runtime         (16'd16384),
+    .disp_coeff_runtime       (16'sd9952),
     .audio_enable             (audio_enable),
     .tone_enable              (tone_enable),
     .wave_sel                 (wave_sel),

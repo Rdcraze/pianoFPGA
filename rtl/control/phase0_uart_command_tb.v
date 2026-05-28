@@ -38,6 +38,7 @@ wire [15:0] cmd_velocity;
 wire        isolation_mode;
 wire [15:0] body_mix_runtime;
 wire [15:0] damp_mix_runtime;
+wire signed [15:0] disp_coeff_runtime;
 wire [31:0] command_count;
 wire [15:0] error_count;
 wire [15:0] last_error;
@@ -56,6 +57,7 @@ phase0_uart_command #(
     .isolation_mode (isolation_mode),
     .body_mix_runtime(body_mix_runtime),
     .damp_mix_runtime(damp_mix_runtime),
+    .disp_coeff_runtime(disp_coeff_runtime),
     .command_count  (command_count),
     .error_count    (error_count),
     .last_error     (last_error)
@@ -443,10 +445,62 @@ initial begin
     expect_eq16("damp_mix_after_DG000", damp_mix_runtime, 16'h4000);
     expect_eq16("last_error_after_DG000", last_error, 16'd7);
 
+    // ---- Phase 6 M6.6-DISP: !S command tests ----
+
+    // 26. Default disp_coeff_runtime should be 0x26E0 after reset.
+    if (disp_coeff_runtime !== 16'h26E0) begin
+        $display("UART_CMD_TB_FAIL disp_coeff_default got=%04x want=26E0",
+                 disp_coeff_runtime);
+        fails = fails + 1;
+    end else begin
+        $display("UART_CMD_TB_INFO disp_coeff_default=0x26E0");
+    end
+
+    // 27. !S0000\r\n -> disp_coeff_runtime = 0x0000, command_count++.
+    send_byte("!"); send_byte("S");
+    send_byte("0"); send_byte("0"); send_byte("0"); send_byte("0");
+    send_crlf();
+    repeat (32) @(posedge sys_clk);
+    expect_eq32("command_count_after_27", command_count, 32'd19);
+    expect_eq16("disp_coeff_after_S0000", disp_coeff_runtime, 16'h0000);
+
+    // 28. !S7FFF\r\n -> disp_coeff_runtime = 0x7FFF.
+    send_byte("!"); send_byte("S");
+    send_byte("7"); send_byte("F"); send_byte("F"); send_byte("F");
+    send_crlf();
+    repeat (32) @(posedge sys_clk);
+    expect_eq32("command_count_after_28", command_count, 32'd20);
+    expect_eq16("disp_coeff_after_S7FFF", disp_coeff_runtime, 16'h7FFF);
+
+    // 29. !S8000\r\n -> disp_coeff_runtime = 0x8000 (negative signed, valid).
+    send_byte("!"); send_byte("S");
+    send_byte("8"); send_byte("0"); send_byte("0"); send_byte("0");
+    send_crlf();
+    repeat (32) @(posedge sys_clk);
+    expect_eq32("command_count_after_29", command_count, 32'd21);
+    expect_eq16("disp_coeff_after_S8000", disp_coeff_runtime, 16'h8000);
+
+    // 30. !SFFFF\r\n -> disp_coeff_runtime = 0xFFFF (negative signed, valid).
+    send_byte("!"); send_byte("S");
+    send_byte("F"); send_byte("F"); send_byte("F"); send_byte("F");
+    send_crlf();
+    repeat (32) @(posedge sys_clk);
+    expect_eq32("command_count_after_30", command_count, 32'd22);
+    expect_eq16("disp_coeff_after_SFFFF", disp_coeff_runtime, 16'hFFFF);
+
+    // 31. !SG000\r\n malformed -> ERR_UNSUPPORTED_ARG (7), no update.
+    send_byte("!"); send_byte("S");
+    send_byte("G"); send_byte("0"); send_byte("0"); send_byte("0");
+    send_crlf();
+    repeat (32) @(posedge sys_clk);
+    expect_eq32("command_count_after_31", command_count, 32'd22);
+    expect_eq16("disp_coeff_after_SG000", disp_coeff_runtime, 16'hFFFF);
+    expect_eq16("last_error_after_SG000", last_error, 16'd7);
+
     if (fails == 0) begin
-        $display("UART_CMD_TB_PASS notes=%0d releases=%0d errors=%0d isolation=%b body_mix=%04x damp_mix=%04x",
+        $display("UART_CMD_TB_PASS notes=%0d releases=%0d errors=%0d isolation=%b body_mix=%04x damp_mix=%04x disp_coeff=%04x",
                  notes_seen, releases_seen, error_count, isolation_mode,
-                 body_mix_runtime, damp_mix_runtime);
+                 body_mix_runtime, damp_mix_runtime, disp_coeff_runtime);
     end else begin
         $display("UART_CMD_TB_FAIL fails=%0d", fails);
     end
