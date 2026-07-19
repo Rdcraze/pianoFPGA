@@ -52,6 +52,15 @@ set_output_delay -clock [get_clocks {audio_bclk}] -min -10.000 \
 # synchronous setup/hold interface. UART1 is CH340-backed asynchronous serial
 # debug I/O with no board clock aperture to constrain at the FPGA pins.
 set_false_path -from [get_ports {sys_rst_n}]
+
+# core_rst_n is synchronous to sys_clk, so its recovery/removal fanout in that
+# domain remains timed. Only its crossings into the first stage of the I2C and
+# audio-BCLK reset synchronizers are intentionally asynchronous. Their second
+# stages and all downstream recovery/removal paths remain timed.
+set_false_path -from \
+    [get_registers {phase0_reset_sync:phase0_reset_sync_inst|reset_pipe[1]}] \
+    -to [get_registers {wm8978_codec_stub:wm8978_codec_stub_inst|phase0_reset_sync:phase0_i2c_reset_sync_inst|reset_pipe[0] wm8978_codec_stub:wm8978_codec_stub_inst|phase0_reset_sync:phase0_audio_bclk_reset_sync_inst|reset_pipe[0]}]
+
 set_false_path -from [get_ports {uart1_rx}]
 set_false_path -to [get_ports {uart1_tx}]
 

@@ -178,6 +178,14 @@ initial begin
     sys_rst_n = 1'b1;
     repeat (8) @(posedge sys_clk);
 
+    if (voice_damp_mix !== 16'h4000) begin
+        $display("ISO_TB_FAIL reset_damp expected=0x4000 got=0x%04h",
+                 voice_damp_mix);
+        fails = fails + 1;
+    end else begin
+        $display("ISO_TB_PASS reset_damp=0x4000");
+    end
+
     // ----- Normal mode round-robin ------------------------------------
     // Send 4 notes; expect each to land on a different voice in
     // round-robin order, matching M2/M3 behavior.
