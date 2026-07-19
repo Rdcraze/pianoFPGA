@@ -45,6 +45,8 @@ wire       cfg_timeout_seen;
 wire       cfg_start;
 wire [15:0] cfg_word;
 wire       i2c_clk;
+wire       i2c_rst_n;
+wire       audio_bclk_rst_n;
 wire       i2c_end;
 wire       i2c_error;
 wire       i2c_nack_error;
@@ -104,16 +106,16 @@ always @(posedge sys_clk or negedge sys_rst_n) begin
     end
 end
 
-always @(posedge audio_bclk or negedge sys_rst_n) begin
-    if (!sys_rst_n) begin
+always @(posedge audio_bclk or negedge audio_bclk_rst_n) begin
+    if (!audio_bclk_rst_n) begin
         frame_toggle_bclk <= 1'b0;
     end else if (frame_start_bclk) begin
         frame_toggle_bclk <= ~frame_toggle_bclk;
     end
 end
 
-always @(posedge i2c_clk or negedge sys_rst_n) begin
-    if (!sys_rst_n) begin
+always @(posedge i2c_clk or negedge i2c_rst_n) begin
+    if (!i2c_rst_n) begin
         cpu_cfg_req_sync_i2c   <= 3'd0;
         cpu_cfg_req_seen_i2c   <= 1'b0;
         cpu_cfg_word_i2c       <= 16'd0;
@@ -137,6 +139,25 @@ end
 assign sample_tick = frame_toggle_sys[2] ^ frame_toggle_sys[1];
 assign cfg_busy    = cpu_cfg_outstanding_sys || boot_cfg_busy_sync_sys[2];
 
+// sys_rst_n is released synchronously to sys_clk by the top-level reset
+// synchronizer. Re-synchronize its release before using it as an asynchronous
+// reset in either secondary clock domain. Assertion remains asynchronous, but
+// every downstream register observes deassertion on a local clock edge.
+//
+// The I2C clock divider itself remains on sys_rst_n so i2c_clk can start and
+// provide the edges needed to release i2c_rst_n.
+phase0_reset_sync phase0_i2c_reset_sync_inst (
+    .clk   (i2c_clk),
+    .arst_n(sys_rst_n),
+    .srst_n(i2c_rst_n)
+);
+
+phase0_reset_sync phase0_audio_bclk_reset_sync_inst (
+    .clk   (audio_bclk),
+    .arst_n(sys_rst_n),
+    .srst_n(audio_bclk_rst_n)
+);
+
 phase0_audio_mclk_pll phase0_audio_mclk_pll_inst (
     .areset (~sys_rst_n),
     .inclk0 (sys_clk),
@@ -146,7 +167,7 @@ phase0_audio_mclk_pll phase0_audio_mclk_pll_inst (
 
 wm8978_boot_seq wm8978_boot_seq_inst (
     .i2c_clk         (i2c_clk),
-    .sys_rst_n       (sys_rst_n),
+    .sys_rst_n       (i2c_rst_n),
     .codec_clk_ready (mclk_locked_sync_i2c[2]),
     .cfg_end         (i2c_end),
     .cfg_error       (i2c_error),
@@ -169,6 +190,7 @@ wm8978_i2c_ctrl #(
 ) wm8978_i2c_ctrl_inst (
     .sys_clk    (sys_clk),
     .sys_rst_n  (sys_rst_n),
+    .i2c_rst_n  (i2c_rst_n),
     .wr_en      (1'b1),
     .rd_en      (1'b0),
     .i2c_start  (cfg_start),
@@ -188,7 +210,7 @@ wm8978_i2c_ctrl #(
 
 wm8978_dac_tx wm8978_dac_tx_inst (
     .audio_bclk  (audio_bclk),
-    .sys_rst_n   (sys_rst_n),
+    .sys_rst_n   (audio_bclk_rst_n),
     .audio_lrc   (audio_lrc),
     .tx_sample   (tx_sample),
     .audio_dacdat(audio_dacdat),

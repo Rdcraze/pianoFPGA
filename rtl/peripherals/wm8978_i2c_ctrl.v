@@ -7,6 +7,9 @@ module wm8978_i2c_ctrl #(
 ) (
     input  wire        sys_clk,
     input  wire        sys_rst_n,
+    // Local I2C-domain reset: asynchronously asserted from sys_rst_n and
+    // synchronously released by the codec wrapper on i2c_clk.
+    input  wire        i2c_rst_n,
     input  wire        wr_en,
     input  wire        rd_en,
     input  wire        i2c_start,
@@ -77,8 +80,8 @@ always @(posedge sys_clk or negedge sys_rst_n) begin
     end
 end
 
-always @(posedge i2c_clk or negedge sys_rst_n) begin
-    if (!sys_rst_n) begin
+always @(posedge i2c_clk or negedge i2c_rst_n) begin
+    if (!i2c_rst_n) begin
         cnt_i2c_clk_en <= 1'b0;
     end else if ((state == STOP) && (cnt_bit == 3'd3) && (cnt_i2c_clk == 2'd3)) begin
         cnt_i2c_clk_en <= 1'b0;
@@ -87,16 +90,16 @@ always @(posedge i2c_clk or negedge sys_rst_n) begin
     end
 end
 
-always @(posedge i2c_clk or negedge sys_rst_n) begin
-    if (!sys_rst_n) begin
+always @(posedge i2c_clk or negedge i2c_rst_n) begin
+    if (!i2c_rst_n) begin
         cnt_i2c_clk <= 2'd0;
     end else if (cnt_i2c_clk_en) begin
         cnt_i2c_clk <= cnt_i2c_clk + 1'b1;
     end
 end
 
-always @(posedge i2c_clk or negedge sys_rst_n) begin
-    if (!sys_rst_n) begin
+always @(posedge i2c_clk or negedge i2c_rst_n) begin
+    if (!i2c_rst_n) begin
         cnt_bit <= 3'd0;
     end else if ((state == IDLE) || (state == START_1) || (state == START_2) ||
                  (state == ACK_1) || (state == ACK_2) || (state == ACK_3) ||
@@ -109,8 +112,8 @@ always @(posedge i2c_clk or negedge sys_rst_n) begin
     end
 end
 
-always @(posedge i2c_clk or negedge sys_rst_n) begin
-    if (!sys_rst_n) begin
+always @(posedge i2c_clk or negedge i2c_rst_n) begin
+    if (!i2c_rst_n) begin
         state <= IDLE;
     end else if (timeout_error && (state != IDLE) && (state != STOP)) begin
         state <= STOP;
@@ -183,8 +186,8 @@ always @(posedge i2c_clk or negedge sys_rst_n) begin
     end
 end
 
-always @(posedge i2c_clk or negedge sys_rst_n) begin
-    if (!sys_rst_n) begin
+always @(posedge i2c_clk or negedge i2c_rst_n) begin
+    if (!i2c_rst_n) begin
         ack <= 1'b1;
     end else begin
         case (state)
@@ -201,8 +204,8 @@ always @(posedge i2c_clk or negedge sys_rst_n) begin
     end
 end
 
-always @(posedge i2c_clk or negedge sys_rst_n) begin
-    if (!sys_rst_n) begin
+always @(posedge i2c_clk or negedge i2c_rst_n) begin
+    if (!i2c_rst_n) begin
         nack_error    <= 1'b0;
         timeout_error <= 1'b0;
         timeout_count <= 12'd0;
@@ -301,8 +304,8 @@ always @(*) begin
     endcase
 end
 
-always @(posedge i2c_clk or negedge sys_rst_n) begin
-    if (!sys_rst_n) begin
+always @(posedge i2c_clk or negedge i2c_rst_n) begin
+    if (!i2c_rst_n) begin
         rd_data_reg <= 8'd0;
     end else if (state == IDLE) begin
         rd_data_reg <= 8'd0;
@@ -311,16 +314,16 @@ always @(posedge i2c_clk or negedge sys_rst_n) begin
     end
 end
 
-always @(posedge i2c_clk or negedge sys_rst_n) begin
-    if (!sys_rst_n) begin
+always @(posedge i2c_clk or negedge i2c_rst_n) begin
+    if (!i2c_rst_n) begin
         rd_data <= 8'd0;
     end else if ((state == RD_DATA) && (cnt_bit == 3'd7) && (cnt_i2c_clk == 2'd3)) begin
         rd_data <= rd_data_reg;
     end
 end
 
-always @(posedge i2c_clk or negedge sys_rst_n) begin
-    if (!sys_rst_n) begin
+always @(posedge i2c_clk or negedge i2c_rst_n) begin
+    if (!i2c_rst_n) begin
         i2c_end <= 1'b0;
     end else if ((state == STOP) && (cnt_bit == 3'd3) && (cnt_i2c_clk == 2'd3)) begin
         i2c_end <= 1'b1;

@@ -242,10 +242,10 @@ always @(posedge sys_clk or negedge sys_rst_n) begin
         trigger_pulse       <= 1'b0;
         command_mode        <= 1'b0;
         voice0_reset_pulse  <= 1'b0;
-        // Phase 6 M6.5-DAMP: latch runtime damp_mix on reset so the
-        // audio path comes up at the parser's default (0x4000) before
-        // any host command arrives.
-        voice_damp_mix_reg  <= damp_mix_runtime;
+        // Phase 6 M6.5-DAMP: use the parser's constant reset default.
+        // An asynchronous reset cannot load a runtime signal directly
+        // without Quartus emulating the register with latch circuitry.
+        voice_damp_mix_reg  <= 16'h4000;
 
         voice0_loop_len_reg <= 7'd106;
         voice1_loop_len_reg <= 7'd106;
